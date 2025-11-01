@@ -205,26 +205,26 @@ def require_admin(current_user: Usuario = Depends(get_current_user_from_cookie))
 
 
 def set_auth_cookie(response: Response, token: str):
-    """Define cookie de autenticação"""
+    """Define cookie de autenticação (sessão - expira ao fechar navegador)"""
     response.set_cookie(
         key="access_token",
         value=token,
         httponly=True,
         secure=not settings.DEBUG,  # HTTPS em produção
-        samesite="lax",
-        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        samesite="lax"
+        # Sem max_age = cookie de sessão (expira ao fechar navegador)
     )
 
 
 def set_refresh_cookie(response: Response, refresh_token: str):
-    """Define cookie de refresh token"""
+    """Define cookie de refresh token (sessão - expira ao fechar navegador)"""
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
         secure=not settings.DEBUG,
-        samesite="lax",
-        max_age=7 * 24 * 60 * 60  # 7 dias
+        samesite="lax"
+        # Sem max_age = cookie de sessão
     )
 
 

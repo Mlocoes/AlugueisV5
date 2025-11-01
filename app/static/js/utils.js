@@ -1,7 +1,67 @@
 // Utilidades gerais do AlugueisV5
 
+// Configuração de timeout de inatividade (5 minutos)
+const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutos em milissegundos
+let inactivityTimer;
+
+// Detectar reload da página e fazer logout
+window.addEventListener('beforeunload', function(e) {
+    // Marca que a página está sendo recarregada
+    sessionStorage.setItem('page_reloading', 'true');
+});
+
+// Verificar se foi um reload e fazer logout
+window.addEventListener('load', function() {
+    const isReloading = sessionStorage.getItem('page_reloading');
+    
+    // Se foi reload (F5, Ctrl+R, etc), fazer logout
+    if (isReloading === 'true') {
+        sessionStorage.removeItem('page_reloading');
+        
+        // Se não estiver na página de login, fazer logout
+        if (!window.location.pathname.includes('/login')) {
+            logout();
+        }
+    }
+});
+
+// Resetar timer de inatividade
+function resetInactivityTimer() {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(() => {
+        showToast('Sessão expirada por inatividade', 'warning');
+        logout();
+    }, INACTIVITY_TIMEOUT);
+}
+
+// Monitorar atividade do usuário
+if (!window.location.pathname.includes('/login')) {
+    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(event => {
+        document.addEventListener(event, resetInactivityTimer, true);
+    });
+    resetInactivityTimer(); // Iniciar timer
+}
+
+// Função de logout
+async function logout() {
+    try {
+        await fetch('/api/auth/logout', {
+            method: 'POST',
+            credentials: 'include'
+        });
+    } catch (error) {
+        console.error('Erro ao fazer logout:', error);
+    } finally {
+        // Redirecionar para login de qualquer forma
+        window.location.href = '/login';
+    }
+}
+
 // Função para fazer requisições com token JWT
 async function fetchWithAuth(url, options = {}) {
+    // Resetar timer de inatividade em cada requisição
+    resetInactivityTimer();
+    
     const defaultOptions = {
         headers: {
             'Content-Type': 'application/json',

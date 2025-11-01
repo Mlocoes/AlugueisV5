@@ -211,6 +211,11 @@
     document.addEventListener('DOMContentLoaded', () => {
         loadUserInfo();
         loadStats();
+        
+        // Adicionar evento de logout
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            logout();
+        });
     });
 </script>
 {% endblock %}
