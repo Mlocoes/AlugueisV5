@@ -33,7 +33,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://alugueis_user:alugueis_pass_2024@db:5432/alugueis_v5
       - SECRET_KEY=your-secret-key-change-in-production-min-32-chars
-      - ADMIN_EMAIL=admin@alugueis.com
+      - ADMIN_EMAIL=admin@sistema.com
       - ADMIN_PASSWORD=admin123
       - DEBUG=True
     depends_on:
