@@ -36,8 +36,10 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
 # Importar e incluir rotas
-from app.routes import auth
+from app.routes import auth, imoveis, usuarios
 app.include_router(auth.router)
+app.include_router(imoveis.router)
+app.include_router(usuarios.router)
 
 @app.get("/", response_class=RedirectResponse)
 async def root():
@@ -51,8 +53,8 @@ async def login_page(request: Request):
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard_page(request: Request):
-    """Página do dashboard (temporária)"""
-    return templates.TemplateResponse("base.html", {
+    """Página do dashboard"""
+    return templates.TemplateResponse("dashboard.html", {
         "request": request, 
         "title": "Dashboard"
     })
