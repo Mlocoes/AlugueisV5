@@ -2,11 +2,14 @@
 AlugueisV5 - Sistema de Gestão de Aluguéis
 Aplicação FastAPI principal
 """
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi.exceptions import HTTPException
+from app.core.auth import get_current_user_from_cookie
+from app.models.usuario import Usuario
 
 # Importar configurações
 from app.core.config import settings
@@ -28,6 +31,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Exception handler para redirecionar 401 para login em rotas HTML
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    """Redireciona para login em caso de 401 em rotas HTML"""
+    # Se for erro 401 e a requisição aceita HTML, redireciona
+    if exc.status_code == 401:
+        accept = request.headers.get("accept", "")
+        if "text/html" in accept:
+            return RedirectResponse(url="/login", status_code=303)
+    # Caso contrário, retorna erro JSON
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail}
+    )
 
 # Montar arquivos estáticos
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
@@ -52,11 +70,12 @@ async def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request, "title": "Login"})
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard_page(request: Request):
+async def dashboard_page(request: Request, current_user: Usuario = Depends(get_current_user_from_cookie)):
     """Página do dashboard"""
     return templates.TemplateResponse("dashboard.html", {
         "request": request, 
-        "title": "Dashboard"
+        "title": "Dashboard",
+        "user": current_user
     })
 
 @app.get("/health")
