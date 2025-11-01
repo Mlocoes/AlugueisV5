@@ -41,8 +41,8 @@ async def login(
         )
     
     # Cria tokens
-    access_token = create_access_token(data={"sub": usuario.id})
-    refresh_token = create_refresh_token(data={"sub": usuario.id})
+    access_token = create_access_token(data={"sub": str(usuario.id)})
+    refresh_token = create_refresh_token(data={"sub": str(usuario.id)})
     
     # Define cookies
     set_auth_cookie(response, access_token)
@@ -98,6 +98,17 @@ async def refresh_token(
                 detail="Token inválido"
             )
         
+        # Converter string para int
+        try:
+            user_id = int(user_id)
+        except (ValueError, TypeError):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token inválido"
+            )
+        
+    except HTTPException:
+        raise
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -114,7 +125,7 @@ async def refresh_token(
         )
     
     # Cria novo access token
-    new_access_token = create_access_token(data={"sub": usuario.id})
+    new_access_token = create_access_token(data={"sub": str(usuario.id)})
     
     # Atualiza cookie
     set_auth_cookie(response, new_access_token)

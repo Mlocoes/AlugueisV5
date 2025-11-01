@@ -57,7 +57,7 @@ def decode_token(token: str) -> dict:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         return payload
-    except JWTError:
+    except JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token inválido ou expirado"
@@ -103,7 +103,18 @@ async def get_current_user_from_cookie(
                 detail="Token inválido"
             )
         
-    except JWTError:
+        # Converter string para int
+        try:
+            user_id = int(user_id)
+        except (ValueError, TypeError):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token inválido"
+            )
+        
+    except HTTPException:
+        raise
+    except JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token inválido"
@@ -149,6 +160,17 @@ async def get_current_user_from_bearer(
                 detail="Token inválido"
             )
         
+        # Converter string para int
+        try:
+            user_id = int(user_id)
+        except (ValueError, TypeError):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token inválido"
+            )
+        
+    except HTTPException:
+        raise
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
