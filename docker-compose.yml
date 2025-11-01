@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: alugueis_v5_db
+    environment:
+      POSTGRES_USER: alugueis_user
+      POSTGRES_PASSWORD: alugueis_pass_2024
+      POSTGRES_DB: alugueis_v5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alugueis_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - alugueis_network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: alugueis_v5_app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://alugueis_user:alugueis_pass_2024@db:5432/alugueis_v5
+      - SECRET_KEY=your-secret-key-change-in-production-min-32-chars
+      - ADMIN_EMAIL=admin@alugueis.com
+      - ADMIN_PASSWORD=admin123
+      - DEBUG=True
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - alugueis_network
+
+volumes:
+  postgres_data:
+
+networks:
+  alugueis_network:
+    driver: bridge
