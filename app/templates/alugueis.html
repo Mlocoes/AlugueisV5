@@ -174,17 +174,6 @@ let alugueisData = [];
 let imoveisData = [];
 
 // Carregar informações do usuário
-async function loadUserInfo() {
-    try {
-        const user = await fetchWithAuth('/api/auth/me');
-        if (user) {
-            document.getElementById('user-name').textContent = user.nome;
-        }
-    } catch (error) {
-        console.error('Erro ao carregar usuário:', error);
-    }
-}
-
 // Carregar imóveis para os selects
 async function loadImoveis() {
     try {
@@ -214,36 +203,24 @@ async function loadImoveis() {
     }
 }
 
-// Carregar anos disponíveis
-function loadAnos() {
-    const selectAno = document.getElementById('filter-ano');
-    const anoAtual = new Date().getFullYear();
-    
-    for (let ano = anoAtual; ano >= anoAtual - 5; ano--) {
-        const option = document.createElement('option');
-        option.value = ano;
-        option.textContent = ano;
-        selectAno.appendChild(option);
-    }
-    
-    // Selecionar ano atual por padrão
-    selectAno.value = anoAtual;
-}
-
 // Carregar estatísticas
 async function loadStats() {
     try {
-        const ano = document.getElementById('filter-ano').value;
-        const url = ano ? `/api/alugueis/stats/summary?ano=${ano}` : '/api/alugueis/stats/summary';
-        
-        const response = await fetchWithAuth(url);
+        const response = await fetchWithAuth('/api/alugueis/stats/summary');
         if (response && response.ok) {
             const stats = await response.json();
-            document.getElementById('stat-total').textContent = stats.total_alugueis;
-            document.getElementById('stat-pagos').textContent = stats.pagos;
-            document.getElementById('stat-pendentes').textContent = stats.pendentes;
-            document.getElementById('stat-recebido').textContent = formatCurrency(stats.valor_total_recebido);
-            document.getElementById('stat-pendente').textContent = formatCurrency(stats.valor_total_pendente);
+            const statElements = {
+                'stat-total': stats.total_alugueis,
+                'stat-pagos': stats.pagos,
+                'stat-pendentes': stats.pendentes,
+                'stat-recebido': formatCurrency(stats.valor_total_recebido),
+                'stat-pendente': formatCurrency(stats.valor_total_pendente)
+            };
+            
+            for (const [id, value] of Object.entries(statElements)) {
+                const element = document.getElementById(id);
+                if (element) element.textContent = value;
+            }
         }
     } catch (error) {
         console.error('Erro ao carregar estatísticas:', error);
@@ -264,14 +241,12 @@ async function loadAlugueis() {
         // Construir URL com filtros
         const params = new URLSearchParams();
         
-        const mes = document.getElementById('filter-mes').value;
-        const imovelId = document.getElementById('filter-imovel').value;
-        const ano = document.getElementById('filter-ano').value;
-        const status = document.getElementById('filter-status').value;
+        const mes = document.getElementById('filter-mes')?.value;
+        const imovelId = document.getElementById('filter-imovel')?.value;
+        const status = document.getElementById('filter-status')?.value;
         
         if (mes) params.append('mes_referencia', mes);
         if (imovelId) params.append('imovel_id', imovelId);
-        if (ano && !mes) params.append('ano', ano);
         if (status !== '') params.append('pago', status);
         
         params.append('limit', '1000');
@@ -486,14 +461,15 @@ function fecharModal() {
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
-    loadUserInfo();
-    loadAnos();
     loadImoveis();
     loadStats();
     loadAlugueis();
     
-    // Logout
-    document.getElementById('logout-btn').addEventListener('click', () => logout());
+    // Logout - verificar se elemento existe
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => logout());
+    }
     
     // Botões
     document.getElementById('btn-novo-aluguel').addEventListener('click', abrirModalNovo);
@@ -502,11 +478,14 @@ document.addEventListener('DOMContentLoaded', () => {
         loadStats();
     });
     document.getElementById('btn-limpar-filtros').addEventListener('click', () => {
-        document.getElementById('filter-mes').value = '';
-        document.getElementById('filter-imovel').value = '';
-        document.getElementById('filter-status').value = '';
-        const anoAtual = new Date().getFullYear();
-        document.getElementById('filter-ano').value = anoAtual;
+        const filterMes = document.getElementById('filter-mes');
+        const filterImovel = document.getElementById('filter-imovel');
+        const filterStatus = document.getElementById('filter-status');
+        
+        if (filterMes) filterMes.value = '';
+        if (filterImovel) filterImovel.value = '';
+        if (filterStatus) filterStatus.value = '';
+        
         loadAlugueis();
         loadStats();
     });
