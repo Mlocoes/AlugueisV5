@@ -549,8 +549,8 @@ class ImportacaoService:
                         
                         # Verificar se já existe aluguel para este mês/proprietário/imóvel
                         existing = db.query(AluguelMensal).filter(
-                            AluguelMensal.id_imovel == imovel.id,
-                            AluguelMensal.id_proprietario == proprietario.id,
+                            AluguelMensal.imovel_id == imovel.id,
+                            AluguelMensal.proprietario_id == proprietario.id,
                             AluguelMensal.data_referencia == data_referencia
                         ).first()
                         
@@ -562,10 +562,13 @@ class ImportacaoService:
                             existing.atualizado_em = func.now()
                         else:
                             # Criar novo registro
+                            # Gerar mes_referencia no formato YYYY-MM para compatibilidade
+                            mes_ref = data_referencia.strftime('%Y-%m')
                             novo_aluguel = AluguelMensal(
-                                id_imovel=imovel.id,
-                                id_proprietario=proprietario.id,
+                                imovel_id=imovel.id,
+                                proprietario_id=proprietario.id,
                                 data_referencia=data_referencia,
+                                mes_referencia=mes_ref,
                                 valor_total=valor_total,
                                 valor_proprietario=valor_proprietario,
                                 taxa_administracao=taxa_admin
