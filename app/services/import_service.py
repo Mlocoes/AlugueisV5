@@ -458,19 +458,10 @@ class ImportacaoService:
             for col_idx in range(1, len(df.columns)):  # Pular primeira coluna (datas)
                 nome_proprietario = str(df.columns[col_idx]).strip()
                 if nome_proprietario and nome_proprietario.lower() not in ['nan', 'none', 'unnamed']:
-                    # Buscar proprietário no banco
+                    # Buscar proprietário no banco (busca parcial pelo nome)
                     proprietario = db.query(Usuario).filter(
                         Usuario.nome.ilike(f'%{nome_proprietario}%')
                     ).first()
-                    
-                    if not proprietario:
-                        # Tentar buscar por partes do nome
-                        partes = nome_proprietario.split()
-                        if len(partes) >= 2:
-                            proprietario = db.query(Usuario).filter(
-                                Usuario.nome.ilike(f'%{partes[0]}%'),
-                                Usuario.sobrenome.ilike(f'%{partes[-1]}%')
-                            ).first()
                     
                     if proprietario:
                         proprietarios_cols.append((col_idx, proprietario))
