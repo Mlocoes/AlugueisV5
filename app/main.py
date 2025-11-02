@@ -54,8 +54,9 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
 # Importar e incluir rotas
-from app.routes import auth, imoveis, usuarios, alugueis
+from app.routes import auth, proprietarios, imoveis, usuarios, alugueis
 app.include_router(auth.router)
+app.include_router(proprietarios.router)
 app.include_router(imoveis.router)
 app.include_router(usuarios.router)
 app.include_router(alugueis.router)
@@ -76,6 +77,15 @@ async def dashboard_page(request: Request, current_user: Usuario = Depends(get_c
     return templates.TemplateResponse("dashboard.html", {
         "request": request, 
         "title": "Dashboard",
+        "user": current_user
+    })
+
+@app.get("/proprietarios", response_class=HTMLResponse)
+async def proprietarios_page(request: Request, current_user: Usuario = Depends(get_current_user_from_cookie)):
+    """Página de gestão de proprietários"""
+    return templates.TemplateResponse("proprietarios.html", {
+        "request": request,
+        "title": "Proprietários",
         "user": current_user
     })
 

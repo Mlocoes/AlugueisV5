@@ -3,6 +3,7 @@ Models package - Modelos SQLAlchemy do banco de dados
 """
 # Imports dos modelos
 from app.models.usuario import Usuario
+from app.models.proprietario import Proprietario
 from app.models.imovel import Imovel
 from app.models.aluguel import AluguelMensal
 from app.models.participacao import Participacao
@@ -12,6 +13,7 @@ from app.models.permissao_financeira import PermissaoFinanceira
 
 __all__ = [
     "Usuario",
+    "Proprietario",
     "Imovel",
     "AluguelMensal",
     "Participacao",

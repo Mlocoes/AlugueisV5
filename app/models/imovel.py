@@ -21,7 +21,7 @@ class Imovel(Base):
     valor_iptu = Column(Float, nullable=True)
     
     # Proprietário
-    proprietario_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False, index=True)
+    proprietario_id = Column(Integer, ForeignKey("proprietarios.id"), nullable=False, index=True)
     
     # Status
     is_active = Column(Boolean, default=True)
@@ -31,7 +31,7 @@ class Imovel(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relacionamentos
-    proprietario = relationship("Usuario", back_populates="imoveis")
+    proprietario = relationship("Proprietario", back_populates="imoveis")
     alugueis = relationship("AluguelMensal", back_populates="imovel", cascade="all, delete-orphan")
     participacoes = relationship("Participacao", back_populates="imovel", cascade="all, delete-orphan")
 

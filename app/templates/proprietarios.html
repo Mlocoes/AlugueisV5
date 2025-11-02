@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proprietários - AlugueisV5</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <script src="/static/js/utils.js"></script>
+    <style>
+        :root {
+            --bg-dark: #101622;
+            --card-dark: #1e293b;
+            --primary: #135bec;
+            --primary-hover: #0d47c4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+        body {
+            background-color: var(--bg-dark);
+            color: #e2e8f0;
+        }
+        .card {
+            background-color: var(--card-dark);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        .btn-primary {
+            background-color: var(--primary);
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+        .badge-fisica {
+            background-color: #3b82f6;
+        }
+        .badge-juridica {
+            background-color: #8b5cf6;
+        }
+        .badge-ativo {
+            background-color: var(--success);
+        }
+        .badge-inativo {
+            background-color: #64748b;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Navbar -->
+    <nav class="card mb-6 p-4">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center gap-6">
+                <h1 class="text-2xl font-bold text-blue-400">AlugueisV5</h1>
+                <div class="flex gap-4">
+                    <a href="/dashboard" class="text-gray-400 hover:text-white">Dashboard</a>
+                    <a href="/proprietarios" class="text-blue-400 font-semibold">Proprietários</a>
+                    <a href="/imoveis" class="text-gray-400 hover:text-white">Imóveis</a>
+                    <a href="/alugueis" class="text-gray-400 hover:text-white">Aluguéis</a>
+                    <a href="/usuarios" class="text-gray-400 hover:text-white">Usuários</a>
+                </div>
+            </div>
+            <button onclick="logout()" class="text-red-400 hover:text-red-300">
+                <span class="material-symbols-outlined">logout</span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 pb-8">
+        <!-- Estatísticas -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+            <div class="card p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Total</p>
+                        <p id="stat-total" class="text-2xl font-bold text-blue-400">0</p>
+                    </div>
+                    <span class="material-symbols-outlined text-blue-400 text-4xl">group</span>
+                </div>
+            </div>
+            <div class="card p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Ativos</p>
+                        <p id="stat-ativos" class="text-2xl font-bold text-green-400">0</p>
+                    </div>
+                    <span class="material-symbols-outlined text-green-400 text-4xl">check_circle</span>
+                </div>
+            </div>
+            <div class="card p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Inativos</p>
+                        <p id="stat-inativos" class="text-2xl font-bold text-gray-400">0</p>
+                    </div>
+                    <span class="material-symbols-outlined text-gray-400 text-4xl">cancel</span>
+                </div>
+            </div>
+            <div class="card p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">P. Físicas</p>
+                        <p id="stat-fisicas" class="text-2xl font-bold text-purple-400">0</p>
+                    </div>
+                    <span class="material-symbols-outlined text-purple-400 text-4xl">person</span>
+                </div>
+            </div>
+            <div class="card p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">P. Jurídicas</p>
+                        <p id="stat-juridicas" class="text-2xl font-bold text-indigo-400">0</p>
+                    </div>
+                    <span class="material-symbols-outlined text-indigo-400 text-4xl">business</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros e Ações -->
+        <div class="card p-4 mb-6">
+            <div class="flex flex-wrap gap-4 items-end">
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-sm text-gray-400 mb-2">Buscar</label>
+                    <input type="text" id="search" placeholder="Nome, CPF, CNPJ, Email..." 
+                        class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                </div>
+                <div class="min-w-[150px]">
+                    <label class="block text-sm text-gray-400 mb-2">Tipo</label>
+                    <select id="tipo-filter" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                        <option value="">Todos</option>
+                        <option value="fisica">Pessoa Física</option>
+                        <option value="juridica">Pessoa Jurídica</option>
+                    </select>
+                </div>
+                <div class="min-w-[150px]">
+                    <label class="block text-sm text-gray-400 mb-2">Status</label>
+                    <select id="status-filter" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                        <option value="">Todos</option>
+                        <option value="true">Ativos</option>
+                        <option value="false">Inativos</option>
+                    </select>
+                </div>
+                <button onclick="openModal()" class="btn-primary text-white px-6 py-2 rounded-lg flex items-center gap-2 hover:opacity-90">
+                    <span class="material-symbols-outlined">add</span>
+                    Novo Proprietário
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabela -->
+        <div class="card overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-800">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Nome/Razão Social</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">CPF/CNPJ</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Tipo</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Contato</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Imóveis</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Status</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="proprietarios-tbody" class="divide-y divide-gray-700">
+                        <!-- Será preenchido via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <!-- Loading -->
+            <div id="loading" class="p-8 text-center hidden">
+                <p class="text-gray-400">Carregando...</p>
+            </div>
+            <!-- Empty State -->
+            <div id="empty-state" class="p-8 text-center hidden">
+                <span class="material-symbols-outlined text-6xl text-gray-600 mb-4">person_off</span>
+                <p class="text-gray-400">Nenhum proprietário encontrado</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="card max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 id="modal-title" class="text-2xl font-bold">Novo Proprietário</h2>
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-white">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+
+                <form id="proprietario-form" class="space-y-6">
+                    <input type="hidden" id="proprietario-id">
+
+                    <!-- Tipo de Pessoa -->
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Tipo de Pessoa *</label>
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="tipo_pessoa" value="fisica" checked class="text-blue-500" onchange="toggleTipoPessoa()">
+                                <span>Pessoa Física</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="tipo_pessoa" value="juridica" class="text-blue-500" onchange="toggleTipoPessoa()">
+                                <span>Pessoa Jurídica</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Pessoa Física -->
+                    <div id="pessoa-fisica" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">Nome Completo *</label>
+                            <input type="text" id="nome" required
+                                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">CPF *</label>
+                            <input type="text" id="cpf" placeholder="XXX.XXX.XXX-XX"
+                                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">RG</label>
+                            <input type="text" id="rg"
+                                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                        </div>
+                    </div>
+
+                    <!-- Pessoa Jurídica -->
+                    <div id="pessoa-juridica" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">Razão Social *</label>
+                            <input type="text" id="razao_social"
+                                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">Nome Fantasia</label>
+                            <input type="text" id="nome_fantasia"
+                                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">CNPJ *</label>
+                            <input type="text" id="cnpj" placeholder="XX.XXX.XXX/XXXX-XX"
+                                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">Inscrição Estadual</label>
+                            <input type="text" id="inscricao_estadual"
+                                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                        </div>
+                    </div>
+
+                    <!-- Contato -->
+                    <div class="border-t border-gray-700 pt-6">
+                        <h3 class="text-lg font-semibold mb-4">Contato</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Email</label>
+                                <input type="email" id="email"
+                                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Telefone</label>
+                                <input type="text" id="telefone" placeholder="(XX) XXXX-XXXX"
+                                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Celular</label>
+                                <input type="text" id="celular" placeholder="(XX) XXXXX-XXXX"
+                                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Endereço -->
+                    <div class="border-t border-gray-700 pt-6">
+                        <h3 class="text-lg font-semibold mb-4">Endereço</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm text-gray-400 mb-2">Endereço</label>
+                                <input type="text" id="endereco"
+                                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Número</label>
+                                <input type="text" id="numero"
+                                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Complemento</label>
+                                <input type="text" id="complemento"
+                                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Bairro</label>
+                                <input type="text" id="bairro"
+                                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Cidade</label>
+                                <input type="text" id="cidade"
+                                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Estado</label>
+                                <input type="text" id="estado" placeholder="UF" maxlength="2"
+                                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white uppercase">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">CEP</label>
+                                <input type="text" id="cep" placeholder="XXXXX-XXX"
+                                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dados Bancários -->
+                    <div class="border-t border-gray-700 pt-6">
+                        <h3 class="text-lg font-semibold mb-4">Dados Bancários</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Banco</label>
+                                <input type="text" id="banco"
+                                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Agência</label>
+                                <input type="text" id="agencia"
+                                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Conta</label>
+                                <input type="text" id="conta"
+                                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Tipo de Conta</label>
+                                <select id="tipo_conta" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                                    <option value="">Selecione</option>
+                                    <option value="corrente">Corrente</option>
+                                    <option value="poupanca">Poupança</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm text-gray-400 mb-2">Chave PIX</label>
+                                <input type="text" id="pix"
+                                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Observações -->
+                    <div class="border-t border-gray-700 pt-6">
+                        <label class="block text-sm text-gray-400 mb-2">Observações</label>
+                        <textarea id="observacoes" rows="3"
+                            class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"></textarea>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="border-t border-gray-700 pt-6">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="is_active" checked class="w-5 h-5 text-blue-500">
+                            <span>Proprietário Ativo</span>
+                        </label>
+                    </div>
+
+                    <!-- Botões -->
+                    <div class="flex gap-4 justify-end border-t border-gray-700 pt-6">
+                        <button type="button" onclick="closeModal()" 
+                            class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                            Cancelar
+                        </button>
+                        <button type="submit" 
+                            class="btn-primary px-6 py-2 text-white rounded-lg hover:opacity-90">
+                            Salvar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let proprietarios = [];
+
+        // Carregar dados ao iniciar
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            loadProprietarios();
+
+            // Event listeners para filtros
+            document.getElementById('search').addEventListener('input', debounce(loadProprietarios, 500));
+            document.getElementById('tipo-filter').addEventListener('change', loadProprietarios);
+            document.getElementById('status-filter').addEventListener('change', loadProprietarios);
+
+            // Form submit
+            document.getElementById('proprietario-form').addEventListener('submit', salvarProprietario);
+        });
+
+        // Debounce para busca
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // Carregar estatísticas
+        async function loadStats() {
+            try {
+                const data = await fetchWithAuth('/api/proprietarios/stats/summary');
+                document.getElementById('stat-total').textContent = data.total_proprietarios;
+                document.getElementById('stat-ativos').textContent = data.ativos;
+                document.getElementById('stat-inativos').textContent = data.inativos;
+                document.getElementById('stat-fisicas').textContent = data.pessoas_fisicas;
+                document.getElementById('stat-juridicas').textContent = data.pessoas_juridicas;
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }
+
+        // Carregar proprietários
+        async function loadProprietarios() {
+            const loading = document.getElementById('loading');
+            const emptyState = document.getElementById('empty-state');
+            const tbody = document.getElementById('proprietarios-tbody');
+
+            loading.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+            tbody.innerHTML = '';
+
+            try {
+                const search = document.getElementById('search').value;
+                const tipo = document.getElementById('tipo-filter').value;
+                const status = document.getElementById('status-filter').value;
+
+                let url = '/api/proprietarios/?limit=100';
+                if (search) url += `&search=${encodeURIComponent(search)}`;
+                if (tipo) url += `&tipo_pessoa=${tipo}`;
+                if (status) url += `&is_active=${status}`;
+
+                proprietarios = await fetchWithAuth(url);
+
+                loading.classList.add('hidden');
+
+                if (proprietarios.length === 0) {
+                    emptyState.classList.remove('hidden');
+                    return;
+                }
+
+                proprietarios.forEach(prop => {
+                    tbody.appendChild(createProprietarioRow(prop));
+                });
+
+            } catch (error) {
+                loading.classList.add('hidden');
+                showToast('Erro ao carregar proprietários', 'error');
+                console.error(error);
+            }
+        }
+
+        // Criar linha da tabela
+        function createProprietarioRow(prop) {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-gray-800';
+
+            const nome = prop.tipo_pessoa === 'juridica' && prop.razao_social ? prop.razao_social : prop.nome;
+            const documento = prop.tipo_pessoa === 'fisica' ? prop.cpf : prop.cnpj;
+            const contato = prop.email || prop.celular || prop.telefone || '-';
+
+            tr.innerHTML = `
+                <td class="px-6 py-4">
+                    <div class="font-medium">${nome}</div>
+                    ${prop.tipo_pessoa === 'juridica' && prop.nome_fantasia ? `<div class="text-sm text-gray-400">${prop.nome_fantasia}</div>` : ''}
+                </td>
+                <td class="px-6 py-4 text-sm">${documento || '-'}</td>
+                <td class="px-6 py-4">
+                    <span class="px-2 py-1 text-xs rounded-full badge-${prop.tipo_pessoa}">
+                        ${prop.tipo_pessoa === 'fisica' ? 'P. Física' : 'P. Jurídica'}
+                    </span>
+                </td>
+                <td class="px-6 py-4 text-sm">${contato}</td>
+                <td class="px-6 py-4 text-center">
+                    <span class="px-2 py-1 bg-blue-600 text-xs rounded-full">${prop.total_imoveis}</span>
+                </td>
+                <td class="px-6 py-4">
+                    <span class="px-2 py-1 text-xs rounded-full badge-${prop.is_active ? 'ativo' : 'inativo'}">
+                        ${prop.is_active ? 'Ativo' : 'Inativo'}
+                    </span>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="flex justify-center gap-2">
+                        <button onclick="editarProprietario(${prop.id})" 
+                            class="text-blue-400 hover:text-blue-300" title="Editar">
+                            <span class="material-symbols-outlined">edit</span>
+                        </button>
+                        <button onclick="deletarProprietario(${prop.id}, '${nome}')" 
+                            class="text-red-400 hover:text-red-300" title="Excluir">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </div>
+                </td>
+            `;
+
+            return tr;
+        }
+
+        // Abrir modal
+        function openModal() {
+            document.getElementById('proprietario-id').value = '';
+            document.getElementById('modal-title').textContent = 'Novo Proprietário';
+            document.getElementById('proprietario-form').reset();
+            document.querySelector('input[name="tipo_pessoa"][value="fisica"]').checked = true;
+            toggleTipoPessoa();
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        // Fechar modal
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        // Toggle tipo pessoa
+        function toggleTipoPessoa() {
+            const tipo = document.querySelector('input[name="tipo_pessoa"]:checked').value;
+            const fisicaDiv = document.getElementById('pessoa-fisica');
+            const juridicaDiv = document.getElementById('pessoa-juridica');
+
+            if (tipo === 'fisica') {
+                fisicaDiv.classList.remove('hidden');
+                juridicaDiv.classList.add('hidden');
+                document.getElementById('nome').required = true;
+                document.getElementById('razao_social').required = false;
+            } else {
+                fisicaDiv.classList.add('hidden');
+                juridicaDiv.classList.remove('hidden');
+                document.getElementById('nome').required = false;
+                document.getElementById('razao_social').required = true;
+            }
+        }
+
+        // Editar proprietário
+        async function editarProprietario(id) {
+            try {
+                const prop = await fetchWithAuth(`/api/proprietarios/${id}`);
+                
+                document.getElementById('proprietario-id').value = prop.id;
+                document.getElementById('modal-title').textContent = 'Editar Proprietário';
+                
+                document.querySelector(`input[name="tipo_pessoa"][value="${prop.tipo_pessoa}"]`).checked = true;
+                toggleTipoPessoa();
+
+                document.getElementById('nome').value = prop.nome || '';
+                document.getElementById('cpf').value = prop.cpf || '';
+                document.getElementById('rg').value = prop.rg || '';
+                document.getElementById('razao_social').value = prop.razao_social || '';
+                document.getElementById('nome_fantasia').value = prop.nome_fantasia || '';
+                document.getElementById('cnpj').value = prop.cnpj || '';
+                document.getElementById('inscricao_estadual').value = prop.inscricao_estadual || '';
+                document.getElementById('email').value = prop.email || '';
+                document.getElementById('telefone').value = prop.telefone || '';
+                document.getElementById('celular').value = prop.celular || '';
+                document.getElementById('endereco').value = prop.endereco || '';
+                document.getElementById('numero').value = prop.numero || '';
+                document.getElementById('complemento').value = prop.complemento || '';
+                document.getElementById('bairro').value = prop.bairro || '';
+                document.getElementById('cidade').value = prop.cidade || '';
+                document.getElementById('estado').value = prop.estado || '';
+                document.getElementById('cep').value = prop.cep || '';
+                document.getElementById('banco').value = prop.banco || '';
+                document.getElementById('agencia').value = prop.agencia || '';
+                document.getElementById('conta').value = prop.conta || '';
+                document.getElementById('tipo_conta').value = prop.tipo_conta || '';
+                document.getElementById('pix').value = prop.pix || '';
+                document.getElementById('observacoes').value = prop.observacoes || '';
+                document.getElementById('is_active').checked = prop.is_active;
+
+                document.getElementById('modal').classList.remove('hidden');
+            } catch (error) {
+                showToast('Erro ao carregar proprietário', 'error');
+                console.error(error);
+            }
+        }
+
+        // Salvar proprietário
+        async function salvarProprietario(e) {
+            e.preventDefault();
+
+            const id = document.getElementById('proprietario-id').value;
+            const tipo = document.querySelector('input[name="tipo_pessoa"]:checked').value;
+
+            const data = {
+                tipo_pessoa: tipo,
+                nome: tipo === 'fisica' ? document.getElementById('nome').value : document.getElementById('razao_social').value,
+                cpf: tipo === 'fisica' ? document.getElementById('cpf').value || null : null,
+                rg: tipo === 'fisica' ? document.getElementById('rg').value || null : null,
+                razao_social: tipo === 'juridica' ? document.getElementById('razao_social').value : null,
+                nome_fantasia: tipo === 'juridica' ? document.getElementById('nome_fantasia').value || null : null,
+                cnpj: tipo === 'juridica' ? document.getElementById('cnpj').value || null : null,
+                inscricao_estadual: tipo === 'juridica' ? document.getElementById('inscricao_estadual').value || null : null,
+                email: document.getElementById('email').value || null,
+                telefone: document.getElementById('telefone').value || null,
+                celular: document.getElementById('celular').value || null,
+                endereco: document.getElementById('endereco').value || null,
+                numero: document.getElementById('numero').value || null,
+                complemento: document.getElementById('complemento').value || null,
+                bairro: document.getElementById('bairro').value || null,
+                cidade: document.getElementById('cidade').value || null,
+                estado: document.getElementById('estado').value.toUpperCase() || null,
+                cep: document.getElementById('cep').value || null,
+                banco: document.getElementById('banco').value || null,
+                agencia: document.getElementById('agencia').value || null,
+                conta: document.getElementById('conta').value || null,
+                tipo_conta: document.getElementById('tipo_conta').value || null,
+                pix: document.getElementById('pix').value || null,
+                observacoes: document.getElementById('observacoes').value || null,
+                is_active: document.getElementById('is_active').checked
+            };
+
+            try {
+                if (id) {
+                    await fetchWithAuth(`/api/proprietarios/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    showToast('Proprietário atualizado com sucesso!', 'success');
+                } else {
+                    await fetchWithAuth('/api/proprietarios/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    showToast('Proprietário criado com sucesso!', 'success');
+                }
+
+                closeModal();
+                loadStats();
+                loadProprietarios();
+            } catch (error) {
+                showToast(error.message || 'Erro ao salvar proprietário', 'error');
+                console.error(error);
+            }
+        }
+
+        // Deletar proprietário
+        async function deletarProprietario(id, nome) {
+            if (!confirm(`Deseja realmente excluir o proprietário "${nome}"?`)) {
+                return;
+            }
+
+            try {
+                await fetchWithAuth(`/api/proprietarios/${id}`, {
+                    method: 'DELETE'
+                });
+                showToast('Proprietário excluído com sucesso!', 'success');
+                loadStats();
+                loadProprietarios();
+            } catch (error) {
+                showToast(error.message || 'Erro ao excluir proprietário', 'error');
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
