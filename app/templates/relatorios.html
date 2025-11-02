@@ -1,0 +1,937 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-[var(--bg-dark)] dark:to-gray-900 p-6">
+    <div class="max-w-7xl mx-auto">
+        <!-- Cabeçalho -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+                <i class="material-symbols-outlined align-middle text-[var(--primary)]">assessment</i>
+                Relatórios Financeiros
+            </h1>
+            <p class="text-gray-600 dark:text-gray-400">
+                Análise completa de receitas, despesas e participações
+            </p>
+        </div>
+
+        <!-- Tipos de Relatório - Tabs -->
+        <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg p-6 mb-6">
+            <div class="flex flex-wrap gap-2 mb-6 border-b border-gray-200 dark:border-gray-700">
+                <button onclick="mudarTipoRelatorio('mensal')" 
+                        id="tab-mensal"
+                        class="tab-button px-6 py-3 font-medium rounded-t-lg transition-all duration-200 border-b-2 border-[var(--primary)] text-[var(--primary)]">
+                    <i class="material-symbols-outlined align-middle text-sm">calendar_month</i>
+                    Mensal
+                </button>
+                <button onclick="mudarTipoRelatorio('proprietario')" 
+                        id="tab-proprietario"
+                        class="tab-button px-6 py-3 font-medium rounded-t-lg transition-all duration-200 border-b-2 border-transparent text-gray-600 dark:text-gray-400 hover:text-[var(--primary)]">
+                    <i class="material-symbols-outlined align-middle text-sm">person</i>
+                    Por Proprietário
+                </button>
+                <button onclick="mudarTipoRelatorio('anual')" 
+                        id="tab-anual"
+                        class="tab-button px-6 py-3 font-medium rounded-t-lg transition-all duration-200 border-b-2 border-transparent text-gray-600 dark:text-gray-400 hover:text-[var(--primary)]">
+                    <i class="material-symbols-outlined align-middle text-sm">event</i>
+                    Anual
+                </button>
+                <button onclick="mudarTipoRelatorio('comparativo')" 
+                        id="tab-comparativo"
+                        class="tab-button px-6 py-3 font-medium rounded-t-lg transition-all duration-200 border-b-2 border-transparent text-gray-600 dark:text-gray-400 hover:text-[var(--primary)]">
+                    <i class="material-symbols-outlined align-middle text-sm">compare</i>
+                    Comparativo
+                </button>
+            </div>
+
+            <!-- Filtros Relatório Mensal -->
+            <div id="filtros-mensal" class="filtros-section">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Ano
+                        </label>
+                        <input type="number" id="ano-mensal" 
+                               class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[var(--primary)] dark:bg-gray-800 dark:text-white"
+                               placeholder="2025">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Mês
+                        </label>
+                        <select id="mes-mensal"
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[var(--primary)] dark:bg-gray-800 dark:text-white">
+                            <option value="1">Janeiro</option>
+                            <option value="2">Fevereiro</option>
+                            <option value="3">Março</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Maio</option>
+                            <option value="6">Junho</option>
+                            <option value="7">Julho</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Setembro</option>
+                            <option value="10">Outubro</option>
+                            <option value="11">Novembro</option>
+                            <option value="12">Dezembro</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Proprietário (Opcional)
+                        </label>
+                        <select id="proprietario-mensal"
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[var(--primary)] dark:bg-gray-800 dark:text-white">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="gerarRelatorioMensal()" 
+                                class="w-full px-6 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center gap-2">
+                            <i class="material-symbols-outlined">play_arrow</i>
+                            Gerar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros Relatório Proprietário -->
+            <div id="filtros-proprietario" class="filtros-section hidden">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Proprietário *
+                        </label>
+                        <select id="proprietario-id"
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[var(--primary)] dark:bg-gray-800 dark:text-white">
+                            <option value="">Selecione...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Ano
+                        </label>
+                        <input type="number" id="ano-proprietario" 
+                               class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[var(--primary)] dark:bg-gray-800 dark:text-white"
+                               placeholder="2025">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Mês (Opcional)
+                        </label>
+                        <select id="mes-proprietario"
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[var(--primary)] dark:bg-gray-800 dark:text-white">
+                            <option value="">Todo o ano</option>
+                            <option value="1">Janeiro</option>
+                            <option value="2">Fevereiro</option>
+                            <option value="3">Março</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Maio</option>
+                            <option value="6">Junho</option>
+                            <option value="7">Julho</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Setembro</option>
+                            <option value="10">Outubro</option>
+                            <option value="11">Novembro</option>
+                            <option value="12">Dezembro</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="gerarRelatorioProprietario()" 
+                                class="w-full px-6 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center gap-2">
+                            <i class="material-symbols-outlined">play_arrow</i>
+                            Gerar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros Relatório Anual -->
+            <div id="filtros-anual" class="filtros-section hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Ano
+                        </label>
+                        <input type="number" id="ano-anual" 
+                               class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[var(--primary)] dark:bg-gray-800 dark:text-white"
+                               placeholder="2025">
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="gerarRelatorioAnual()" 
+                                class="w-full px-6 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center gap-2">
+                            <i class="material-symbols-outlined">play_arrow</i>
+                            Gerar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros Relatório Comparativo -->
+            <div id="filtros-comparativo" class="filtros-section hidden">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Ano 1
+                        </label>
+                        <input type="number" id="ano1-comparativo" 
+                               class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[var(--primary)] dark:bg-gray-800 dark:text-white"
+                               placeholder="2024">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Ano 2
+                        </label>
+                        <input type="number" id="ano2-comparativo" 
+                               class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[var(--primary)] dark:bg-gray-800 dark:text-white"
+                               placeholder="2025">
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="gerarRelatorioComparativo()" 
+                                class="w-full px-6 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center gap-2">
+                            <i class="material-symbols-outlined">play_arrow</i>
+                            Gerar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Área de Resultados -->
+        <div id="resultado-relatorio">
+            <!-- Mensagem inicial -->
+            <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg p-12 text-center">
+                <i class="material-symbols-outlined text-6xl text-gray-300 dark:text-gray-600 mb-4">description</i>
+                <p class="text-gray-500 dark:text-gray-400 text-lg">
+                    Selecione os filtros e clique em "Gerar" para visualizar o relatório
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Variável global para armazenar dados do relatório atual
+let relatorioAtual = null;
+let tipoRelatorioAtual = 'mensal';
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', function() {
+    // Definir data atual
+    const hoje = new Date();
+    document.getElementById('ano-mensal').value = hoje.getFullYear();
+    document.getElementById('mes-mensal').value = hoje.getMonth() + 1;
+    document.getElementById('ano-proprietario').value = hoje.getFullYear();
+    document.getElementById('ano-anual').value = hoje.getFullYear();
+    document.getElementById('ano1-comparativo').value = hoje.getFullYear() - 1;
+    document.getElementById('ano2-comparativo').value = hoje.getFullYear();
+    
+    // Carregar proprietários
+    carregarProprietarios();
+});
+
+// Carregar lista de proprietários
+async function carregarProprietarios() {
+    try {
+        const response = await fetch('/api/proprietarios/');
+        const data = await response.json();
+        
+        const selectMensal = document.getElementById('proprietario-mensal');
+        const selectProprietario = document.getElementById('proprietario-id');
+        
+        data.proprietarios.forEach(prop => {
+            const option1 = new Option(prop.nome, prop.id);
+            const option2 = new Option(prop.nome, prop.id);
+            selectMensal.add(option1);
+            selectProprietario.add(option2);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar proprietários:', error);
+    }
+}
+
+// Mudar tipo de relatório
+function mudarTipoRelatorio(tipo) {
+    tipoRelatorioAtual = tipo;
+    
+    // Atualizar tabs
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('border-[var(--primary)]', 'text-[var(--primary)]');
+        btn.classList.add('border-transparent', 'text-gray-600', 'dark:text-gray-400');
+    });
+    
+    document.getElementById(`tab-${tipo}`).classList.remove('border-transparent', 'text-gray-600', 'dark:text-gray-400');
+    document.getElementById(`tab-${tipo}`).classList.add('border-[var(--primary)]', 'text-[var(--primary)]');
+    
+    // Mostrar filtros correspondentes
+    document.querySelectorAll('.filtros-section').forEach(section => {
+        section.classList.add('hidden');
+    });
+    document.getElementById(`filtros-${tipo}`).classList.remove('hidden');
+    
+    // Limpar resultado
+    document.getElementById('resultado-relatorio').innerHTML = `
+        <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg p-12 text-center">
+            <i class="material-symbols-outlined text-6xl text-gray-300 dark:text-gray-600 mb-4">description</i>
+            <p class="text-gray-500 dark:text-gray-400 text-lg">
+                Selecione os filtros e clique em "Gerar" para visualizar o relatório
+            </p>
+        </div>
+    `;
+}
+
+// Gerar relatório mensal
+async function gerarRelatorioMensal() {
+    const ano = document.getElementById('ano-mensal').value;
+    const mes = document.getElementById('mes-mensal').value;
+    const proprietarioId = document.getElementById('proprietario-mensal').value;
+    
+    if (!ano || !mes) {
+        mostrarErro('Por favor, preencha ano e mês');
+        return;
+    }
+    
+    mostrarCarregamento();
+    
+    try {
+        let url = `/api/relatorios/mensal?ano=${ano}&mes=${mes}`;
+        if (proprietarioId) {
+            url += `&proprietario_id=${proprietarioId}`;
+        }
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        relatorioAtual = data;
+        renderizarRelatorioMensal(data);
+    } catch (error) {
+        mostrarErro('Erro ao gerar relatório: ' + error.message);
+    }
+}
+
+// Gerar relatório de proprietário
+async function gerarRelatorioProprietario() {
+    const proprietarioId = document.getElementById('proprietario-id').value;
+    const ano = document.getElementById('ano-proprietario').value;
+    const mes = document.getElementById('mes-proprietario').value;
+    
+    if (!proprietarioId || !ano) {
+        mostrarErro('Por favor, selecione proprietário e ano');
+        return;
+    }
+    
+    mostrarCarregamento();
+    
+    try {
+        let url = `/api/relatorios/proprietario/${proprietarioId}?ano=${ano}`;
+        if (mes) {
+            url += `&mes=${mes}`;
+        }
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        relatorioAtual = data;
+        renderizarRelatorioProprietario(data);
+    } catch (error) {
+        mostrarErro('Erro ao gerar relatório: ' + error.message);
+    }
+}
+
+// Gerar relatório anual
+async function gerarRelatorioAnual() {
+    const ano = document.getElementById('ano-anual').value;
+    
+    if (!ano) {
+        mostrarErro('Por favor, preencha o ano');
+        return;
+    }
+    
+    mostrarCarregamento();
+    
+    try {
+        const response = await fetch(`/api/relatorios/anual?ano=${ano}`);
+        const data = await response.json();
+        
+        relatorioAtual = data;
+        renderizarRelatorioAnual(data);
+    } catch (error) {
+        mostrarErro('Erro ao gerar relatório: ' + error.message);
+    }
+}
+
+// Gerar relatório comparativo
+async function gerarRelatorioComparativo() {
+    const ano1 = document.getElementById('ano1-comparativo').value;
+    const ano2 = document.getElementById('ano2-comparativo').value;
+    
+    if (!ano1 || !ano2) {
+        mostrarErro('Por favor, preencha ambos os anos');
+        return;
+    }
+    
+    mostrarCarregamento();
+    
+    try {
+        const response = await fetch(`/api/relatorios/comparativo?ano1=${ano1}&ano2=${ano2}`);
+        const data = await response.json();
+        
+        relatorioAtual = data;
+        renderizarRelatorioComparativo(data);
+    } catch (error) {
+        mostrarErro('Erro ao gerar relatório: ' + error.message);
+    }
+}
+
+// Renderizar relatório mensal
+function renderizarRelatorioMensal(data) {
+    const resumo = data.resumo;
+    const periodo = data.periodo;
+    
+    let html = `
+        <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg p-6 mb-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                    Relatório Mensal - ${periodo.mes_nome}/${periodo.ano}
+                </h2>
+                <div class="flex gap-2">
+                    <button onclick="exportarPDF('mensal')" 
+                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2">
+                        <i class="material-symbols-outlined text-sm">picture_as_pdf</i>
+                        PDF
+                    </button>
+                    <button onclick="exportarExcel('mensal')" 
+                            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
+                        <i class="material-symbols-outlined text-sm">table_chart</i>
+                        Excel
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Cards de Resumo -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 text-white">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium opacity-90">Total Aluguéis</span>
+                        <i class="material-symbols-outlined">home</i>
+                    </div>
+                    <div class="text-3xl font-bold">${resumo.total_alugueis}</div>
+                    <div class="text-xs opacity-75 mt-1">Pagos: ${resumo.alugueis_pagos} | Pendentes: ${resumo.alugueis_pendentes}</div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 text-white">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium opacity-90">Total Esperado</span>
+                        <i class="material-symbols-outlined">attach_money</i>
+                    </div>
+                    <div class="text-2xl font-bold">R$ ${resumo.total_esperado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg p-4 text-white">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium opacity-90">Total Recebido</span>
+                        <i class="material-symbols-outlined">check_circle</i>
+                    </div>
+                    <div class="text-2xl font-bold">R$ ${resumo.total_recebido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-4 text-white">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium opacity-90">Total Pendente</span>
+                        <i class="material-symbols-outlined">pending</i>
+                    </div>
+                    <div class="text-2xl font-bold">R$ ${resumo.total_pendente.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                </div>
+            </div>
+            
+            <!-- Barra de Progresso -->
+            <div class="mb-6">
+                <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    <span>Taxa de Recebimento</span>
+                    <span class="font-bold text-[var(--primary)]">${resumo.taxa_recebimento.toFixed(1)}%</span>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+                    <div class="bg-gradient-to-r from-green-500 to-emerald-600 h-4 rounded-full transition-all duration-500" 
+                         style="width: ${resumo.taxa_recebimento}%"></div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Tabela de detalhamento
+    if (data.detalhamento && data.detalhamento.length > 0) {
+        html += `
+            <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg overflow-hidden">
+                <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">Detalhamento por Imóvel</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 dark:bg-gray-800">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Imóvel</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Vencimento</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aluguel</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Condomínio</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">IPTU</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Despesas</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-[var(--card-dark)] divide-y divide-gray-200 dark:divide-gray-700">
+        `;
+        
+        data.detalhamento.forEach(item => {
+            const valores = item.valores;
+            const despesas = valores.luz + valores.agua + valores.gas + valores.internet + valores.outros;
+            const statusBadge = item.status_pagamento === 'pago' 
+                ? '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">PAGO</span>'
+                : '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">PENDENTE</span>';
+            
+            html += `
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${item.imovel_endereco}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${statusBadge}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 dark:text-gray-400">${formatarData(item.data_vencimento)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 dark:text-white">R$ ${valores.aluguel.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 dark:text-gray-400">R$ ${valores.condominio.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 dark:text-gray-400">R$ ${valores.iptu.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 dark:text-gray-400">R$ ${despesas.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-900 dark:text-white">R$ ${valores.total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+    
+    document.getElementById('resultado-relatorio').innerHTML = html;
+}
+
+// Renderizar relatório de proprietário
+function renderizarRelatorioProprietario(data) {
+    const prop = data.proprietario;
+    const resumo = data.resumo;
+    const periodo = data.periodo;
+    
+    let html = `
+        <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg p-6 mb-6">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                        Relatório de Proprietário
+                    </h2>
+                    <p class="text-gray-600 dark:text-gray-400">
+                        ${prop.nome} ${periodo.mes ? `- Mês ${periodo.mes}` : ''} / ${periodo.ano}
+                    </p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="exportarPDF('proprietario')" 
+                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2">
+                        <i class="material-symbols-outlined text-sm">picture_as_pdf</i>
+                        PDF
+                    </button>
+                    <button onclick="exportarExcel('proprietario')" 
+                            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
+                        <i class="material-symbols-outlined text-sm">table_chart</i>
+                        Excel
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Cards de Resumo -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 text-white">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium opacity-90">Total Imóveis</span>
+                        <i class="material-symbols-outlined">apartment</i>
+                    </div>
+                    <div class="text-3xl font-bold">${resumo.total_imoveis}</div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 text-white">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium opacity-90">Total Esperado</span>
+                        <i class="material-symbols-outlined">attach_money</i>
+                    </div>
+                    <div class="text-2xl font-bold">R$ ${resumo.total_esperado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg p-4 text-white">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium opacity-90">Total Recebido</span>
+                        <i class="material-symbols-outlined">check_circle</i>
+                    </div>
+                    <div class="text-2xl font-bold">R$ ${resumo.total_recebido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-4 text-white">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium opacity-90">Total Pendente</span>
+                        <i class="material-symbols-outlined">pending</i>
+                    </div>
+                    <div class="text-2xl font-bold">R$ ${resumo.total_pendente.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                </div>
+            </div>
+            
+            <!-- Barra de Progresso -->
+            <div class="mb-6">
+                <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    <span>Taxa de Recebimento</span>
+                    <span class="font-bold text-[var(--primary)]">${resumo.taxa_recebimento.toFixed(1)}%</span>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+                    <div class="bg-gradient-to-r from-green-500 to-emerald-600 h-4 rounded-full transition-all duration-500" 
+                         style="width: ${resumo.taxa_recebimento}%"></div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Receitas por mês
+    if (data.receitas_por_mes && data.receitas_por_mes.length > 0) {
+        html += `
+            <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Receitas Mensais</h3>
+        `;
+        
+        data.receitas_por_mes.forEach(mes => {
+            html += `
+                <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="text-lg font-semibold text-gray-900 dark:text-white">${mes.mes_referencia}</h4>
+                        <div class="text-right">
+                            <div class="text-sm text-gray-600 dark:text-gray-400">Recebido</div>
+                            <div class="text-xl font-bold text-green-600">R$ ${mes.total_recebido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2">
+            `;
+            
+            mes.detalhes.forEach(detalhe => {
+                const statusClass = detalhe.status_pagamento === 'pago' ? 'text-green-600' : 'text-orange-600';
+                html += `
+                    <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700 last:border-0">
+                        <div class="flex-1">
+                            <div class="text-sm font-medium text-gray-900 dark:text-white">${detalhe.imovel_endereco}</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">Participação: ${detalhe.percentual}%</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm font-bold ${statusClass}">R$ ${detalhe.valor_proprietario.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">${detalhe.status_pagamento.toUpperCase()}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `</div>`;
+    }
+    
+    document.getElementById('resultado-relatorio').innerHTML = html;
+}
+
+// Renderizar relatório anual
+function renderizarRelatorioAnual(data) {
+    const resumo = data.resumo;
+    
+    let html = `
+        <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg p-6 mb-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                    Relatório Anual - ${data.ano}
+                </h2>
+                <div class="flex gap-2">
+                    <button onclick="exportarPDF('anual')" 
+                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2">
+                        <i class="material-symbols-outlined text-sm">picture_as_pdf</i>
+                        PDF
+                    </button>
+                    <button onclick="exportarExcel('anual')" 
+                            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
+                        <i class="material-symbols-outlined text-sm">table_chart</i>
+                        Excel
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Cards de Resumo Anual -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-6 text-white">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium opacity-90">Total Esperado</span>
+                        <i class="material-symbols-outlined">attach_money</i>
+                    </div>
+                    <div class="text-3xl font-bold mb-1">R$ ${resumo.total_esperado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                    <div class="text-sm opacity-75">Receita prevista no ano</div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-6 text-white">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium opacity-90">Total Recebido</span>
+                        <i class="material-symbols-outlined">check_circle</i>
+                    </div>
+                    <div class="text-3xl font-bold mb-1">R$ ${resumo.total_recebido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                    <div class="text-sm opacity-75">Receita realizada</div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-6 text-white">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium opacity-90">Total Pendente</span>
+                        <i class="material-symbols-outlined">pending</i>
+                    </div>
+                    <div class="text-3xl font-bold mb-1">R$ ${resumo.total_pendente.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                    <div class="text-sm opacity-75">A receber</div>
+                </div>
+            </div>
+            
+            <!-- Taxa de Recebimento -->
+            <div class="mb-6">
+                <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    <span>Taxa de Recebimento Anual</span>
+                    <span class="font-bold text-[var(--primary)]">${resumo.taxa_recebimento.toFixed(1)}%</span>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-6">
+                    <div class="bg-gradient-to-r from-green-500 to-emerald-600 h-6 rounded-full transition-all duration-500 flex items-center justify-center text-white text-sm font-bold" 
+                         style="width: ${resumo.taxa_recebimento}%">${resumo.taxa_recebimento.toFixed(1)}%</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tabela Mensal -->
+        <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg overflow-hidden">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Receitas Mensais</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50 dark:bg-gray-800">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Mês</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aluguéis</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Pagos</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Pendentes</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Esperado</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Recebido</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Pendente</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-[var(--card-dark)] divide-y divide-gray-200 dark:divide-gray-700">
+    `;
+    
+    data.receitas_mensais.forEach(mes => {
+        html += `
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${mes.mes_nome}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 dark:text-gray-400">${mes.total_alugueis}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-green-600">${mes.alugueis_pagos}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-orange-600">${mes.alugueis_pendentes}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 dark:text-white">R$ ${mes.total_esperado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold text-green-600">R$ ${mes.total_recebido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold text-orange-600">R$ ${mes.total_pendente.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+            </tr>
+        `;
+    });
+    
+    html += `
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('resultado-relatorio').innerHTML = html;
+}
+
+// Renderizar relatório comparativo
+function renderizarRelatorioComparativo(data) {
+    const resumo = data.resumo;
+    const [ano1, ano2] = data.anos_comparados;
+    const variacaoPositiva = resumo.variacao_absoluta >= 0;
+    
+    let html = `
+        <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg p-6 mb-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                    Relatório Comparativo ${ano1} vs ${ano2}
+                </h2>
+                <div class="flex gap-2">
+                    <button onclick="exportarPDF('comparativo')" 
+                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2">
+                        <i class="material-symbols-outlined text-sm">picture_as_pdf</i>
+                        PDF
+                    </button>
+                    <button onclick="exportarExcel('comparativo')" 
+                            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
+                        <i class="material-symbols-outlined text-sm">table_chart</i>
+                        Excel
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Cards Comparativos -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-6 text-white">
+                    <div class="text-sm font-medium opacity-90 mb-2">Total ${ano1}</div>
+                    <div class="text-3xl font-bold">R$ ${resumo[`total_${ano1}`].toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-6 text-white">
+                    <div class="text-sm font-medium opacity-90 mb-2">Total ${ano2}</div>
+                    <div class="text-3xl font-bold">R$ ${resumo[`total_${ano2}`].toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                </div>
+                
+                <div class="bg-gradient-to-br ${variacaoPositiva ? 'from-green-500 to-green-600' : 'from-red-500 to-red-600'} rounded-lg p-6 text-white">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium opacity-90">Variação</span>
+                        <i class="material-symbols-outlined">${variacaoPositiva ? 'trending_up' : 'trending_down'}</i>
+                    </div>
+                    <div class="text-2xl font-bold mb-1">${variacaoPositiva ? '+' : ''}${resumo.variacao_percentual.toFixed(1)}%</div>
+                    <div class="text-sm opacity-75">R$ ${Math.abs(resumo.variacao_absoluta).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tabela Comparativa Mensal -->
+        <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg overflow-hidden">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Comparação Mensal</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50 dark:bg-gray-800">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Mês</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">${ano1}</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">${ano2}</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Variação</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">%</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-[var(--card-dark)] divide-y divide-gray-200 dark:divide-gray-700">
+    `;
+    
+    data.comparacao_mensal.forEach(mes => {
+        const varMensal = mes.variacao_percentual >= 0;
+        html += `
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${mes.mes_nome}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 dark:text-gray-400">R$ ${mes[`receita_${ano1}`].toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 dark:text-gray-400">R$ ${mes[`receita_${ano2}`].toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold ${varMensal ? 'text-green-600' : 'text-red-600'}">
+                    ${varMensal ? '+' : ''}R$ ${mes.variacao_absoluta.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold ${varMensal ? 'text-green-600' : 'text-red-600'}">
+                    <div class="flex items-center justify-end gap-1">
+                        <i class="material-symbols-outlined text-sm">${varMensal ? 'arrow_upward' : 'arrow_downward'}</i>
+                        ${Math.abs(mes.variacao_percentual).toFixed(1)}%
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    html += `
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('resultado-relatorio').innerHTML = html;
+}
+
+// Exportar PDF
+async function exportarPDF(tipo) {
+    let url = '';
+    
+    if (tipo === 'mensal') {
+        const ano = document.getElementById('ano-mensal').value;
+        const mes = document.getElementById('mes-mensal').value;
+        const proprietarioId = document.getElementById('proprietario-mensal').value;
+        
+        url = `/api/relatorios/exportar/pdf/mensal?ano=${ano}&mes=${mes}`;
+        if (proprietarioId) url += `&proprietario_id=${proprietarioId}`;
+    }
+    
+    if (!url) {
+        mostrarErro('Exportação PDF disponível apenas para relatórios mensais');
+        return;
+    }
+    
+    try {
+        window.open(url, '_blank');
+    } catch (error) {
+        mostrarErro('Erro ao exportar PDF: ' + error.message);
+    }
+}
+
+// Exportar Excel
+async function exportarExcel(tipo) {
+    let url = '';
+    
+    if (tipo === 'mensal') {
+        const ano = document.getElementById('ano-mensal').value;
+        const mes = document.getElementById('mes-mensal').value;
+        const proprietarioId = document.getElementById('proprietario-mensal').value;
+        
+        url = `/api/relatorios/exportar/excel/mensal?ano=${ano}&mes=${mes}`;
+        if (proprietarioId) url += `&proprietario_id=${proprietarioId}`;
+    }
+    
+    if (!url) {
+        mostrarErro('Exportação Excel disponível apenas para relatórios mensais');
+        return;
+    }
+    
+    try {
+        window.open(url, '_blank');
+    } catch (error) {
+        mostrarErro('Erro ao exportar Excel: ' + error.message);
+    }
+}
+
+// Utilitários
+function mostrarCarregamento() {
+    document.getElementById('resultado-relatorio').innerHTML = `
+        <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg p-12 text-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-[var(--primary)] mx-auto mb-4"></div>
+            <p class="text-gray-600 dark:text-gray-400 text-lg">Gerando relatório...</p>
+        </div>
+    `;
+}
+
+function mostrarErro(mensagem) {
+    document.getElementById('resultado-relatorio').innerHTML = `
+        <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg p-12 text-center">
+            <i class="material-symbols-outlined text-6xl text-red-500 mb-4">error</i>
+            <p class="text-red-600 dark:text-red-400 text-lg font-medium">${mensagem}</p>
+        </div>
+    `;
+}
+
+function formatarData(data) {
+    if (!data) return '-';
+    const d = new Date(data);
+    return d.toLocaleDateString('pt-BR');
+}
+</script>
+
+<style>
+.tab-button:hover {
+    background-color: rgba(19, 91, 236, 0.05);
+}
+</style>
+{% endblock %}
