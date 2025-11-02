@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}Importação de Dados - Sistema de Aluguéis{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-bg-dark">
+    <!-- Navbar -->
+    <nav class="bg-[var(--card-dark)] shadow-lg mb-6">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-8">
+                    <h1 class="text-2xl font-bold text-[var(--primary)]">AlugueisV5</h1>
+                    <div class="flex gap-6">
+                        <a href="/dashboard" class="nav-link">
+                            <span class="material-symbols-outlined text-sm">dashboard</span>
+                            Dashboard
+                        </a>
+                        <a href="/proprietarios" class="nav-link">
+                            <span class="material-symbols-outlined text-sm">person</span>
+                            Proprietários
+                        </a>
+                        <a href="/imoveis" class="nav-link">
+                            <span class="material-symbols-outlined text-sm">home</span>
+                            Imóveis
+                        </a>
+                        <a href="/participacoes" class="nav-link">
+                            <span class="material-symbols-outlined text-sm">pie_chart</span>
+                            Participações
+                        </a>
+                        <a href="/alugueis" class="nav-link">
+                            <span class="material-symbols-outlined text-sm">payments</span>
+                            Aluguéis
+                        </a>
+                        <a href="/relatorios" class="nav-link">
+                            <span class="material-symbols-outlined text-sm">assessment</span>
+                            Relatórios
+                        </a>
+                        <a href="/transferencias" class="nav-link">
+                            <span class="material-symbols-outlined text-sm">sync_alt</span>
+                            Transferências
+                        </a>
+                        <a href="/importacao" class="nav-link active">
+                            <span class="material-symbols-outlined text-sm">upload_file</span>
+                            Importação
+                        </a>
+                        <a href="/usuarios" class="nav-link">
+                            <span class="material-symbols-outlined text-sm">group</span>
+                            Usuários
+                        </a>
+                    </div>
+                </div>
+                <button onclick="logout()" class="text-red-400 hover:text-red-300 flex items-center gap-2 transition-colors">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span class="hidden md:inline">Sair</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-6">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-white mb-2">Importação de Dados</h1>
+            <p class="text-gray-400">Importe proprietários, imóveis e aluguéis a partir de arquivos Excel ou CSV</p>
+        </div>
+
+        <!-- Avisos -->
+        <div class="card p-6 mb-6 bg-blue-500/10 border border-blue-500/30">
+            <div class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-blue-400 text-3xl">info</span>
+                <div>
+                    <h3 class="text-lg font-semibold text-white mb-2">Instruções</h3>
+                    <ul class="text-gray-300 space-y-1 text-sm">
+                        <li>• Baixe o template Excel correspondente ao tipo de dados que deseja importar</li>
+                        <li>• Preencha o arquivo seguindo o formato do template</li>
+                        <li>• Faça upload do arquivo preenchido</li>
+                        <li>• Revise os dados no preview antes de confirmar a importação</li>
+                        <li>• Formatos aceitos: .xlsx, .xls, .csv</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seletor de Tipo de Importação -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="card p-6 cursor-pointer hover:border-[var(--primary)] transition-all" onclick="selecionarTipo('proprietarios')">
+                <div class="flex flex-col items-center text-center">
+                    <span class="material-symbols-outlined text-6xl text-blue-400 mb-4">person_add</span>
+                    <h3 class="text-xl font-bold text-white mb-2">Proprietários</h3>
+                    <p class="text-gray-400 text-sm mb-4">Importar usuários/proprietários</p>
+                    <button class="btn-secondary text-sm">
+                        <span class="material-symbols-outlined text-sm">download</span>
+                        Baixar Template
+                    </button>
+                </div>
+            </div>
+
+            <div class="card p-6 cursor-pointer hover:border-[var(--primary)] transition-all" onclick="selecionarTipo('imoveis')">
+                <div class="flex flex-col items-center text-center">
+                    <span class="material-symbols-outlined text-6xl text-green-400 mb-4">home</span>
+                    <h3 class="text-xl font-bold text-white mb-2">Imóveis</h3>
+                    <p class="text-gray-400 text-sm mb-4">Importar cadastro de imóveis</p>
+                    <button class="btn-secondary text-sm">
+                        <span class="material-symbols-outlined text-sm">download</span>
+                        Baixar Template
+                    </button>
+                </div>
+            </div>
+
+            <div class="card p-6 cursor-pointer hover:border-[var(--primary)] transition-all" onclick="selecionarTipo('alugueis')">
+                <div class="flex flex-col items-center text-center">
+                    <span class="material-symbols-outlined text-6xl text-purple-400 mb-4">payments</span>
+                    <h3 class="text-xl font-bold text-white mb-2">Aluguéis</h3>
+                    <p class="text-gray-400 text-sm mb-4">Importar registros de aluguéis</p>
+                    <button class="btn-secondary text-sm">
+                        <span class="material-symbols-outlined text-sm">download</span>
+                        Baixar Template
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Área de Upload -->
+        <div id="upload-area" class="card p-8 mb-6 hidden">
+            <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                <span class="material-symbols-outlined">cloud_upload</span>
+                Upload de Arquivo
+                <span id="tipo-selecionado" class="text-[var(--primary)] ml-2"></span>
+            </h2>
+
+            <!-- Drop Zone -->
+            <div id="dropzone" class="border-2 border-dashed border-gray-600 rounded-xl p-12 text-center hover:border-[var(--primary)] transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-6xl text-gray-500 mb-4">cloud_upload</span>
+                <p class="text-gray-400 mb-2">Arraste e solte o arquivo aqui ou clique para selecionar</p>
+                <p class="text-gray-500 text-sm">Arquivos aceitos: .xlsx, .xls, .csv (Máx: 10MB)</p>
+                <input type="file" id="file-input" accept=".xlsx,.xls,.csv" class="hidden">
+            </div>
+
+            <!-- Arquivo Selecionado -->
+            <div id="file-selected" class="mt-6 hidden">
+                <div class="bg-gray-800 rounded-lg p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-green-400">description</span>
+                        <div>
+                            <p class="text-white font-medium" id="file-name"></p>
+                            <p class="text-gray-400 text-sm" id="file-size"></p>
+                        </div>
+                    </div>
+                    <button onclick="limparArquivo()" class="text-red-400 hover:text-red-300">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div class="flex gap-3 mt-4">
+                    <button onclick="gerarPreview()" class="btn-secondary flex-1">
+                        <span class="material-symbols-outlined text-sm">visibility</span>
+                        Ver Preview
+                    </button>
+                    <button onclick="iniciarImportacao()" class="btn-primary flex-1">
+                        <span class="material-symbols-outlined text-sm">upload</span>
+                        Importar Agora
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview dos Dados -->
+        <div id="preview-area" class="card hidden">
+            <div class="p-6 border-b border-gray-700 flex items-center justify-between">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                    <span class="material-symbols-outlined">table_view</span>
+                    Preview dos Dados
+                </h2>
+                <button onclick="fecharPreview()" class="text-gray-400 hover:text-white">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="p-6">
+                <div id="preview-info" class="mb-4"></div>
+                <div class="overflow-x-auto">
+                    <table id="preview-table" class="w-full">
+                        <thead>
+                            <tr class="bg-gray-800/50" id="preview-header"></tr>
+                        </thead>
+                        <tbody id="preview-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resultado da Importação -->
+        <div id="resultado-area" class="card p-6 hidden">
+            <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                <span class="material-symbols-outlined">check_circle</span>
+                Resultado da Importação
+            </h2>
+            <div id="resultado-conteudo"></div>
+            <button onclick="resetarImportacao()" class="btn-primary mt-6">
+                <span class="material-symbols-outlined text-sm">refresh</span>
+                Nova Importação
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50">
+    <div class="bg-[var(--card-dark)] rounded-xl p-8 text-center">
+        <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
+        <p class="text-white text-lg" id="loading-message">Processando...</p>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/importacao.js"></script>
+{% endblock %}
