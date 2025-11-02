@@ -10,13 +10,8 @@ let inactivityTimer = null;
     const navigationType = performance.getEntriesByType('navigation')[0]?.type;
     const currentPath = window.location.pathname;
     
-    console.log('[RELOAD] Navigation type:', navigationType);
-    console.log('[RELOAD] Current path:', currentPath);
-    
     // Se foi reload (F5, Ctrl+R) e não está na página de login
     if (navigationType === 'reload' && !currentPath.includes('/login')) {
-        console.log('[RELOAD] Reload detectado! Fazendo logout...');
-        
         // Fazer logout imediatamente
         fetch('/api/auth/logout', {
             method: 'POST',
@@ -38,19 +33,15 @@ function resetInactivityTimer() {
     }
     
     clearTimeout(inactivityTimer);
-    console.log('[TIMER] Timer de inatividade resetado');
     
     inactivityTimer = setTimeout(() => {
-        console.log('[TIMER] Timeout de inatividade atingido - fazendo logout');
         showToast('Sessão expirada por inatividade', 'warning');
-        setTimeout(() => logout(), 2000); // Aguardar 2s para mostrar o toast
+        setTimeout(() => logout(), 2000);
     }, INACTIVITY_TIMEOUT);
 }
 
 // Inicializar monitoramento apenas se não estiver no login
 if (!window.location.pathname.includes('/login')) {
-    console.log('[TIMER] Página protegida detectada, iniciando monitoramento');
-    
     // Eventos que resetam o timer
     const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
     
@@ -68,21 +59,14 @@ if (!window.location.pathname.includes('/login')) {
 
 // Função de logout
 async function logout() {
-    console.log('[LOGOUT] Função logout() chamada');
-    console.trace('[LOGOUT] Stack trace:');
-    
     try {
-        console.log('[LOGOUT] Fazendo POST para /api/auth/logout');
         await fetch('/api/auth/logout', {
             method: 'POST',
             credentials: 'include'
         });
-        console.log('[LOGOUT] POST concluído');
     } catch (error) {
-        console.error('[LOGOUT] Erro ao fazer logout:', error);
+        console.error('Erro ao fazer logout:', error);
     } finally {
-        console.log('[LOGOUT] Redirecionando para /login');
-        // Redirecionar para login de qualquer forma
         window.location.href = '/login';
     }
 }
