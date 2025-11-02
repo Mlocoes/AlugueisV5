@@ -39,141 +39,16 @@
                         </a>
                     </div>
                 </div>
-                <div class="flex items-center gap-4">
-                    <span class="text-gray-300">
-                        <span class="material-symbols-outlined align-middle text-sm">person</span>
-                        <span id="user-name">...</span>
-                    </span>
-                    <button onclick="logout()" class="text-red-400 hover:text-red-300 flex items-center gap-2 transition-colors">
-                        <span class="material-symbols-outlined">logout</span>
-                        <span class="hidden md:inline">Sair</span>
-                    </button>
-                </div>
+                <button onclick="logout()" class="text-red-400 hover:text-red-300 flex items-center gap-2 transition-colors">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span class="hidden md:inline">Sair</span>
+                </button>
             </div>
         </div>
     </nav>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <!-- Header e Stats -->
-        <div class="mb-6">
-            <h2 class="text-2xl font-bold text-white mb-4">Gestão de Aluguéis Mensais</h2>
-            
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-                <div class="bg-card-dark rounded-lg p-4">
-                    <div class="text-gray-400 text-sm">Total de Aluguéis</div>
-                    <div class="text-2xl font-bold text-white" id="stat-total">0</div>
-                </div>
-                <div class="bg-green-500/20 border border-green-500/50 rounded-lg p-4">
-                    <div class="text-green-300 text-sm">Pagos</div>
-                    <div class="text-2xl font-bold text-green-400" id="stat-pagos">0</div>
-                </div>
-                <div class="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4">
-                    <div class="text-yellow-300 text-sm">Pendentes</div>
-                    <div class="text-2xl font-bold text-yellow-400" id="stat-pendentes">0</div>
-                </div>
-                <div class="bg-blue-500/20 border border-blue-500/50 rounded-lg p-4">
-                    <div class="text-blue-300 text-sm">Total Recebido</div>
-                    <div class="text-xl font-bold text-blue-400" id="stat-recebido">R$ 0,00</div>
-                </div>
-                <div class="bg-red-500/20 border border-red-500/50 rounded-lg p-4">
-                    <div class="text-red-300 text-sm">Total Pendente</div>
-                    <div class="text-xl font-bold text-red-400" id="stat-pendente">R$ 0,00</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Filtros e Ações -->
-        <div class="bg-card-dark rounded-lg shadow-lg p-6 mb-6">
-            <div class="flex flex-wrap gap-4 items-end">
-                <!-- Filtro Ano -->
-                <div class="flex-1 min-w-[150px]">
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Ano</label>
-                    <select id="filter-ano" class="w-full bg-bg-dark border border-border-dark text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
-                        <option value="">Todos os anos</option>
-                    </select>
-                </div>
-
-                <!-- Filtro Mês -->
-                <div class="flex-1 min-w-[150px]">
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Mês</label>
-                    <input type="month" id="filter-mes" class="w-full bg-bg-dark border border-border-dark text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
-                </div>
-
-                <!-- Filtro Imóvel -->
-                <div class="flex-1 min-w-[200px]">
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Imóvel</label>
-                    <select id="filter-imovel" class="w-full bg-bg-dark border border-border-dark text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
-                        <option value="">Todos os imóveis</option>
-                    </select>
-                </div>
-
-                <!-- Filtro Status -->
-                <div class="flex-1 min-w-[150px]">
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Status</label>
-                    <select id="filter-status" class="w-full bg-bg-dark border border-border-dark text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
-                        <option value="">Todos</option>
-                        <option value="true">Pagos</option>
-                        <option value="false">Pendentes</option>
-                    </select>
-                </div>
-
-                <!-- Botões -->
-                <div class="flex gap-2">
-                    <button id="btn-filtrar" class="bg-primary hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
-                        <span class="material-symbols-outlined text-sm align-middle">search</span>
-                        Filtrar
-                    </button>
-                    <button id="btn-limpar-filtros" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
-                        <span class="material-symbols-outlined text-sm align-middle">clear</span>
-                    </button>
-                    <button id="btn-novo-aluguel" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition-colors">
-                        <span class="material-symbols-outlined text-sm align-middle">add</span>
-                        Novo Aluguel
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tabela de Aluguéis -->
-        <div class="bg-card-dark rounded-lg shadow-lg overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-border-dark">
-                    <thead class="bg-bg-dark">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Mês</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Imóvel</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Aluguel</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Encargos</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Total</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="alugueis-tbody" class="bg-card-dark divide-y divide-border-dark">
-                        <!-- Linhas serão inseridas via JS -->
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Loading -->
-            <div id="loading" class="hidden p-8 text-center text-gray-400">
-                <span class="material-symbols-outlined animate-spin text-4xl">progress_activity</span>
-                <p class="mt-2">Carregando...</p>
-            </div>
-
-            <!-- Empty State -->
-            <div id="empty-state" class="hidden p-8 text-center text-gray-400">
-                <span class="material-symbols-outlined text-6xl">receipt_long</span>
-                <p class="mt-2">Nenhum aluguel encontrado</p>
-                <button onclick="document.getElementById('btn-novo-aluguel').click()" class="mt-4 text-primary hover:text-blue-400">
-                    Cadastrar primeiro aluguel
-                </button>
-            </div>
-        </div>
-    </main>
-</div>
+    <div class="container mx-auto px-4 pb-8">
 
 <!-- Modal Novo/Editar Aluguel -->
 <div id="modal-aluguel" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 items-center justify-center p-4">

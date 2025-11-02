@@ -27,21 +27,21 @@
     </div>
 </nav>
 
-<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-[var(--bg-dark)] dark:to-gray-900 p-6">
+<div class="min-h-screen bg-[var(--bg-dark)] p-6">
     <div class="max-w-7xl mx-auto">
         <!-- Cabeçalho -->
         <div class="mb-8">
-            <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 class="text-4xl font-bold text-white mb-2">
                 <i class="material-symbols-outlined align-middle text-[var(--primary)]">assessment</i>
                 Relatórios Financeiros
             </h1>
-            <p class="text-gray-600 dark:text-gray-400">
+            <p class="text-gray-400">
                 Análise completa de receitas, despesas e participações
             </p>
         </div>
 
         <!-- Tipos de Relatório - Tabs -->
-        <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg p-6 mb-6">
+        <div class="bg-[var(--card-dark)] rounded-xl shadow-lg p-6 mb-6">
             <div class="flex flex-wrap gap-2 mb-6 border-b border-gray-200 dark:border-gray-700">
                 <button onclick="mudarTipoRelatorio('mensal')" 
                         id="tab-mensal"
@@ -51,19 +51,19 @@
                 </button>
                 <button onclick="mudarTipoRelatorio('proprietario')" 
                         id="tab-proprietario"
-                        class="tab-button px-6 py-3 font-medium rounded-t-lg transition-all duration-200 border-b-2 border-transparent text-gray-600 dark:text-gray-400 hover:text-[var(--primary)]">
+                        class="tab-button px-6 py-3 font-medium rounded-t-lg transition-all duration-200 border-b-2 border-transparent text-gray-400 hover:text-[var(--primary)]">
                     <i class="material-symbols-outlined align-middle text-sm">person</i>
                     Por Proprietário
                 </button>
                 <button onclick="mudarTipoRelatorio('anual')" 
                         id="tab-anual"
-                        class="tab-button px-6 py-3 font-medium rounded-t-lg transition-all duration-200 border-b-2 border-transparent text-gray-600 dark:text-gray-400 hover:text-[var(--primary)]">
+                        class="tab-button px-6 py-3 font-medium rounded-t-lg transition-all duration-200 border-b-2 border-transparent text-gray-400 hover:text-[var(--primary)]">
                     <i class="material-symbols-outlined align-middle text-sm">event</i>
                     Anual
                 </button>
                 <button onclick="mudarTipoRelatorio('comparativo')" 
                         id="tab-comparativo"
-                        class="tab-button px-6 py-3 font-medium rounded-t-lg transition-all duration-200 border-b-2 border-transparent text-gray-600 dark:text-gray-400 hover:text-[var(--primary)]">
+                        class="tab-button px-6 py-3 font-medium rounded-t-lg transition-all duration-200 border-b-2 border-transparent text-gray-400 hover:text-[var(--primary)]">
                     <i class="material-symbols-outlined align-middle text-sm">compare</i>
                     Comparativo
                 </button>
@@ -224,7 +224,7 @@
         <!-- Área de Resultados -->
         <div id="resultado-relatorio">
             <!-- Mensagem inicial -->
-            <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg p-12 text-center">
+            <div class="bg-[var(--card-dark)] rounded-xl shadow-lg p-12 text-center">
                 <i class="material-symbols-outlined text-6xl text-gray-300 dark:text-gray-600 mb-4">description</i>
                 <p class="text-gray-500 dark:text-gray-400 text-lg">
                     Selecione os filtros e clique em "Gerar" para visualizar o relatório
@@ -298,7 +298,7 @@ function mudarTipoRelatorio(tipo) {
     
     // Limpar resultado
     document.getElementById('resultado-relatorio').innerHTML = `
-        <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg p-12 text-center">
+        <div class="bg-[var(--card-dark)] rounded-xl shadow-lg p-12 text-center">
             <i class="material-symbols-outlined text-6xl text-gray-300 dark:text-gray-600 mb-4">description</i>
             <p class="text-gray-500 dark:text-gray-400 text-lg">
                 Selecione os filtros e clique em "Gerar" para visualizar o relatório
@@ -416,9 +416,9 @@ function renderizarRelatorioMensal(data) {
     const periodo = data.periodo;
     
     let html = `
-        <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg p-6 mb-6">
+        <div class="bg-[var(--card-dark)] rounded-xl shadow-lg p-6 mb-6">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                <h2 class="text-2xl font-bold text-white">
                     Relatório Mensal - ${periodo.mes_nome}/${periodo.ano}
                 </h2>
                 <div class="flex gap-2">
@@ -473,7 +473,7 @@ function renderizarRelatorioMensal(data) {
             
             <!-- Barra de Progresso -->
             <div class="mb-6">
-                <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+                <div class="flex justify-between text-sm text-gray-400 mb-2">
                     <span>Taxa de Recebimento</span>
                     <span class="font-bold text-[var(--primary)]">${resumo.taxa_recebimento.toFixed(1)}%</span>
                 </div>
@@ -488,9 +488,9 @@ function renderizarRelatorioMensal(data) {
     // Tabela de detalhamento
     if (data.detalhamento && data.detalhamento.length > 0) {
         html += `
-            <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-[var(--card-dark)] rounded-xl shadow-lg overflow-hidden">
                 <div class="p-6 border-b border-gray-200 dark:border-gray-700">
-                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">Detalhamento por Imóvel</h3>
+                    <h3 class="text-xl font-bold text-white">Detalhamento por Imóvel</h3>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full">
@@ -506,7 +506,7 @@ function renderizarRelatorioMensal(data) {
                                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white dark:bg-[var(--card-dark)] divide-y divide-gray-200 dark:divide-gray-700">
+                        <tbody class="bg-[var(--card-dark)] divide-y divide-gray-700">
         `;
         
         data.detalhamento.forEach(item => {
@@ -518,14 +518,14 @@ function renderizarRelatorioMensal(data) {
             
             html += `
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${item.imovel_endereco}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-white">${item.imovel_endereco}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${statusBadge}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 dark:text-gray-400">${formatarData(item.data_vencimento)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 dark:text-white">R$ ${valores.aluguel.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 dark:text-gray-400">R$ ${valores.condominio.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 dark:text-gray-400">R$ ${valores.iptu.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 dark:text-gray-400">R$ ${despesas.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-900 dark:text-white">R$ ${valores.total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-400">${formatarData(item.data_vencimento)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-white">R$ ${valores.aluguel.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-400">R$ ${valores.condominio.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-400">R$ ${valores.iptu.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-400">R$ ${despesas.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-white">R$ ${valores.total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                 </tr>
             `;
         });
@@ -548,13 +548,13 @@ function renderizarRelatorioProprietario(data) {
     const periodo = data.periodo;
     
     let html = `
-        <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg p-6 mb-6">
+        <div class="bg-[var(--card-dark)] rounded-xl shadow-lg p-6 mb-6">
             <div class="flex justify-between items-center mb-6">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                    <h2 class="text-2xl font-bold text-white mb-1">
                         Relatório de Proprietário
                     </h2>
-                    <p class="text-gray-600 dark:text-gray-400">
+                    <p class="text-gray-400">
                         ${prop.nome} ${periodo.mes ? `- Mês ${periodo.mes}` : ''} / ${periodo.ano}
                     </p>
                 </div>
@@ -609,7 +609,7 @@ function renderizarRelatorioProprietario(data) {
             
             <!-- Barra de Progresso -->
             <div class="mb-6">
-                <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+                <div class="flex justify-between text-sm text-gray-400 mb-2">
                     <span>Taxa de Recebimento</span>
                     <span class="font-bold text-[var(--primary)]">${resumo.taxa_recebimento.toFixed(1)}%</span>
                 </div>
@@ -624,17 +624,17 @@ function renderizarRelatorioProprietario(data) {
     // Receitas por mês
     if (data.receitas_por_mes && data.receitas_por_mes.length > 0) {
         html += `
-            <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg p-6">
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Receitas Mensais</h3>
+            <div class="bg-[var(--card-dark)] rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-white mb-4">Receitas Mensais</h3>
         `;
         
         data.receitas_por_mes.forEach(mes => {
             html += `
                 <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <div class="flex justify-between items-center mb-3">
-                        <h4 class="text-lg font-semibold text-gray-900 dark:text-white">${mes.mes_referencia}</h4>
+                        <h4 class="text-lg font-semibold text-white">${mes.mes_referencia}</h4>
                         <div class="text-right">
-                            <div class="text-sm text-gray-600 dark:text-gray-400">Recebido</div>
+                            <div class="text-sm text-gray-400">Recebido</div>
                             <div class="text-xl font-bold text-green-600">R$ ${mes.total_recebido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
                         </div>
                     </div>
@@ -647,7 +647,7 @@ function renderizarRelatorioProprietario(data) {
                 html += `
                     <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700 last:border-0">
                         <div class="flex-1">
-                            <div class="text-sm font-medium text-gray-900 dark:text-white">${detalhe.imovel_endereco}</div>
+                            <div class="text-sm font-medium text-white">${detalhe.imovel_endereco}</div>
                             <div class="text-xs text-gray-500 dark:text-gray-400">Participação: ${detalhe.percentual}%</div>
                         </div>
                         <div class="text-right">
@@ -675,9 +675,9 @@ function renderizarRelatorioAnual(data) {
     const resumo = data.resumo;
     
     let html = `
-        <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg p-6 mb-6">
+        <div class="bg-[var(--card-dark)] rounded-xl shadow-lg p-6 mb-6">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                <h2 class="text-2xl font-bold text-white">
                     Relatório Anual - ${data.ano}
                 </h2>
                 <div class="flex gap-2">
@@ -726,7 +726,7 @@ function renderizarRelatorioAnual(data) {
             
             <!-- Taxa de Recebimento -->
             <div class="mb-6">
-                <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+                <div class="flex justify-between text-sm text-gray-400 mb-2">
                     <span>Taxa de Recebimento Anual</span>
                     <span class="font-bold text-[var(--primary)]">${resumo.taxa_recebimento.toFixed(1)}%</span>
                 </div>
@@ -738,9 +738,9 @@ function renderizarRelatorioAnual(data) {
         </div>
         
         <!-- Tabela Mensal -->
-        <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-[var(--card-dark)] rounded-xl shadow-lg overflow-hidden">
             <div class="p-6 border-b border-gray-200 dark:border-gray-700">
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Receitas Mensais</h3>
+                <h3 class="text-xl font-bold text-white">Receitas Mensais</h3>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full">
@@ -755,17 +755,17 @@ function renderizarRelatorioAnual(data) {
                             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Pendente</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white dark:bg-[var(--card-dark)] divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody class="bg-[var(--card-dark)] divide-y divide-gray-700">
     `;
     
     data.receitas_mensais.forEach(mes => {
         html += `
             <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${mes.mes_nome}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 dark:text-gray-400">${mes.total_alugueis}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">${mes.mes_nome}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-400">${mes.total_alugueis}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-green-600">${mes.alugueis_pagos}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-orange-600">${mes.alugueis_pendentes}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 dark:text-white">R$ ${mes.total_esperado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-white">R$ ${mes.total_esperado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold text-green-600">R$ ${mes.total_recebido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold text-orange-600">R$ ${mes.total_pendente.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
             </tr>
@@ -789,9 +789,9 @@ function renderizarRelatorioComparativo(data) {
     const variacaoPositiva = resumo.variacao_absoluta >= 0;
     
     let html = `
-        <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg p-6 mb-6">
+        <div class="bg-[var(--card-dark)] rounded-xl shadow-lg p-6 mb-6">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                <h2 class="text-2xl font-bold text-white">
                     Relatório Comparativo ${ano1} vs ${ano2}
                 </h2>
                 <div class="flex gap-2">
@@ -832,9 +832,9 @@ function renderizarRelatorioComparativo(data) {
         </div>
         
         <!-- Tabela Comparativa Mensal -->
-        <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-[var(--card-dark)] rounded-xl shadow-lg overflow-hidden">
             <div class="p-6 border-b border-gray-200 dark:border-gray-700">
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Comparação Mensal</h3>
+                <h3 class="text-xl font-bold text-white">Comparação Mensal</h3>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full">
@@ -847,16 +847,16 @@ function renderizarRelatorioComparativo(data) {
                             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">%</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white dark:bg-[var(--card-dark)] divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody class="bg-[var(--card-dark)] divide-y divide-gray-700">
     `;
     
     data.comparacao_mensal.forEach(mes => {
         const varMensal = mes.variacao_percentual >= 0;
         html += `
             <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${mes.mes_nome}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 dark:text-gray-400">R$ ${mes[`receita_${ano1}`].toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 dark:text-gray-400">R$ ${mes[`receita_${ano2}`].toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">${mes.mes_nome}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-400">R$ ${mes[`receita_${ano1}`].toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-400">R$ ${mes[`receita_${ano2}`].toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold ${varMensal ? 'text-green-600' : 'text-red-600'}">
                     ${varMensal ? '+' : ''}R$ ${mes.variacao_absoluta.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                 </td>
@@ -933,16 +933,16 @@ async function exportarExcel(tipo) {
 // Utilitários
 function mostrarCarregamento() {
     document.getElementById('resultado-relatorio').innerHTML = `
-        <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg p-12 text-center">
+        <div class="bg-[var(--card-dark)] rounded-xl shadow-lg p-12 text-center">
             <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-[var(--primary)] mx-auto mb-4"></div>
-            <p class="text-gray-600 dark:text-gray-400 text-lg">Gerando relatório...</p>
+            <p class="text-gray-400 text-lg">Gerando relatório...</p>
         </div>
     `;
 }
 
 function mostrarErro(mensagem) {
     document.getElementById('resultado-relatorio').innerHTML = `
-        <div class="bg-white dark:bg-[var(--card-dark)] rounded-xl shadow-lg p-12 text-center">
+        <div class="bg-[var(--card-dark)] rounded-xl shadow-lg p-12 text-center">
             <i class="material-symbols-outlined text-6xl text-red-500 mb-4">error</i>
             <p class="text-red-600 dark:text-red-400 text-lg font-medium">${mensagem}</p>
         </div>
