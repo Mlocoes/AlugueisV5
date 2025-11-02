@@ -189,18 +189,6 @@
 
 {% block scripts %}
 <script>
-    // Carregar informações do usuário
-    async function loadUserInfo() {
-        try {
-            const user = await fetchWithAuth('/api/auth/me');
-            if (user) {
-                document.getElementById('user-name').textContent = user.nome;
-            }
-        } catch (error) {
-            console.error('Erro ao carregar usuário:', error);
-        }
-    }
-
     // Carregar estatísticas
     async function loadStats() {
         try {
@@ -224,13 +212,7 @@
 
     // Inicializar
     document.addEventListener('DOMContentLoaded', () => {
-        loadUserInfo();
         loadStats();
-        
-        // Adicionar evento de logout
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            logout();
-        });
     });
 </script>
 {% endblock %}
