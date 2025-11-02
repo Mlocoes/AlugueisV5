@@ -226,7 +226,6 @@
     </div>
 </div>
 
-<script src="/static/js/utils.js"></script>
 <script>
 let participacoes = [];
 let imoveis = [];
@@ -258,10 +257,9 @@ async function init() {
 
 async function loadImoveis() {
     try {
-        const response = await fetchWithAuth('/api/imoveis/?limit=1000');
-        if (response.ok) {
-            imoveis = await response.json();
-            
+        imoveis = await fetchWithAuth('/api/imoveis/?limit=100&is_active=true');
+        
+        if (imoveis) {
             // Criar map para lookup rápido
             imoveisMap = {};
             imoveis.forEach(i => {
@@ -290,10 +288,9 @@ async function loadImoveis() {
 
 async function loadProprietarios() {
     try {
-        const response = await fetchWithAuth('/api/proprietarios/?limit=1000');
-        if (response.ok) {
-            proprietarios = await response.json();
-            
+        proprietarios = await fetchWithAuth('/api/proprietarios/?limit=100&is_active=true');
+        
+        if (proprietarios) {
             // Criar map para lookup rápido
             proprietariosMap = {};
             proprietarios.forEach(p => {
@@ -445,20 +442,17 @@ async function deletarParticipacao(id, imovelNome, mes) {
     }
     
     try {
-        const response = await fetchWithAuth(`/api/participacoes/${id}`, {
+        const success = await fetchWithAuth(`/api/participacoes/${id}`, {
             method: 'DELETE'
         });
         
-        if (response.ok) {
+        if (success) {
             showToast('Participação deletada com sucesso', 'success');
             await Promise.all([loadStats(), loadParticipacoes()]);
-        } else {
-            const error = await response.json();
-            showToast(error.detail || 'Erro ao deletar participação', 'error');
         }
     } catch (error) {
         console.error('Erro ao deletar:', error);
-        showToast('Erro ao deletar participação', 'error');
+        showToast(error.message || 'Erro ao deletar participação', 'error');
     }
 }
 
@@ -500,23 +494,20 @@ document.getElementById('participacao-form').addEventListener('submit', async (e
         const url = id ? `/api/participacoes/${id}` : '/api/participacoes/';
         const method = id ? 'PUT' : 'POST';
         
-        const response = await fetchWithAuth(url, {
+        const result = await fetchWithAuth(url, {
             method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
         
-        if (response.ok) {
+        if (result) {
             showToast(`Participação ${id ? 'atualizada' : 'criada'} com sucesso`, 'success');
             closeModal();
             await Promise.all([loadStats(), loadParticipacoes()]);
-        } else {
-            const error = await response.json();
-            showToast(error.detail || 'Erro ao salvar participação', 'error');
         }
     } catch (error) {
         console.error('Erro ao salvar:', error);
-        showToast('Erro ao salvar participação', 'error');
+        showToast(error.message || 'Erro ao salvar participação', 'error');
     }
 });
 

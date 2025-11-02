@@ -100,6 +100,11 @@ async function fetchWithAuth(url, options = {}) {
             throw new Error(error.detail || `HTTP error! status: ${response.status}`);
         }
 
+        // Para respostas 204 No Content ou operações DELETE, retornar true
+        if (response.status === 204 || options.method === 'DELETE') {
+            return true;
+        }
+
         // Retornar o JSON parseado
         return await response.json();
     } catch (error) {
