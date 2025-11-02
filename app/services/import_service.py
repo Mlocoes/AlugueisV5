@@ -175,8 +175,7 @@ class ImportacaoService:
                     
                 except Exception as e:
                     erros.append(f"Linha {linha}: Erro ao processar - {str(e)}")
-                    db.rollback()  # Rollback da transação com erro
-                    db.begin()  # Iniciar nova transação
+                    # Não fazer rollback aqui, apenas registrar o erro
                     continue
             
             if importados > 0:
