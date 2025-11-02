@@ -45,9 +45,22 @@
 
 <style>
 .nav-link {
-    @apply text-gray-400 hover:text-white transition-colors flex items-center gap-2 px-3 py-2 rounded-lg;
+    color: #94a3b8;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+}
+.nav-link:hover {
+    color: white;
+    background-color: rgba(19, 91, 236, 0.1);
 }
 .nav-link.active {
-    @apply text-[var(--primary)] font-semibold bg-[var(--primary)]/10;
+    color: var(--primary);
+    font-weight: 600;
+    background-color: rgba(19, 91, 236, 0.15);
 }
 </style>
