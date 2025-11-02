@@ -107,6 +107,18 @@ async def alugueis_page(request: Request, current_user: Usuario = Depends(get_cu
         "user": current_user
     })
 
+@app.get("/usuarios", response_class=HTMLResponse)
+async def usuarios_page(request: Request, current_user: Usuario = Depends(get_current_user_from_cookie)):
+    """Página de gestão de usuários (apenas admins)"""
+    if not current_user.is_admin:
+        return RedirectResponse(url="/dashboard", status_code=303)
+    
+    return templates.TemplateResponse("usuarios.html", {
+        "request": request,
+        "title": "Usuários",
+        "user": current_user
+    })
+
 @app.get("/health")
 async def health_check():
     """Endpoint de health check"""

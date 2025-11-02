@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuários - AlugueisV5</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <script src="/static/js/utils.js"></script>
+    <style>
+        :root {
+            --bg-dark: #101622;
+            --card-dark: #1e293b;
+            --primary: #135bec;
+            --primary-hover: #0d47c4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+        body {
+            background-color: var(--bg-dark);
+            color: #e2e8f0;
+        }
+        .card {
+            background-color: var(--card-dark);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        .btn-primary {
+            background-color: var(--primary);
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+        .badge-admin {
+            background-color: #8b5cf6;
+        }
+        .badge-user {
+            background-color: #3b82f6;
+        }
+        .badge-ativo {
+            background-color: var(--success);
+        }
+        .badge-inativo {
+            background-color: #64748b;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Navbar -->
+    <nav class="card mb-6 p-4">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center gap-6">
+                <h1 class="text-2xl font-bold text-blue-400">AlugueisV5</h1>
+                <div class="flex gap-4">
+                    <a href="/dashboard" class="text-gray-400 hover:text-white">Dashboard</a>
+                    <a href="/proprietarios" class="text-gray-400 hover:text-white">Proprietários</a>
+                    <a href="/imoveis" class="text-gray-400 hover:text-white">Imóveis</a>
+                    <a href="/alugueis" class="text-gray-400 hover:text-white">Aluguéis</a>
+                    <a href="/usuarios" class="text-blue-400 font-semibold">Usuários</a>
+                </div>
+            </div>
+            <button onclick="logout()" class="text-red-400 hover:text-red-300">
+                <span class="material-symbols-outlined">logout</span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 pb-8">
+        <!-- Estatísticas -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="card p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Total</p>
+                        <p id="stat-total" class="text-2xl font-bold text-blue-400">0</p>
+                    </div>
+                    <span class="material-symbols-outlined text-blue-400 text-4xl">group</span>
+                </div>
+            </div>
+            <div class="card p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Ativos</p>
+                        <p id="stat-ativos" class="text-2xl font-bold text-green-400">0</p>
+                    </div>
+                    <span class="material-symbols-outlined text-green-400 text-4xl">check_circle</span>
+                </div>
+            </div>
+            <div class="card p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Inativos</p>
+                        <p id="stat-inativos" class="text-2xl font-bold text-gray-400">0</p>
+                    </div>
+                    <span class="material-symbols-outlined text-gray-400 text-4xl">cancel</span>
+                </div>
+            </div>
+            <div class="card p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Admins</p>
+                        <p id="stat-admins" class="text-2xl font-bold text-purple-400">0</p>
+                    </div>
+                    <span class="material-symbols-outlined text-purple-400 text-4xl">shield_person</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros e Ações -->
+        <div class="card p-4 mb-6">
+            <div class="flex flex-wrap gap-4 items-end">
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-sm text-gray-400 mb-2">Buscar</label>
+                    <input type="text" id="search" placeholder="Nome, email, CPF..." 
+                        class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                </div>
+                <div class="min-w-[150px]">
+                    <label class="block text-sm text-gray-400 mb-2">Tipo</label>
+                    <select id="tipo-filter" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                        <option value="">Todos</option>
+                        <option value="true">Administradores</option>
+                        <option value="false">Usuários</option>
+                    </select>
+                </div>
+                <div class="min-w-[150px]">
+                    <label class="block text-sm text-gray-400 mb-2">Status</label>
+                    <select id="status-filter" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                        <option value="">Todos</option>
+                        <option value="true">Ativos</option>
+                        <option value="false">Inativos</option>
+                    </select>
+                </div>
+                <button onclick="openModal()" class="btn-primary text-white px-6 py-2 rounded-lg flex items-center gap-2 hover:opacity-90">
+                    <span class="material-symbols-outlined">add</span>
+                    Novo Usuário
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabela -->
+        <div class="card overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-800">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Nome</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Email</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">CPF</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Tipo</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Status</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usuarios-tbody" class="divide-y divide-gray-700">
+                        <!-- Será preenchido via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <!-- Loading -->
+            <div id="loading" class="p-8 text-center hidden">
+                <p class="text-gray-400">Carregando...</p>
+            </div>
+            <!-- Empty State -->
+            <div id="empty-state" class="p-8 text-center hidden">
+                <span class="material-symbols-outlined text-6xl text-gray-600 mb-4">person_off</span>
+                <p class="text-gray-400">Nenhum usuário encontrado</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+        <div class="card max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 id="modal-title" class="text-2xl font-bold">Novo Usuário</h2>
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-white">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+
+                <form id="usuario-form" class="space-y-6">
+                    <input type="hidden" id="usuario-id">
+
+                    <!-- Dados Básicos -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm text-gray-400 mb-2">Nome Completo *</label>
+                            <input type="text" id="nome" required
+                                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm text-gray-400 mb-2">Email *</label>
+                            <input type="email" id="email" required
+                                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">CPF</label>
+                            <input type="text" id="cpf" placeholder="XXX.XXX.XXX-XX"
+                                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">Telefone</label>
+                            <input type="text" id="telefone" placeholder="(XX) XXXXX-XXXX"
+                                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                        </div>
+                    </div>
+
+                    <!-- Senha (apenas para criação) -->
+                    <div id="password-section" class="border-t border-gray-700 pt-6">
+                        <h3 class="text-lg font-semibold mb-4">Senha</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Senha *</label>
+                                <input type="password" id="password" 
+                                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Confirmar Senha *</label>
+                                <input type="password" id="password-confirm" 
+                                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-400 mt-2">* Mínimo 6 caracteres</p>
+                    </div>
+
+                    <!-- Alterar Senha (apenas para edição) -->
+                    <div id="change-password-section" class="border-t border-gray-700 pt-6 hidden">
+                        <h3 class="text-lg font-semibold mb-4">Alterar Senha</h3>
+                        <div class="mb-4">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="change-password-toggle" class="w-5 h-5 text-blue-500" onchange="togglePasswordChange()">
+                                <span>Alterar senha do usuário</span>
+                            </label>
+                        </div>
+                        <div id="password-fields" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Nova Senha *</label>
+                                <input type="password" id="new-password" 
+                                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Confirmar Nova Senha *</label>
+                                <input type="password" id="new-password-confirm" 
+                                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Permissões -->
+                    <div class="border-t border-gray-700 pt-6">
+                        <h3 class="text-lg font-semibold mb-4">Permissões</h3>
+                        <div class="space-y-3">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="is_admin" class="w-5 h-5 text-purple-500">
+                                <span>Administrador do Sistema</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="is_active" checked class="w-5 h-5 text-green-500">
+                                <span>Usuário Ativo</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Botões -->
+                    <div class="flex gap-4 justify-end border-t border-gray-700 pt-6">
+                        <button type="button" onclick="closeModal()" 
+                            class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                            Cancelar
+                        </button>
+                        <button type="submit" 
+                            class="btn-primary px-6 py-2 text-white rounded-lg hover:opacity-90">
+                            Salvar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let usuarios = [];
+
+        // Carregar dados ao iniciar
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            loadUsuarios();
+
+            // Event listeners para filtros
+            document.getElementById('search').addEventListener('input', debounce(loadUsuarios, 500));
+            document.getElementById('tipo-filter').addEventListener('change', loadUsuarios);
+            document.getElementById('status-filter').addEventListener('change', loadUsuarios);
+
+            // Form submit
+            document.getElementById('usuario-form').addEventListener('submit', salvarUsuario);
+        });
+
+        // Debounce para busca
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // Carregar estatísticas
+        async function loadStats() {
+            try {
+                const data = await fetchWithAuth('/api/usuarios/stats/summary');
+                document.getElementById('stat-total').textContent = data.total;
+                document.getElementById('stat-ativos').textContent = data.ativos;
+                document.getElementById('stat-inativos').textContent = data.inativos;
+                document.getElementById('stat-admins').textContent = data.admins;
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }
+
+        // Carregar usuários
+        async function loadUsuarios() {
+            const loading = document.getElementById('loading');
+            const emptyState = document.getElementById('empty-state');
+            const tbody = document.getElementById('usuarios-tbody');
+
+            loading.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+            tbody.innerHTML = '';
+
+            try {
+                const search = document.getElementById('search').value;
+                const isAdmin = document.getElementById('tipo-filter').value;
+                const isActive = document.getElementById('status-filter').value;
+
+                let url = '/api/usuarios/?limit=100';
+                if (search) url += `&search=${encodeURIComponent(search)}`;
+                if (isAdmin) url += `&is_admin=${isAdmin}`;
+                if (isActive) url += `&is_active=${isActive}`;
+
+                usuarios = await fetchWithAuth(url);
+
+                loading.classList.add('hidden');
+
+                if (usuarios.length === 0) {
+                    emptyState.classList.remove('hidden');
+                    return;
+                }
+
+                usuarios.forEach(usuario => {
+                    tbody.appendChild(createUsuarioRow(usuario));
+                });
+
+            } catch (error) {
+                loading.classList.add('hidden');
+                showToast('Erro ao carregar usuários', 'error');
+                console.error(error);
+            }
+        }
+
+        // Criar linha da tabela
+        function createUsuarioRow(usuario) {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-gray-800';
+
+            tr.innerHTML = `
+                <td class="px-6 py-4">
+                    <div class="font-medium">${usuario.nome}</div>
+                </td>
+                <td class="px-6 py-4 text-sm">${usuario.email}</td>
+                <td class="px-6 py-4 text-sm">${usuario.cpf || '-'}</td>
+                <td class="px-6 py-4">
+                    <span class="px-2 py-1 text-xs rounded-full badge-${usuario.is_admin ? 'admin' : 'user'}">
+                        ${usuario.is_admin ? 'Admin' : 'Usuário'}
+                    </span>
+                </td>
+                <td class="px-6 py-4">
+                    <span class="px-2 py-1 text-xs rounded-full badge-${usuario.is_active ? 'ativo' : 'inativo'}">
+                        ${usuario.is_active ? 'Ativo' : 'Inativo'}
+                    </span>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="flex justify-center gap-2">
+                        <button onclick="editarUsuario(${usuario.id})" 
+                            class="text-blue-400 hover:text-blue-300" title="Editar">
+                            <span class="material-symbols-outlined">edit</span>
+                        </button>
+                        ${!usuario.is_active ? `
+                            <button onclick="reativarUsuario(${usuario.id}, '${usuario.nome}')" 
+                                class="text-green-400 hover:text-green-300" title="Reativar">
+                                <span class="material-symbols-outlined">check_circle</span>
+                            </button>
+                        ` : ''}
+                        <button onclick="deletarUsuario(${usuario.id}, '${usuario.nome}')" 
+                            class="text-red-400 hover:text-red-300" title="Desativar">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </div>
+                </td>
+            `;
+
+            return tr;
+        }
+
+        // Abrir modal
+        function openModal() {
+            document.getElementById('usuario-id').value = '';
+            document.getElementById('modal-title').textContent = 'Novo Usuário';
+            document.getElementById('usuario-form').reset();
+            document.getElementById('is_active').checked = true;
+            
+            // Mostrar seção de senha para criação
+            document.getElementById('password-section').classList.remove('hidden');
+            document.getElementById('change-password-section').classList.add('hidden');
+            document.getElementById('password').required = true;
+            document.getElementById('password-confirm').required = true;
+            
+            document.getElementById('modal').classList.remove('hidden');
+            document.getElementById('modal').classList.add('flex');
+        }
+
+        // Fechar modal
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+            document.getElementById('modal').classList.remove('flex');
+        }
+
+        // Toggle alterar senha
+        function togglePasswordChange() {
+            const checkbox = document.getElementById('change-password-toggle');
+            const fields = document.getElementById('password-fields');
+            
+            if (checkbox.checked) {
+                fields.classList.remove('hidden');
+                document.getElementById('new-password').required = true;
+                document.getElementById('new-password-confirm').required = true;
+            } else {
+                fields.classList.add('hidden');
+                document.getElementById('new-password').required = false;
+                document.getElementById('new-password-confirm').required = false;
+                document.getElementById('new-password').value = '';
+                document.getElementById('new-password-confirm').value = '';
+            }
+        }
+
+        // Editar usuário
+        async function editarUsuario(id) {
+            try {
+                const usuario = await fetchWithAuth(`/api/usuarios/${id}`);
+                
+                document.getElementById('usuario-id').value = usuario.id;
+                document.getElementById('modal-title').textContent = 'Editar Usuário';
+                
+                document.getElementById('nome').value = usuario.nome || '';
+                document.getElementById('email').value = usuario.email || '';
+                document.getElementById('cpf').value = usuario.cpf || '';
+                document.getElementById('telefone').value = usuario.telefone || '';
+                document.getElementById('is_admin').checked = usuario.is_admin;
+                document.getElementById('is_active').checked = usuario.is_active;
+
+                // Esconder seção de senha para edição, mostrar alterar senha
+                document.getElementById('password-section').classList.add('hidden');
+                document.getElementById('change-password-section').classList.remove('hidden');
+                document.getElementById('change-password-toggle').checked = false;
+                document.getElementById('password-fields').classList.add('hidden');
+                document.getElementById('password').required = false;
+                document.getElementById('password-confirm').required = false;
+
+                document.getElementById('modal').classList.remove('hidden');
+                document.getElementById('modal').classList.add('flex');
+            } catch (error) {
+                showToast('Erro ao carregar usuário', 'error');
+                console.error(error);
+            }
+        }
+
+        // Salvar usuário
+        async function salvarUsuario(e) {
+            e.preventDefault();
+
+            const id = document.getElementById('usuario-id').value;
+            const isEdit = !!id;
+
+            const data = {
+                nome: document.getElementById('nome').value,
+                email: document.getElementById('email').value,
+                cpf: document.getElementById('cpf').value || null,
+                telefone: document.getElementById('telefone').value || null,
+                is_admin: document.getElementById('is_admin').checked,
+                is_active: document.getElementById('is_active').checked
+            };
+
+            // Validar e adicionar senha
+            if (!isEdit) {
+                const password = document.getElementById('password').value;
+                const passwordConfirm = document.getElementById('password-confirm').value;
+
+                if (password.length < 6) {
+                    showToast('A senha deve ter no mínimo 6 caracteres', 'error');
+                    return;
+                }
+
+                if (password !== passwordConfirm) {
+                    showToast('As senhas não conferem', 'error');
+                    return;
+                }
+
+                data.password = password;
+            } else if (document.getElementById('change-password-toggle').checked) {
+                const newPassword = document.getElementById('new-password').value;
+                const newPasswordConfirm = document.getElementById('new-password-confirm').value;
+
+                if (newPassword.length < 6) {
+                    showToast('A senha deve ter no mínimo 6 caracteres', 'error');
+                    return;
+                }
+
+                if (newPassword !== newPasswordConfirm) {
+                    showToast('As senhas não conferem', 'error');
+                    return;
+                }
+
+                data.password = newPassword;
+            }
+
+            try {
+                if (isEdit) {
+                    await fetchWithAuth(`/api/usuarios/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    showToast('Usuário atualizado com sucesso!', 'success');
+                } else {
+                    await fetchWithAuth('/api/usuarios/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    showToast('Usuário criado com sucesso!', 'success');
+                }
+
+                closeModal();
+                loadStats();
+                loadUsuarios();
+            } catch (error) {
+                showToast(error.message || 'Erro ao salvar usuário', 'error');
+                console.error(error);
+            }
+        }
+
+        // Deletar usuário (soft delete)
+        async function deletarUsuario(id, nome) {
+            if (!confirm(`Deseja realmente desativar o usuário "${nome}"?`)) {
+                return;
+            }
+
+            try {
+                await fetchWithAuth(`/api/usuarios/${id}`, {
+                    method: 'DELETE'
+                });
+                showToast('Usuário desativado com sucesso!', 'success');
+                loadStats();
+                loadUsuarios();
+            } catch (error) {
+                showToast(error.message || 'Erro ao desativar usuário', 'error');
+                console.error(error);
+            }
+        }
+
+        // Reativar usuário
+        async function reativarUsuario(id, nome) {
+            if (!confirm(`Deseja realmente reativar o usuário "${nome}"?`)) {
+                return;
+            }
+
+            try {
+                await fetchWithAuth(`/api/usuarios/${id}/reactivate`, {
+                    method: 'POST'
+                });
+                showToast('Usuário reativado com sucesso!', 'success');
+                loadStats();
+                loadUsuarios();
+            } catch (error) {
+                showToast(error.message || 'Erro ao reativar usuário', 'error');
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
