@@ -21,11 +21,11 @@ router = APIRouter(prefix="/api/proprietarios", tags=["proprietarios"])
 class ProprietarioBase(BaseModel):
     tipo_pessoa: str = Field(..., pattern=r'^(fisica|juridica)$')
     nome: str = Field(..., min_length=3, max_length=200)
-    cpf: Optional[str] = Field(None, pattern=r'^\d{3}\.\d{3}\.\d{3}-\d{2}$')
+    cpf: Optional[str] = None  # Aceita qualquer formato
     rg: Optional[str] = None
     razao_social: Optional[str] = None
     nome_fantasia: Optional[str] = None
-    cnpj: Optional[str] = Field(None, pattern=r'^\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}$')
+    cnpj: Optional[str] = None  # Aceita qualquer formato
     inscricao_estadual: Optional[str] = None
     email: Optional[str] = None
     telefone: Optional[str] = None
@@ -64,11 +64,11 @@ class ProprietarioCreate(ProprietarioBase):
 class ProprietarioUpdate(BaseModel):
     tipo_pessoa: Optional[str] = Field(None, pattern=r'^(fisica|juridica)$')
     nome: Optional[str] = Field(None, min_length=3, max_length=200)
-    cpf: Optional[str] = Field(None, pattern=r'^\d{3}\.\d{3}\.\d{3}-\d{2}$')
+    cpf: Optional[str] = None  # Aceita qualquer formato
     rg: Optional[str] = None
     razao_social: Optional[str] = None
     nome_fantasia: Optional[str] = None
-    cnpj: Optional[str] = Field(None, pattern=r'^\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}$')
+    cnpj: Optional[str] = None  # Aceita qualquer formato
     inscricao_estadual: Optional[str] = None
     email: Optional[str] = None
     telefone: Optional[str] = None
