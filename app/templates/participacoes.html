@@ -3,6 +3,30 @@
 {% block title %}Participações - Sistema de Aluguéis{% endblock %}
 
 {% block content %}
+<!-- Navbar -->
+<nav class="bg-[var(--card-dark)] shadow-lg mb-6">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex justify-between items-center h-16">
+            <div class="flex items-center gap-8">
+                <h1 class="text-2xl font-bold text-[var(--primary)]">AlugueisV5</h1>
+                <div class="flex gap-6">
+                    <a href="/dashboard" class="text-gray-400 hover:text-white transition-colors">Dashboard</a>
+                    <a href="/proprietarios" class="text-gray-400 hover:text-white transition-colors">Proprietários</a>
+                    <a href="/imoveis" class="text-gray-400 hover:text-white transition-colors">Imóveis</a>
+                    <a href="/participacoes" class="text-[var(--primary)] font-semibold">Participações</a>
+                    <a href="/alugueis" class="text-gray-400 hover:text-white transition-colors">Aluguéis</a>
+                    <a href="/relatorios" class="text-gray-400 hover:text-white transition-colors">Relatórios</a>
+                    <a href="/usuarios" class="text-gray-400 hover:text-white transition-colors">Usuários</a>
+                </div>
+            </div>
+            <button onclick="logout()" class="text-red-400 hover:text-red-300 flex items-center gap-2 transition-colors">
+                <span class="material-symbols-outlined">logout</span>
+                Sair
+            </button>
+        </div>
+    </div>
+</nav>
+
 <div class="min-h-screen bg-[var(--bg-dark)] p-6">
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
@@ -497,6 +521,13 @@ document.getElementById('participacao-form').addEventListener('submit', async (e
         showToast('Erro ao salvar participação', 'error');
     }
 });
+
+// Função de logout
+function logout() {
+    if (confirm('Tem certeza que deseja sair?')) {
+        window.location.href = '/logout';
+    }
+}
 
 // Inicializar
 init();

@@ -3,6 +3,30 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
+<!-- Navbar -->
+<nav class="bg-[var(--card-dark)] shadow-lg mb-6">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex justify-between items-center h-16">
+            <div class="flex items-center gap-8">
+                <h1 class="text-2xl font-bold text-[var(--primary)]">AlugueisV5</h1>
+                <div class="flex gap-6">
+                    <a href="/dashboard" class="text-gray-400 hover:text-white transition-colors">Dashboard</a>
+                    <a href="/proprietarios" class="text-gray-400 hover:text-white transition-colors">Proprietários</a>
+                    <a href="/imoveis" class="text-gray-400 hover:text-white transition-colors">Imóveis</a>
+                    <a href="/participacoes" class="text-gray-400 hover:text-white transition-colors">Participações</a>
+                    <a href="/alugueis" class="text-gray-400 hover:text-white transition-colors">Aluguéis</a>
+                    <a href="/relatorios" class="text-[var(--primary)] font-semibold">Relatórios</a>
+                    <a href="/usuarios" class="text-gray-400 hover:text-white transition-colors">Usuários</a>
+                </div>
+            </div>
+            <button onclick="logout()" class="text-red-400 hover:text-red-300 flex items-center gap-2 transition-colors">
+                <span class="material-symbols-outlined">logout</span>
+                Sair
+            </button>
+        </div>
+    </div>
+</nav>
+
 <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-[var(--bg-dark)] dark:to-gray-900 p-6">
     <div class="max-w-7xl mx-auto">
         <!-- Cabeçalho -->
@@ -926,6 +950,13 @@ function formatarData(data) {
     if (!data) return '-';
     const d = new Date(data);
     return d.toLocaleDateString('pt-BR');
+}
+
+// Função de logout
+function logout() {
+    if (confirm('Tem certeza que deseja sair?')) {
+        window.location.href = '/logout';
+    }
 }
 </script>
 
