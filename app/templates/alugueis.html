@@ -462,21 +462,17 @@ async function deletarAluguel(id) {
     if (!confirm('Tem certeza que deseja excluir este aluguel?')) return;
     
     try {
-        const response = await fetchWithAuth(`/api/alugueis/${id}`, {
+        // fetchWithAuth retorna true para DELETE bem-sucedido
+        await fetchWithAuth(`/api/alugueis/${id}`, {
             method: 'DELETE'
         });
         
-        if (response && (response.ok || response.status === 204)) {
-            showToast('Aluguel excluído com sucesso!', 'success');
-            loadAlugueis();
-            loadStats();
-        } else {
-            const error = await response.json();
-            showToast(error.detail || 'Erro ao excluir aluguel', 'error');
-        }
+        showToast('Aluguel excluído com sucesso!', 'success');
+        loadAlugueis();
+        loadStats();
     } catch (error) {
         console.error('Erro ao excluir aluguel:', error);
-        showToast('Erro ao excluir aluguel', 'error');
+        showToast(error.message || 'Erro ao excluir aluguel', 'error');
     }
 }
 
@@ -524,23 +520,19 @@ async function salvarAluguel(event) {
         const url = isEdit ? `/api/alugueis/${id}` : '/api/alugueis/';
         const method = isEdit ? 'PUT' : 'POST';
         
-        const response = await fetchWithAuth(url, {
+        // fetchWithAuth retorna o JSON diretamente
+        const result = await fetchWithAuth(url, {
             method: method,
             body: JSON.stringify(data)
         });
         
-        if (response && (response.ok || response.status === 201)) {
-            showToast(`Aluguel ${isEdit ? 'atualizado' : 'criado'} com sucesso!`, 'success');
-            fecharModal();
-            loadAlugueis();
-            loadStats();
-        } else {
-            const error = await response.json();
-            showToast(error.detail || 'Erro ao salvar aluguel', 'error');
-        }
+        showToast(`Aluguel ${isEdit ? 'atualizado' : 'criado'} com sucesso!`, 'success');
+        fecharModal();
+        loadAlugueis();
+        loadStats();
     } catch (error) {
         console.error('Erro ao salvar aluguel:', error);
-        showToast('Erro ao salvar aluguel', 'error');
+        showToast(error.message || 'Erro ao salvar aluguel', 'error');
     }
 }
 
