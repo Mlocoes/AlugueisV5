@@ -488,8 +488,8 @@ class ImportacaoService:
                     continue
                 
                 # Buscar proprietário no banco (busca parcial case-insensitive)
-                proprietario = db.query(Usuario).filter(
-                    Usuario.nome.ilike(f'%{nome_col}%')
+                proprietario = db.query(Proprietario).filter(
+                    Proprietario.nome.ilike(f'%{nome_col}%')
                 ).first()
                 
                 if proprietario:
