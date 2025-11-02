@@ -161,6 +161,38 @@ async def importar_alugueis(
         raise HTTPException(status_code=500, detail=f"Erro ao importar: {str(e)}")
 
 
+@router.post("/api/importacao/participacoes")
+async def importar_participacoes(
+    file: UploadFile = File(...),
+    mes_referencia: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user_from_cookie)
+):
+    """Importa participações de um arquivo Excel/CSV"""
+    try:
+        if not file.filename.endswith(('.xlsx', '.xls', '.csv')):
+            raise HTTPException(
+                status_code=400,
+                detail="Formato de arquivo inválido. Use .xlsx, .xls ou .csv"
+            )
+
+        content = await file.read()
+        
+        service = ImportacaoService()
+        resultado = service.importar_participacoes(content, db, mes_referencia)
+        
+        if not resultado['success']:
+            raise HTTPException(status_code=400, detail=resultado['message'])
+        
+        return resultado
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao importar: {str(e)}")
+
+
 # ==================== DOWNLOAD DE TEMPLATES ====================
 
 @router.get("/api/importacao/template/{tipo}")

@@ -15,10 +15,18 @@ class Imovel(Base):
     estado = Column(String(2), nullable=True)
     cep = Column(String(10), nullable=True)
     
+    # Características do imóvel
+    tipo = Column(String(50), nullable=True)  # Comercial, Residencial, etc
+    area_total = Column(Float, nullable=True)
+    area_construida = Column(Float, nullable=True)
+    
     # Dados financeiros
+    valor_catastral = Column(Float, nullable=True)
+    valor_mercado = Column(Float, nullable=True)
     valor_aluguel = Column(Float, nullable=True)
     valor_condominio = Column(Float, nullable=True)
     valor_iptu = Column(Float, nullable=True)
+    iptu_anual = Column(Float, nullable=True)
     
     # Proprietário
     proprietario_id = Column(Integer, ForeignKey("proprietarios.id"), nullable=False, index=True)

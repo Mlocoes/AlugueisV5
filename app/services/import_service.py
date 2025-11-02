@@ -1,6 +1,13 @@
 """
-Serviço de importação de dados a partir de arquivos Excel/CSV
-Suporte para múltiplas entidades e validações avançadas
+Serviço de importação de dados a partir de arquivos Excel
+Adaptado para os templates específicos do sistema (excel/*.xlsx)
+
+Estruturas esperadas:
+- Proprietarios.xlsx: Nome, Sobrenome, Documento, Tipo Documento, Endereço, Telefone, Email
+- Imoveis.xlsx: Nome, Endereço, Tipo, Área Total, Área Construida, Valor Catastral, Valor Mercado, IPTU Anual, Condominio
+- Participacoes.xlsx: Nome, Endereço, VALOR, [nomes dos proprietários com percentuais]
+- Alugueis.xlsx: [data], Valor Total, [nomes dos proprietários com valores], Taxa de Administração
+- Transferencias.xlsx: formato matricial com datas e valores
 """
 from typing import List, Dict, Any, Optional, Tuple
 import re
@@ -16,16 +23,18 @@ except ImportError:
     PANDAS_AVAILABLE = False
 
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, or_
 
 from app.models.usuario import Usuario
 from app.models.imovel import Imovel
 from app.models.aluguel import AluguelMensal
 from app.models.participacao import Participacao
+from app.models.proprietario import Proprietario
+from app.models.transferencia import Transferencia
 
 
 class ImportacaoService:
-    """Serviço para importação de dados via Excel/CSV"""
+    """Serviço para importação de dados via Excel"""
 
     def __init__(self):
         if not PANDAS_AVAILABLE:
@@ -36,30 +45,20 @@ class ImportacaoService:
     # ==================== UTILITÁRIOS ====================
 
     @staticmethod
-    def limpar_cpf_cnpj(documento: str) -> str:
+    def limpar_documento(documento: str) -> str:
         """Remove formatação de CPF/CNPJ deixando apenas números"""
         if not documento:
             return ""
         return re.sub(r'[^\d]', '', str(documento))
 
     @staticmethod
-    def validar_cpf_cnpj(documento: str) -> bool:
-        """Valida formato básico de CPF (11 dígitos) ou CNPJ (14 dígitos)"""
-        doc = ImportacaoService.limpar_cpf_cnpj(documento)
-        return len(doc) in [11, 14]
-
-    @staticmethod
-    def parse_valor_monetario(valor) -> Optional[Decimal]:
-        """Converte valor monetário para Decimal"""
-        if valor is None or str(valor).strip() in ['', '-', 'nan', 'NaN']:
+    def parse_valor(valor) -> Optional[float]:
+        """Converte valor monetário para float"""
+        if valor is None or pd.isna(valor) or str(valor).strip() in ['', '-', 'nan', 'NaN']:
             return None
 
-        # Se já é número
-        if isinstance(valor, (int, float, Decimal)):
-            try:
-                return Decimal(str(valor))
-            except:
-                return None
+        if isinstance(valor, (int, float)):
+            return float(valor)
 
         # Processar como string
         s = str(valor).strip()
@@ -70,378 +69,384 @@ class ImportacaoService:
         # Remover símbolos de moeda e espaços
         s = re.sub(r'[R$\s]', '', s)
 
-        # Detectar formato: brasileiro (1.234,56) vs americano (1,234.56)
-        if ',' in s and '.' in s:
-            last_dot = s.rfind('.')
-            last_comma = s.rfind(',')
-            
-            if last_dot > last_comma:
-                # Formato americano: vírgula é milhares
-                s = s.replace(',', '')
-            else:
-                # Formato brasileiro: ponto é milhares
-                s = s.replace('.', '').replace(',', '.')
-        elif ',' in s:
-            # Apenas vírgula: assumir decimal brasileiro
-            s = s.replace(',', '.')
+        # Converter vírgula para ponto
+        s = s.replace(',', '.')
 
         try:
-            valor_decimal = Decimal(s)
-            return -valor_decimal if negativo else valor_decimal
+            valor_float = float(s)
+            return -valor_float if negativo else valor_float
         except:
             return None
 
     @staticmethod
-    def parse_data(data_str) -> Optional[date]:
-        """Converte string ou datetime para date"""
-        if data_str is None or str(data_str).strip() in ['', '-', 'nan', 'NaN']:
+    def parse_data(data) -> Optional[datetime]:
+        """Converte para datetime"""
+        if data is None or pd.isna(data):
             return None
 
-        # Se já é datetime/date
-        if isinstance(data_str, datetime):
-            return data_str.date()
-        if isinstance(data_str, date):
-            return data_str
-
-        # Processar como string
-        formatos = [
-            '%d/%m/%Y',
-            '%Y-%m-%d',
-            '%d-%m-%Y',
-            '%m/%d/%Y',
-            '%d/%m/%y',
-            '%Y/%m/%d'
-        ]
-
-        s = str(data_str).strip()
-        for fmt in formatos:
-            try:
-                return datetime.strptime(s, fmt).date()
-            except ValueError:
-                continue
-
-        return None
-
-    @staticmethod
-    def parse_mes_referencia(mes_str) -> Optional[str]:
-        """Converte string para formato YYYY-MM"""
-        if not mes_str or str(mes_str).strip() in ['', '-', 'nan', 'NaN']:
-            return None
-
-        s = str(mes_str).strip()
-
-        # Se já está no formato correto
-        if re.match(r'^\d{4}-\d{2}$', s):
-            return s
-
-        # Tentar formatos comuns
-        formatos = [
-            '%m/%Y',  # 11/2025
-            '%Y-%m',  # 2025-11
-            '%Y/%m',  # 2025/11
-            '%m-%Y',  # 11-2025
-        ]
-
-        for fmt in formatos:
-            try:
-                dt = datetime.strptime(s, fmt)
-                return dt.strftime('%Y-%m')
-            except ValueError:
-                continue
-
-        return None
-
-    @staticmethod
-    def parse_boolean(valor) -> bool:
-        """Converte valor para booleano"""
-        if isinstance(valor, bool):
-            return valor
+        if isinstance(data, datetime):
+            return data
         
-        s = str(valor).strip().lower()
-        return s in ['sim', 'yes', 'true', '1', 's', 'y', 't']
+        if isinstance(data, date):
+            return datetime.combine(data, datetime.min.time())
+
+        # Tentar parsear string
+        try:
+            return pd.to_datetime(data)
+        except:
+            return None
+
+    @staticmethod
+    def mes_referencia_from_date(data: datetime) -> str:
+        """Converte datetime para formato YYYY-MM"""
+        if not data:
+            return None
+        return data.strftime('%Y-%m')
 
     # ==================== IMPORTAÇÃO DE PROPRIETÁRIOS ====================
 
     def importar_proprietarios(self, file_content: bytes, db: Session) -> Dict[str, Any]:
-        """Importa proprietários/usuários do Excel/CSV"""
+        """
+        Importa proprietários do arquivo Proprietarios.xlsx
+        
+        Colunas esperadas:
+        - Nome, Sobrenome, Documento, Tipo Documento, Endereço, Telefone, Email
+        
+        Retorna: {success, importados, erros, warnings, total_linhas}
+        """
         try:
-            # Tentar ler como Excel primeiro, depois CSV
-            try:
-                df = pd.read_excel(BytesIO(file_content), sheet_name=0)
-            except:
-                df = pd.read_csv(BytesIO(file_content))
-
-            # Normalizar nomes das colunas
-            df.columns = df.columns.str.strip()
-
-            # Validar colunas obrigatórias
-            colunas_obrigatorias = ['nome', 'email']
-            colunas_encontradas = [col.lower() for col in df.columns]
+            df = pd.read_excel(BytesIO(file_content))
             
-            faltando = [col for col in colunas_obrigatorias if col not in colunas_encontradas]
-            if faltando:
-                return {
-                    'success': False,
-                    'message': f'Colunas obrigatórias faltando: {", ".join(faltando)}',
-                    'colunas_encontradas': list(df.columns)
-                }
-
-            sucesso = 0
+            importados = 0
             erros = []
             warnings = []
-
+            
             for idx, row in df.iterrows():
-                linha_num = idx + 2  # +2 porque começa em 1 e tem cabeçalho
+                linha = idx + 2  # +2 porque Excel começa em 1 e tem cabeçalho
                 
                 try:
-                    # Extrair dados (case-insensitive)
-                    row_dict = {k.lower(): v for k, v in row.items()}
+                    # Extrair dados
+                    nome = str(row.get('Nome', '')).strip()
+                    sobrenome = str(row.get('Sobrenome', '')).strip()
+                    nome_completo = f"{nome} {sobrenome}".strip()
                     
-                    nome = str(row_dict.get('nome', '')).strip()
-                    email = str(row_dict.get('email', '')).strip().lower()
+                    documento = str(row.get('Documento', '')).strip()
+                    tipo_doc = str(row.get('Tipo Documento', 'CPF')).strip().upper()
+                    endereco = str(row.get('Endereço', '')) if not pd.isna(row.get('Endereço')) else None
+                    telefone = str(row.get('Telefone', '')) if not pd.isna(row.get('Telefone')) else None
+                    email = str(row.get('Email', '')).strip().lower() if not pd.isna(row.get('Email')) else None
                     
-                    if not nome or not email:
-                        erros.append(f"Linha {linha_num}: Nome e email são obrigatórios")
+                    # Validações básicas
+                    if not nome_completo:
+                        erros.append(f"Linha {linha}: Nome é obrigatório")
                         continue
-
-                    # Verificar se usuário já existe
-                    usuario_existe = db.query(Usuario).filter(
-                        func.lower(Usuario.email) == email
-                    ).first()
-
-                    if usuario_existe:
-                        warnings.append(f"Linha {linha_num}: Usuário {email} já existe, pulando")
+                    
+                    if not email:
+                        erros.append(f"Linha {linha}: Email é obrigatório")
                         continue
-
-                    # Criar usuário
-                    usuario = Usuario(
-                        nome=nome,
+                    
+                    # Validar email único
+                    email_existe = db.query(Proprietario).filter(Proprietario.email == email).first()
+                    if email_existe:
+                        warnings.append(f"Linha {linha}: Email {email} já existe, pulando")
+                        continue
+                    
+                    # Limpar documento
+                    doc_limpo = self.limpar_documento(documento)
+                    
+                    # Determinar tipo de pessoa
+                    tipo_pessoa = 'juridica' if tipo_doc == 'CNPJ' or len(doc_limpo) == 14 else 'fisica'
+                    
+                    # Criar proprietário
+                    proprietario = Proprietario(
+                        tipo_pessoa=tipo_pessoa,
+                        nome=nome_completo,
+                        cpf=doc_limpo if tipo_pessoa == 'fisica' and doc_limpo else None,
+                        cnpj=doc_limpo if tipo_pessoa == 'juridica' and doc_limpo else None,
                         email=email,
-                        senha_hash="$2b$12$default",  # Senha padrão, deve ser alterada
-                        ativo=self.parse_boolean(row_dict.get('ativo', True)),
-                        tipo=str(row_dict.get('tipo', 'proprietario')).lower()
+                        telefone=telefone,
+                        endereco=endereco,
+                        is_active=True
                     )
-
-                    db.add(usuario)
-                    sucesso += 1
-
+                    
+                    db.add(proprietario)
+                    db.flush()  # Para obter o ID
+                    importados += 1
+                    
                 except Exception as e:
-                    erros.append(f"Linha {linha_num}: {str(e)}")
-
-            if sucesso > 0:
+                    erros.append(f"Linha {linha}: Erro ao processar - {str(e)}")
+                    continue
+            
+            if importados > 0:
                 db.commit()
-
+            
             return {
                 'success': True,
-                'importados': sucesso,
+                'importados': importados,
                 'erros': erros,
                 'warnings': warnings,
                 'total_linhas': len(df)
             }
-
+            
         except Exception as e:
+            db.rollback()
             return {
                 'success': False,
-                'message': f'Erro ao processar arquivo: {str(e)}'
+                'importados': 0,
+                'erros': [f"Erro ao processar arquivo: {str(e)}"],
+                'warnings': [],
+                'total_linhas': 0
             }
 
     # ==================== IMPORTAÇÃO DE IMÓVEIS ====================
 
     def importar_imoveis(self, file_content: bytes, db: Session) -> Dict[str, Any]:
-        """Importa imóveis do Excel/CSV"""
+        """
+        Importa imóveis do arquivo Imoveis.xlsx
+        
+        Colunas esperadas:
+        - Nome, Endereço, Tipo, Área Total, Área Construida, Valor Catastral, 
+          Valor Mercado, IPTU Anual, Condominio
+        
+        Nota: Precisa ter pelo menos 1 proprietário cadastrado (será atribuído ao primeiro)
+        
+        Retorna: {success, importados, erros, warnings, total_linhas}
+        """
         try:
-            try:
-                df = pd.read_excel(BytesIO(file_content), sheet_name=0)
-            except:
-                df = pd.read_csv(BytesIO(file_content))
-
-            df.columns = df.columns.str.strip()
-            colunas_encontradas = [col.lower() for col in df.columns]
-
-            # Colunas obrigatórias
-            if 'codigo' not in colunas_encontradas:
+            df = pd.read_excel(BytesIO(file_content))
+            
+            # Verificar se existe proprietário
+            primeiro_proprietario = db.query(Proprietario).first()
+            if not primeiro_proprietario:
                 return {
                     'success': False,
-                    'message': 'Coluna "codigo" é obrigatória',
-                    'colunas_encontradas': list(df.columns)
+                    'importados': 0,
+                    'erros': ['Nenhum proprietário cadastrado. Importe proprietários primeiro.'],
+                    'warnings': [],
+                    'total_linhas': 0
                 }
-
-            sucesso = 0
+            
+            importados = 0
             erros = []
             warnings = []
-
+            
             for idx, row in df.iterrows():
-                linha_num = idx + 2
+                linha = idx + 2
                 
                 try:
-                    row_dict = {k.lower(): v for k, v in row.items()}
+                    # Extrair dados
+                    nome = str(row.get('Nome', '')).strip()
+                    endereco = str(row.get('Endereço', '')) if not pd.isna(row.get('Endereço')) else None
+                    tipo = str(row.get('Tipo', 'Residencial')).strip()
+                    area_total = self.parse_valor(row.get('Área Total'))
+                    area_construida = self.parse_valor(row.get('Área Construida'))
+                    valor_catastral = self.parse_valor(row.get('Valor Catastral'))
+                    valor_mercado = self.parse_valor(row.get('Valor Mercado'))
+                    iptu_anual = self.parse_valor(row.get('IPTU Anual'))
+                    condominio = self.parse_valor(row.get('Condominio'))
                     
-                    codigo = str(row_dict.get('codigo', '')).strip()
-                    if not codigo:
-                        erros.append(f"Linha {linha_num}: Código é obrigatório")
+                    # Validações
+                    if not nome:
+                        erros.append(f"Linha {linha}: Nome do imóvel é obrigatório")
                         continue
-
-                    # Verificar se imóvel já existe
-                    imovel_existe = db.query(Imovel).filter(
-                        Imovel.codigo == codigo
-                    ).first()
-
+                    
+                    # Verificar se imóvel já existe (por nome)
+                    imovel_existe = db.query(Imovel).filter(Imovel.nome == nome).first()
                     if imovel_existe:
-                        warnings.append(f"Linha {linha_num}: Imóvel {codigo} já existe, pulando")
+                        warnings.append(f"Linha {linha}: Imóvel '{nome}' já existe, pulando")
                         continue
-
+                    
                     # Criar imóvel
                     imovel = Imovel(
-                        codigo=codigo,
-                        endereco=str(row_dict.get('endereco', '')).strip(),
-                        tipo=str(row_dict.get('tipo', 'residencial')).lower(),
-                        ativo=self.parse_boolean(row_dict.get('ativo', True))
+                        nome=nome,
+                        endereco=endereco,
+                        tipo=tipo,
+                        area_total=area_total,
+                        area_construida=area_construida,
+                        valor_catastral=valor_catastral,
+                        valor_mercado=valor_mercado,
+                        iptu_anual=iptu_anual,
+                        valor_condominio=condominio,
+                        proprietario_id=primeiro_proprietario.id,
+                        is_active=True
                     )
-
+                    
                     db.add(imovel)
-                    sucesso += 1
-
+                    db.flush()
+                    importados += 1
+                    
                 except Exception as e:
-                    erros.append(f"Linha {linha_num}: {str(e)}")
-
-            if sucesso > 0:
+                    erros.append(f"Linha {linha}: Erro ao processar - {str(e)}")
+                    continue
+            
+            if importados > 0:
                 db.commit()
-
+            
             return {
                 'success': True,
-                'importados': sucesso,
+                'importados': importados,
                 'erros': erros,
                 'warnings': warnings,
                 'total_linhas': len(df)
             }
-
+            
         except Exception as e:
+            db.rollback()
             return {
                 'success': False,
-                'message': f'Erro ao processar arquivo: {str(e)}'
+                'importados': 0,
+                'erros': [f"Erro ao processar arquivo: {str(e)}"],
+                'warnings': [],
+                'total_linhas': 0
             }
 
-    # ==================== IMPORTAÇÃO DE ALUGUÉIS ====================
+    # ==================== IMPORTAÇÃO DE PARTICIPAÇÕES ====================
 
-    def importar_alugueis(self, file_content: bytes, db: Session) -> Dict[str, Any]:
-        """Importa aluguéis do Excel/CSV"""
+    def importar_participacoes(self, file_content: bytes, db: Session, mes_referencia: str = None) -> Dict[str, Any]:
+        """
+        Importa participações do arquivo Participacoes.xlsx
+        
+        Formato esperado:
+        - Primeira coluna: Nome do imóvel
+        - Segunda coluna: Endereço
+        - Terceira coluna: VALOR (sempre 1.0, representa 100%)
+        - Demais colunas: Nome dos proprietários com seus percentuais decimais
+        
+        Retorna: {success, importados, erros, warnings, total_linhas}
+        """
         try:
-            try:
-                df = pd.read_excel(BytesIO(file_content), sheet_name=0)
-            except:
-                df = pd.read_csv(BytesIO(file_content))
-
-            df.columns = df.columns.str.strip()
-            colunas_encontradas = [col.lower() for col in df.columns]
-
-            # Colunas obrigatórias
-            obrigatorias = ['codigo_imovel', 'mes_referencia', 'valor_aluguel']
-            faltando = [col for col in obrigatorias if col not in colunas_encontradas]
+            df = pd.read_excel(BytesIO(file_content))
             
-            if faltando:
-                return {
-                    'success': False,
-                    'message': f'Colunas obrigatórias faltando: {", ".join(faltando)}',
-                    'colunas_encontradas': list(df.columns)
-                }
-
-            sucesso = 0
+            # Se não fornecido, usar mês atual
+            if not mes_referencia:
+                mes_referencia = datetime.now().strftime('%Y-%m')
+            
+            importados = 0
             erros = []
             warnings = []
-
+            
+            # Identificar colunas de proprietários (após as 3 primeiras colunas)
+            colunas_proprietarios = df.columns[3:]  # Pula: Nome, Endereço, VALOR
+            
             for idx, row in df.iterrows():
-                linha_num = idx + 2
+                linha = idx + 2
                 
                 try:
-                    row_dict = {k.lower(): v for k, v in row.items()}
+                    # Identificar imóvel
+                    nome_imovel = str(row.iloc[0]).strip()  # Primeira coluna
+                    endereco = str(row.iloc[1]) if not pd.isna(row.iloc[1]) else ''
                     
-                    codigo_imovel = str(row_dict.get('codigo_imovel', '')).strip()
-                    mes_ref = self.parse_mes_referencia(row_dict.get('mes_referencia'))
-                    valor_aluguel = self.parse_valor_monetario(row_dict.get('valor_aluguel'))
-
-                    if not codigo_imovel or not mes_ref or valor_aluguel is None:
-                        erros.append(f"Linha {linha_num}: Dados obrigatórios faltando")
-                        continue
-
-                    # Buscar imóvel
-                    imovel = db.query(Imovel).filter(Imovel.codigo == codigo_imovel).first()
-                    if not imovel:
-                        erros.append(f"Linha {linha_num}: Imóvel {codigo_imovel} não encontrado")
-                        continue
-
-                    # Verificar se aluguel já existe
-                    aluguel_existe = db.query(AluguelMensal).filter(
-                        AluguelMensal.imovel_id == imovel.id,
-                        AluguelMensal.mes_referencia == mes_ref
+                    # Buscar imóvel por nome ou endereço
+                    imovel = db.query(Imovel).filter(
+                        or_(
+                            Imovel.nome == nome_imovel,
+                            Imovel.endereco == endereco
+                        )
                     ).first()
-
-                    if aluguel_existe:
-                        warnings.append(f"Linha {linha_num}: Aluguel já existe para {codigo_imovel} em {mes_ref}")
+                    
+                    if not imovel:
+                        erros.append(f"Linha {linha}: Imóvel '{nome_imovel}' não encontrado")
                         continue
-
-                    # Criar aluguel
-                    aluguel = AluguelMensal(
-                        imovel_id=imovel.id,
-                        mes_referencia=mes_ref,
-                        valor_aluguel=float(valor_aluguel),
-                        valor_condominio=float(self.parse_valor_monetario(row_dict.get('valor_condominio', 0)) or 0),
-                        valor_iptu=float(self.parse_valor_monetario(row_dict.get('valor_iptu', 0)) or 0),
-                        valor_luz=float(self.parse_valor_monetario(row_dict.get('valor_luz', 0)) or 0),
-                        valor_agua=float(self.parse_valor_monetario(row_dict.get('valor_agua', 0)) or 0),
-                        valor_gas=float(self.parse_valor_monetario(row_dict.get('valor_gas', 0)) or 0),
-                        outras_despesas=float(self.parse_valor_monetario(row_dict.get('outras_despesas', 0)) or 0),
-                        data_pagamento=self.parse_data(row_dict.get('data_pagamento')),
-                        pago=self.parse_boolean(row_dict.get('pago', False)),
-                        observacoes=str(row_dict.get('observacoes', '')).strip()
-                    )
-
-                    db.add(aluguel)
-                    sucesso += 1
-
+                    
+                    # Processar cada proprietário
+                    for col_nome in colunas_proprietarios:
+                        percentual_decimal = self.parse_valor(row[col_nome])
+                        
+                        if percentual_decimal is None or percentual_decimal == 0:
+                            continue  # Pular se não tem participação
+                        
+                        # Buscar proprietário por nome (match parcial)
+                        proprietario = db.query(Proprietario).filter(
+                            Proprietario.nome.ilike(f"%{col_nome}%")
+                        ).first()
+                        
+                        if not proprietario:
+                            warnings.append(f"Linha {linha}: Proprietário '{col_nome}' não encontrado, pulando participação")
+                            continue
+                        
+                        # Converter decimal para percentual (0.125 -> 12.5%)
+                        percentual = percentual_decimal * 100
+                        
+                        # Verificar se já existe participação
+                        part_existe = db.query(Participacao).filter(
+                            Participacao.imovel_id == imovel.id,
+                            Participacao.proprietario_id == proprietario.id,
+                            Participacao.mes_referencia == mes_referencia
+                        ).first()
+                        
+                        if part_existe:
+                            warnings.append(
+                                f"Linha {linha}: Participação de {col_nome} no imóvel '{nome_imovel}' "
+                                f"já existe para {mes_referencia}, pulando"
+                            )
+                            continue
+                        
+                        # Criar participação
+                        participacao = Participacao(
+                            imovel_id=imovel.id,
+                            proprietario_id=proprietario.id,
+                            mes_referencia=mes_referencia,
+                            percentual=percentual,
+                            valor_participacao=0.0  # Será calculado quando houver aluguel
+                        )
+                        
+                        db.add(participacao)
+                        importados += 1
+                    
                 except Exception as e:
-                    erros.append(f"Linha {linha_num}: {str(e)}")
-
-            if sucesso > 0:
+                    erros.append(f"Linha {linha}: Erro ao processar - {str(e)}")
+                    continue
+            
+            if importados > 0:
                 db.commit()
-
+            
             return {
                 'success': True,
-                'importados': sucesso,
+                'importados': importados,
                 'erros': erros,
                 'warnings': warnings,
                 'total_linhas': len(df)
             }
-
+            
         except Exception as e:
+            db.rollback()
             return {
                 'success': False,
-                'message': f'Erro ao processar arquivo: {str(e)}'
+                'importados': 0,
+                'erros': [f"Erro ao processar arquivo: {str(e)}"],
+                'warnings': [],
+                'total_linhas': 0
             }
 
     # ==================== PREVIEW ====================
 
-    def preview_arquivo(self, file_content: bytes, tipo: str = 'excel') -> Dict[str, Any]:
-        """Gera preview do arquivo antes da importação"""
+    def preview_arquivo(self, file_content: bytes) -> Dict[str, Any]:
+        """
+        Gera preview dos dados do arquivo
+        Retorna: {success, colunas, preview, total_linhas_preview}
+        """
         try:
-            try:
-                df = pd.read_excel(BytesIO(file_content), sheet_name=0, nrows=10)
-            except:
-                df = pd.read_csv(BytesIO(file_content), nrows=10)
-
-            # Converter para formato JSON-serializable
-            preview_data = []
-            for idx, row in df.iterrows():
-                preview_data.append({col: str(val) for col, val in row.items()})
-
+            df = pd.read_excel(BytesIO(file_content))
+            
+            # Limitar preview a 10 linhas
+            preview_df = df.head(10)
+            
+            # Converter para lista de dicionários
+            preview_data = preview_df.fillna('').to_dict('records')
+            
             return {
                 'success': True,
                 'colunas': list(df.columns),
                 'preview': preview_data,
-                'total_linhas_preview': len(preview_data)
+                'total_linhas_preview': len(preview_df),
+                'total_linhas': len(df)
             }
-
+            
         except Exception as e:
             return {
                 'success': False,
-                'message': f'Erro ao gerar preview: {str(e)}'
+                'error': str(e),
+                'colunas': [],
+                'preview': [],
+                'total_linhas_preview': 0
             }
