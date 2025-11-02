@@ -73,9 +73,6 @@
 
 {% block scripts %}
 <script>
-    // Limpar qualquer flag de reload ao carregar página de login
-    sessionStorage.removeItem('page_reloading');
-    
     document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -104,9 +101,6 @@
             if (response.ok) {
                 const data = await response.json();
                 showToast('Login realizado com sucesso!', 'success');
-                
-                // Limpar flag de reload para permitir acesso
-                sessionStorage.removeItem('page_reloading');
                 
                 // Redireciona para dashboard
                 setTimeout(() => {

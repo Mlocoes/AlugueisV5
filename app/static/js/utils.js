@@ -4,26 +4,10 @@
 const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutos em milissegundos
 let inactivityTimer;
 
-// Detectar reload da página e fazer logout
-window.addEventListener('beforeunload', function(e) {
-    // Marca que a página está sendo recarregada
-    sessionStorage.setItem('page_reloading', 'true');
-});
-
-// Verificar se foi um reload e fazer logout
-window.addEventListener('load', function() {
-    const isReloading = sessionStorage.getItem('page_reloading');
-    
-    // Se foi reload (F5, Ctrl+R, etc), fazer logout
-    if (isReloading === 'true') {
-        sessionStorage.removeItem('page_reloading');
-        
-        // Se não estiver na página de login, fazer logout
-        if (!window.location.pathname.includes('/login')) {
-            logout();
-        }
-    }
-});
+// NOTA: Logout automático no reload foi desabilitado por causar problemas
+// As seguintes funcionalidades permanecem ativas:
+// 1. Cookies de sessão (expira ao fechar navegador)
+// 2. Timeout de inatividade (5 minutos)
 
 // Resetar timer de inatividade
 function resetInactivityTimer() {
