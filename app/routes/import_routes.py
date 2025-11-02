@@ -56,7 +56,8 @@ async def preview_importacao(
         resultado = service.preview_arquivo(content)
         
         if not resultado['success']:
-            raise HTTPException(status_code=400, detail=resultado['message'])
+            error_msg = resultado.get('error', 'Erro desconhecido')
+            raise HTTPException(status_code=400, detail=error_msg)
         
         return resultado
 
@@ -88,7 +89,8 @@ async def importar_proprietarios(
         resultado = service.importar_proprietarios(content, db)
         
         if not resultado['success']:
-            raise HTTPException(status_code=400, detail=resultado['message'])
+            erros_msg = '\n'.join(resultado.get('erros', ['Erro desconhecido']))
+            raise HTTPException(status_code=400, detail=erros_msg)
         
         return resultado
 
@@ -119,7 +121,8 @@ async def importar_imoveis(
         resultado = service.importar_imoveis(content, db)
         
         if not resultado['success']:
-            raise HTTPException(status_code=400, detail=resultado['message'])
+            erros_msg = ' | '.join(resultado.get('erros', ['Erro desconhecido']))
+            raise HTTPException(status_code=400, detail=erros_msg)
         
         return resultado
 
@@ -150,7 +153,8 @@ async def importar_alugueis(
         resultado = service.importar_alugueis(content, db)
         
         if not resultado['success']:
-            raise HTTPException(status_code=400, detail=resultado['message'])
+            erros_msg = ' | '.join(resultado.get('erros', ['Erro desconhecido']))
+            raise HTTPException(status_code=400, detail=erros_msg)
         
         return resultado
 
@@ -182,7 +186,8 @@ async def importar_participacoes(
         resultado = service.importar_participacoes(content, db, mes_referencia)
         
         if not resultado['success']:
-            raise HTTPException(status_code=400, detail=resultado['message'])
+            erros_msg = ' | '.join(resultado.get('erros', ['Erro desconhecido']))
+            raise HTTPException(status_code=400, detail=erros_msg)
         
         return resultado
 

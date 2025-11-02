@@ -175,10 +175,22 @@ class ImportacaoService:
                     
                 except Exception as e:
                     erros.append(f"Linha {linha}: Erro ao processar - {str(e)}")
+                    db.rollback()  # Rollback da transação com erro
+                    db.begin()  # Iniciar nova transação
                     continue
             
             if importados > 0:
-                db.commit()
+                try:
+                    db.commit()
+                except Exception as e:
+                    db.rollback()
+                    return {
+                        'success': False,
+                        'importados': 0,
+                        'erros': [f"Erro ao salvar dados: {str(e)}"] + erros,
+                        'warnings': warnings,
+                        'total_linhas': len(df)
+                    }
             
             return {
                 'success': True,
