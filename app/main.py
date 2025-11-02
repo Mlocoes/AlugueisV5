@@ -79,6 +79,15 @@ async def dashboard_page(request: Request, current_user: Usuario = Depends(get_c
         "user": current_user
     })
 
+@app.get("/alugueis", response_class=HTMLResponse)
+async def alugueis_page(request: Request, current_user: Usuario = Depends(get_current_user_from_cookie)):
+    """Página de gestão de aluguéis"""
+    return templates.TemplateResponse("alugueis.html", {
+        "request": request,
+        "title": "Aluguéis",
+        "user": current_user
+    })
+
 @app.get("/health")
 async def health_check():
     """Endpoint de health check"""
