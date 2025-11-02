@@ -4,6 +4,32 @@
 const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutos em milissegundos
 let inactivityTimer = null;
 
+// Sistema de detecção de reload (F5/Ctrl+R)
+// Detecta quando a página é recarregada e força logout
+(function() {
+    const navigationType = performance.getEntriesByType('navigation')[0]?.type;
+    const currentPath = window.location.pathname;
+    
+    console.log('[RELOAD] Navigation type:', navigationType);
+    console.log('[RELOAD] Current path:', currentPath);
+    
+    // Se foi reload (F5, Ctrl+R) e não está na página de login
+    if (navigationType === 'reload' && !currentPath.includes('/login')) {
+        console.log('[RELOAD] Reload detectado! Fazendo logout...');
+        
+        // Fazer logout imediatamente
+        fetch('/api/auth/logout', {
+            method: 'POST',
+            credentials: 'include'
+        }).finally(() => {
+            window.location.href = '/login';
+        });
+        
+        // Prevenir que o resto da página carregue
+        throw new Error('Reload detected - redirecting to login');
+    }
+})();
+
 // Resetar timer de inatividade
 function resetInactivityTimer() {
     // Não fazer nada se estiver na página de login
