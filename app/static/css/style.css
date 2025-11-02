@@ -92,3 +92,230 @@ body {
         display: none !important;
     }
 }
+
+/* ===== NAVBAR STYLES ===== */
+.nav-link {
+    color: #94a3b8;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+}
+
+.nav-link:hover {
+    color: white;
+    background-color: rgba(19, 91, 236, 0.1);
+}
+
+.nav-link.active {
+    color: var(--primary);
+    font-weight: 600;
+    background-color: rgba(19, 91, 236, 0.15);
+}
+
+.nav-link .material-symbols-outlined {
+    font-size: 1.25rem;
+}
+
+/* ===== BUTTON STYLES ===== */
+.btn-primary {
+    background-color: var(--primary);
+    color: white;
+    padding: 0.625rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background-color: #0d47c4;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(19, 91, 236, 0.3);
+}
+
+.btn-secondary {
+    background-color: #64748b;
+    color: white;
+    padding: 0.625rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background-color: #475569;
+}
+
+.btn-danger {
+    background-color: #ef4444;
+    color: white;
+    padding: 0.625rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-danger:hover {
+    background-color: #dc2626;
+}
+
+/* ===== CARD STYLES ===== */
+.card {
+    background-color: var(--card-dark);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    padding: 1.5rem;
+}
+
+/* ===== BADGE STYLES ===== */
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.badge-success {
+    background-color: #10b981;
+    color: white;
+}
+
+.badge-warning {
+    background-color: #f59e0b;
+    color: white;
+}
+
+.badge-danger {
+    background-color: #ef4444;
+    color: white;
+}
+
+.badge-info {
+    background-color: var(--primary);
+    color: white;
+}
+
+.badge-secondary {
+    background-color: #64748b;
+    color: white;
+}
+
+/* ===== TABLE STYLES ===== */
+.table-container {
+    overflow-x: auto;
+    border-radius: 0.75rem;
+    background-color: var(--card-dark);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    background-color: rgba(19, 91, 236, 0.1);
+}
+
+thead th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-dark);
+    border-bottom: 2px solid var(--border-dark);
+}
+
+tbody td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-dark);
+    color: var(--subtext-dark);
+}
+
+tbody tr:hover {
+    background-color: rgba(19, 91, 236, 0.05);
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ===== INPUT STYLES ===== */
+.input-field {
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-dark);
+    border-radius: 0.5rem;
+    padding: 0.625rem 1rem;
+    color: var(--text-dark);
+    width: 100%;
+    transition: all 0.2s ease;
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(19, 91, 236, 0.1);
+}
+
+.input-field::placeholder {
+    color: var(--subtext-dark);
+}
+
+/* ===== MODAL STYLES ===== */
+.modal-overlay {
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background-color: var(--card-dark);
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* ===== STATS CARD STYLES ===== */
+.stat-card {
+    background: linear-gradient(135deg, var(--card-dark) 0%, rgba(30, 41, 59, 0.8) 100%);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    border: 1px solid var(--border-dark);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(19, 91, 236, 0.2);
+    border-color: var(--primary);
+}
+
+.stat-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+

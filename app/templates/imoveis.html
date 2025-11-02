@@ -6,7 +6,8 @@
     <title>Imóveis - AlugueisV5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-    <script src="/static/js/utils.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/utils.js?v=2.0"></script>
     <style>
         :root {
             --bg-dark: #101622;
@@ -42,23 +43,47 @@
 </head>
 <body class="min-h-screen">
     <!-- Navbar -->
-    <nav class="card mb-6 p-4">
-        <div class="flex justify-between items-center">
-            <div class="flex items-center gap-6">
-                <h1 class="text-2xl font-bold text-blue-400">AlugueisV5</h1>
-                <div class="flex gap-4">
-                    <a href="/dashboard" class="text-gray-400 hover:text-white">Dashboard</a>
-                    <a href="/proprietarios" class="text-gray-400 hover:text-white">Proprietários</a>
-                    <a href="/imoveis" class="text-blue-400 font-semibold">Imóveis</a>
-                    <a href="/participacoes" class="text-gray-400 hover:text-white">Participações</a>
-                    <a href="/alugueis" class="text-gray-400 hover:text-white">Aluguéis</a>
-                    <a href="/relatorios" class="text-gray-400 hover:text-white">Relatórios</a>
-                    <a href="/usuarios" class="text-gray-400 hover:text-white">Usuários</a>
+    <nav class="bg-[var(--card-dark)] shadow-lg mb-6">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-8">
+                    <h1 class="text-2xl font-bold text-[var(--primary)]">AlugueisV5</h1>
+                    <div class="flex gap-6">
+                        <a href="/dashboard" class="nav-link">
+                            <span class="material-symbols-outlined text-sm">dashboard</span>
+                            Dashboard
+                        </a>
+                        <a href="/proprietarios" class="nav-link">
+                            <span class="material-symbols-outlined text-sm">person</span>
+                            Proprietários
+                        </a>
+                        <a href="/imoveis" class="nav-link active">
+                            <span class="material-symbols-outlined text-sm">home</span>
+                            Imóveis
+                        </a>
+                        <a href="/participacoes" class="nav-link">
+                            <span class="material-symbols-outlined text-sm">pie_chart</span>
+                            Participações
+                        </a>
+                        <a href="/alugueis" class="nav-link">
+                            <span class="material-symbols-outlined text-sm">payments</span>
+                            Aluguéis
+                        </a>
+                        <a href="/relatorios" class="nav-link">
+                            <span class="material-symbols-outlined text-sm">assessment</span>
+                            Relatórios
+                        </a>
+                        <a href="/usuarios" class="nav-link">
+                            <span class="material-symbols-outlined text-sm">group</span>
+                            Usuários
+                        </a>
+                    </div>
                 </div>
+                <button onclick="logout()" class="text-red-400 hover:text-red-300 flex items-center gap-2 transition-colors">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span class="hidden md:inline">Sair</span>
+                </button>
             </div>
-            <button onclick="logout()" class="text-red-400 hover:text-red-300">
-                <span class="material-symbols-outlined">logout</span>
-            </button>
         </div>
     </nav>
 

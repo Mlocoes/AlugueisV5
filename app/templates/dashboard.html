@@ -3,39 +3,50 @@
 {% block content %}
 <div class="min-h-screen bg-bg-dark">
     <!-- Navbar -->
-    <nav class="bg-card-dark border-b border-border-dark">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <h1 class="text-2xl font-bold text-primary">AlugueisV5</h1>
-                    <div class="ml-10 flex items-baseline space-x-4">
-                        <a href="/dashboard" class="text-white px-3 py-2 rounded-md text-sm font-medium bg-primary">
+    <nav class="bg-[var(--card-dark)] shadow-lg mb-6">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-8">
+                    <h1 class="text-2xl font-bold text-[var(--primary)]">AlugueisV5</h1>
+                    <div class="flex gap-6">
+                        <a href="/dashboard" class="nav-link active">
+                            <span class="material-symbols-outlined text-sm">dashboard</span>
                             Dashboard
                         </a>
-                        <a href="/imoveis" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
-                            Imóveis
-                        </a>
-                        <a href="/proprietarios" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                        <a href="/proprietarios" class="nav-link">
+                            <span class="material-symbols-outlined text-sm">person</span>
                             Proprietários
                         </a>
-                        <a href="/participacoes" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                        <a href="/imoveis" class="nav-link">
+                            <span class="material-symbols-outlined text-sm">home</span>
+                            Imóveis
+                        </a>
+                        <a href="/participacoes" class="nav-link">
+                            <span class="material-symbols-outlined text-sm">pie_chart</span>
                             Participações
                         </a>
-                        <a href="/alugueis" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                        <a href="/alugueis" class="nav-link">
+                            <span class="material-symbols-outlined text-sm">payments</span>
                             Aluguéis
                         </a>
-                        <a href="/relatorios" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                        <a href="/relatorios" class="nav-link">
+                            <span class="material-symbols-outlined text-sm">assessment</span>
                             Relatórios
+                        </a>
+                        <a href="/usuarios" class="nav-link">
+                            <span class="material-symbols-outlined text-sm">group</span>
+                            Usuários
                         </a>
                     </div>
                 </div>
-                <div class="flex items-center">
-                    <span class="text-gray-300 mr-4">
+                <div class="flex items-center gap-4">
+                    <span class="text-gray-300">
                         <span class="material-symbols-outlined align-middle text-sm">person</span>
                         <span id="user-name">...</span>
                     </span>
-                    <button id="logout-btn" class="text-gray-300 hover:text-white">
+                    <button onclick="logout()" class="text-red-400 hover:text-red-300 flex items-center gap-2 transition-colors">
                         <span class="material-symbols-outlined">logout</span>
+                        <span class="hidden md:inline">Sair</span>
                     </button>
                 </div>
             </div>
