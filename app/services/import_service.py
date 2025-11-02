@@ -429,6 +429,156 @@ class ImportacaoService:
                 'total_linhas': 0
             }
 
+    # ==================== IMPORTAÇÃO DE ALUGUÉIS ====================
+
+    def importar_alugueis(self, file_content: bytes, db: Session) -> Dict[str, Any]:
+        """Importa aluguéis mensais de planilha Excel com estrutura matricial"""
+        try:
+            # Ler Excel preservando formato original dos valores
+            df = pd.read_excel(BytesIO(file_content), dtype=str)
+            
+            if df.empty or len(df) < 2:
+                return {
+                    'success': False,
+                    'importados': 0,
+                    'erros': ['Arquivo vazio ou com dados insuficientes'],
+                    'warnings': []
+                }
+            
+            # A primeira coluna contém as datas de referência
+            # As demais colunas contêm os nomes dos proprietários
+            # Cada célula contém o valor do aluguel
+            
+            erros = []
+            warnings = []
+            importados = 0
+            
+            # Extrair nomes dos proprietários dos cabeçalhos (primeira linha)
+            proprietarios_cols = []
+            for col_idx in range(1, len(df.columns)):  # Pular primeira coluna (datas)
+                nome_proprietario = str(df.columns[col_idx]).strip()
+                if nome_proprietario and nome_proprietario.lower() not in ['nan', 'none', 'unnamed']:
+                    # Buscar proprietário no banco
+                    proprietario = db.query(Usuario).filter(
+                        Usuario.nome.ilike(f'%{nome_proprietario}%')
+                    ).first()
+                    
+                    if not proprietario:
+                        # Tentar buscar por partes do nome
+                        partes = nome_proprietario.split()
+                        if len(partes) >= 2:
+                            proprietario = db.query(Usuario).filter(
+                                Usuario.nome.ilike(f'%{partes[0]}%'),
+                                Usuario.sobrenome.ilike(f'%{partes[-1]}%')
+                            ).first()
+                    
+                    if proprietario:
+                        proprietarios_cols.append((col_idx, proprietario))
+                    else:
+                        warnings.append(f"Proprietário '{nome_proprietario}' não encontrado")
+            
+            if not proprietarios_cols:
+                return {
+                    'success': False,
+                    'importados': 0,
+                    'erros': ['Nenhum proprietário válido encontrado nos cabeçalhos'],
+                    'warnings': warnings
+                }
+            
+            # Processar cada linha (cada linha representa um mês/imóvel)
+            for idx, row in df.iterrows():
+                try:
+                    # Primeira coluna é a data de referência
+                    data_str = str(row.iloc[0]).strip()
+                    if not data_str or data_str.lower() in ['nan', 'none', '']:
+                        continue
+                    
+                    # Converter data
+                    try:
+                        if '/' in data_str:
+                            data_referencia = datetime.strptime(data_str, '%d/%m/%Y').date()
+                        elif '-' in data_str:
+                            data_referencia = datetime.strptime(data_str.split(' ')[0], '%Y-%m-%d').date()
+                        else:
+                            erros.append(f"Linha {idx+2}: Data inválida '{data_str}'")
+                            continue
+                    except ValueError:
+                        erros.append(f"Linha {idx+2}: Formato de data inválido '{data_str}'")
+                        continue
+                    
+                    # Processar valores para cada proprietário
+                    for col_idx, proprietario in proprietarios_cols:
+                        valor_str = str(row.iloc[col_idx]).strip()
+                        if not valor_str or valor_str.lower() in ['nan', 'none', '']:
+                            continue
+                        
+                        # Converter valor
+                        valor = self.parse_valor(valor_str)
+                        if valor is None or valor == 0:
+                            continue
+                        
+                        # Para alugueis, precisamos identificar o imóvel
+                        # Como o arquivo não tem nome do imóvel, vamos usar o primeiro imóvel do proprietário
+                        # ou criar uma lógica diferente baseada em participações
+                        
+                        # Buscar participações do proprietário
+                        participacao = db.query(Participacao).filter(
+                            Participacao.id_proprietario == proprietario.id
+                        ).first()
+                        
+                        if not participacao:
+                            warnings.append(f"Linha {idx+2}: Proprietário '{proprietario.nome}' sem participações cadastradas")
+                            continue
+                        
+                        # Verificar se já existe aluguel para este mês/proprietário/imóvel
+                        existing = db.query(AluguelMensal).filter(
+                            AluguelMensal.id_imovel == participacao.id_imovel,
+                            AluguelMensal.id_proprietario == proprietario.id,
+                            AluguelMensal.data_referencia == data_referencia
+                        ).first()
+                        
+                        if existing:
+                            # Atualizar valor
+                            existing.valor_proprietario = valor
+                            existing.atualizado_em = func.now()
+                        else:
+                            # Criar novo registro
+                            novo_aluguel = AluguelMensal(
+                                id_imovel=participacao.id_imovel,
+                                id_proprietario=proprietario.id,
+                                data_referencia=data_referencia,
+                                valor_total=valor,  # Será calculado posteriormente
+                                valor_proprietario=valor,
+                                taxa_administracao=0
+                            )
+                            db.add(novo_aluguel)
+                        
+                        importados += 1
+                
+                except Exception as e:
+                    erros.append(f"Linha {idx+2}: Erro ao processar - {str(e)}")
+            
+            if importados > 0:
+                db.commit()
+            
+            return {
+                'success': True,
+                'importados': importados,
+                'erros': erros,
+                'warnings': warnings,
+                'total_linhas': len(df)
+            }
+        
+        except Exception as e:
+            db.rollback()
+            return {
+                'success': False,
+                'importados': 0,
+                'erros': [f"Erro ao processar arquivo: {str(e)}"],
+                'warnings': [],
+                'total_linhas': 0
+            }
+
     # ==================== PREVIEW ====================
 
     def preview_arquivo(self, file_content: bytes) -> Dict[str, Any]:
