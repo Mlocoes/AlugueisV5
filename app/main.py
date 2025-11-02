@@ -89,6 +89,15 @@ async def proprietarios_page(request: Request, current_user: Usuario = Depends(g
         "user": current_user
     })
 
+@app.get("/imoveis", response_class=HTMLResponse)
+async def imoveis_page(request: Request, current_user: Usuario = Depends(get_current_user_from_cookie)):
+    """Página de gestão de imóveis"""
+    return templates.TemplateResponse("imoveis.html", {
+        "request": request,
+        "title": "Imóveis",
+        "user": current_user
+    })
+
 @app.get("/alugueis", response_class=HTMLResponse)
 async def alugueis_page(request: Request, current_user: Usuario = Depends(get_current_user_from_cookie)):
     """Página de gestão de aluguéis"""

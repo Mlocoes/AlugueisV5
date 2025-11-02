@@ -2,12 +2,13 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 
 from app.core.database import get_db
 from app.core.auth import get_current_user_from_cookie, require_admin
 from app.models.usuario import Usuario
 from app.models.imovel import Imovel
+from app.models.proprietario import Proprietario
 from app.schemas.schemas import ImovelCreate, ImovelUpdate, ImovelResponse
 
 
@@ -27,14 +28,12 @@ async def list_imoveis(
     """
     Lista imóveis com filtros opcionais
     - Admins veem todos os imóveis
-    - Usuários normais veem apenas seus próprios imóveis
+    - Usuários normais não têm restrição (todos podem ver todos os imóveis)
     """
     query = db.query(Imovel)
     
-    # Filtro de permissões
-    if not current_user.is_admin:
-        query = query.filter(Imovel.proprietario_id == current_user.id)
-    elif proprietario_id:
+    # Filtro por proprietário
+    if proprietario_id:
         query = query.filter(Imovel.proprietario_id == proprietario_id)
     
     # Filtro de busca
@@ -73,13 +72,6 @@ async def get_imovel(
             detail="Imóvel não encontrado"
         )
     
-    # Verificar permissões
-    if not current_user.is_admin and imovel.proprietario_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Sem permissão para acessar este imóvel"
-        )
-    
     return ImovelResponse.model_validate(imovel)
 
 
@@ -91,18 +83,10 @@ async def create_imovel(
 ):
     """
     Cria novo imóvel
-    - Admins podem criar para qualquer proprietário
-    - Usuários normais só podem criar para si mesmos
+    - Todos os usuários podem criar imóveis para qualquer proprietário
     """
-    # Verificar permissões
-    if not current_user.is_admin and imovel_data.proprietario_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Sem permissão para criar imóvel para outro proprietário"
-        )
-    
     # Verificar se proprietário existe
-    proprietario = db.query(Usuario).filter(Usuario.id == imovel_data.proprietario_id).first()
+    proprietario = db.query(Proprietario).filter(Proprietario.id == imovel_data.proprietario_id).first()
     if not proprietario:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -133,13 +117,6 @@ async def update_imovel(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Imóvel não encontrado"
-        )
-    
-    # Verificar permissões
-    if not current_user.is_admin and imovel.proprietario_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Sem permissão para editar este imóvel"
         )
     
     # Atualizar campos
@@ -192,10 +169,6 @@ async def get_imoveis_stats(
     """Retorna estatísticas dos imóveis"""
     query = db.query(Imovel)
     
-    # Filtrar por proprietário se não for admin
-    if not current_user.is_admin:
-        query = query.filter(Imovel.proprietario_id == current_user.id)
-    
     total = query.count()
     ativos = query.filter(Imovel.is_active == True).count()
     inativos = query.filter(Imovel.is_active == False).count()
@@ -210,3 +183,24 @@ async def get_imoveis_stats(
         "inativos": inativos,
         "valor_total_alugueis": valor_total_alugueis
     }
+
+
+@router.get("/proprietarios/list")
+async def list_proprietarios_for_select(
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user_from_cookie)
+):
+    """Retorna lista simplificada de proprietários ativos para select"""
+    proprietarios = db.query(Proprietario).filter(
+        Proprietario.is_active == True
+    ).order_by(Proprietario.nome).all()
+    
+    return [
+        {
+            "id": p.id,
+            "nome": p.razao_social if p.tipo_pessoa == "juridica" else p.nome,
+            "tipo_pessoa": p.tipo_pessoa,
+            "cpf_cnpj": p.cnpj if p.tipo_pessoa == "juridica" else p.cpf
+        }
+        for p in proprietarios
+    ]
