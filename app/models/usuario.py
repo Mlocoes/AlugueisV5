@@ -24,7 +24,6 @@ class Usuario(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relacionamentos
-    participacoes = relationship("Participacao", back_populates="proprietario")
     permissoes_financeiras = relationship("PermissaoFinanceira", back_populates="usuario")
     aliases = relationship("Alias", back_populates="usuario")
 

@@ -54,12 +54,13 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
 # Importar e incluir rotas
-from app.routes import auth, proprietarios, imoveis, usuarios, alugueis
+from app.routes import auth, proprietarios, imoveis, usuarios, alugueis, participacoes
 app.include_router(auth.router)
 app.include_router(proprietarios.router)
 app.include_router(imoveis.router)
 app.include_router(usuarios.router)
 app.include_router(alugueis.router)
+app.include_router(participacoes.router)
 
 @app.get("/", response_class=RedirectResponse)
 async def root():
@@ -116,6 +117,15 @@ async def usuarios_page(request: Request, current_user: Usuario = Depends(get_cu
     return templates.TemplateResponse("usuarios.html", {
         "request": request,
         "title": "Usuários",
+        "user": current_user
+    })
+
+@app.get("/participacoes", response_class=HTMLResponse)
+async def participacoes_page(request: Request, current_user: Usuario = Depends(get_current_user_from_cookie)):
+    """Página de gestão de participações"""
+    return templates.TemplateResponse("participacoes.html", {
+        "request": request,
+        "title": "Participações",
         "user": current_user
     })
 

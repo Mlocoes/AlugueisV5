@@ -12,7 +12,7 @@ class Participacao(Base):
     
     # Referências
     imovel_id = Column(Integer, ForeignKey("imoveis.id"), nullable=False, index=True)
-    proprietario_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False, index=True)
+    proprietario_id = Column(Integer, ForeignKey("proprietarios.id"), nullable=False, index=True)
     
     # Período (formato: YYYY-MM)
     mes_referencia = Column(String(7), nullable=False, index=True)
@@ -30,7 +30,7 @@ class Participacao(Base):
 
     # Relacionamentos
     imovel = relationship("Imovel", back_populates="participacoes")
-    proprietario = relationship("Usuario", back_populates="participacoes")
+    proprietario = relationship("Proprietario", back_populates="participacoes")
 
     def __repr__(self):
         return f"<Participacao(id={self.id}, imovel_id={self.imovel_id}, proprietario_id={self.proprietario_id}, percentual={self.percentual}%)>"
