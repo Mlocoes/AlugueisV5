@@ -1,33 +1,43 @@
 // Utilidades gerais do AlugueisV5
 
-// Configuração de timeout de inatividade (5 minutos)
-const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutos em milissegundos
+// Configuração de timeout de inatividade (30 minutos)
+const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutos em milissegundos
 let inactivityTimer;
-
-// NOTA: Logout automático no reload foi desabilitado por causar problemas
-// As seguintes funcionalidades permanecem ativas:
-// 1. Cookies de sessão (expira ao fechar navegador)
-// 2. Timeout de inatividade (5 minutos)
+let inactivityMonitoringActive = false;
 
 // Resetar timer de inatividade
 function resetInactivityTimer() {
+    if (!inactivityMonitoringActive) return;
+    
     clearTimeout(inactivityTimer);
+    console.log('Timer de inatividade resetado');
     inactivityTimer = setTimeout(() => {
+        console.log('Timeout de inatividade atingido - fazendo logout');
         showToast('Sessão expirada por inatividade', 'warning');
-        logout();
+        setTimeout(() => logout(), 2000); // Aguardar 2s para mostrar o toast
     }, INACTIVITY_TIMEOUT);
 }
 
-// Monitorar atividade do usuário
-if (!window.location.pathname.includes('/login')) {
-    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(event => {
-        document.addEventListener(event, resetInactivityTimer, true);
-    });
-    resetInactivityTimer(); // Iniciar timer
-}
+// Inicializar monitoramento de inatividade após DOM carregar
+document.addEventListener('DOMContentLoaded', function() {
+    // Monitorar atividade do usuário - APENAS se não estiver na página de login
+    if (!window.location.pathname.includes('/login')) {
+        console.log('Iniciando monitoramento de inatividade');
+        inactivityMonitoringActive = true;
+        
+        ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(event => {
+            document.addEventListener(event, resetInactivityTimer, true);
+        });
+        
+        resetInactivityTimer(); // Iniciar timer
+    }
+});
 
 // Função de logout
 async function logout() {
+    console.log('Função logout() chamada');
+    console.trace('Stack trace do logout');
+    
     try {
         await fetch('/api/auth/logout', {
             method: 'POST',
