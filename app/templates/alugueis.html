@@ -183,20 +183,25 @@ async function loadImoveis() {
             const selectFiltro = document.getElementById('filter-imovel');
             const selectModal = document.getElementById('aluguel-imovel');
             
-            selectFiltro.innerHTML = '<option value="">Todos os imóveis</option>';
-            selectModal.innerHTML = '<option value="">Selecione o imóvel</option>';
+            if (selectFiltro) {
+                selectFiltro.innerHTML = '<option value="">Todos os imóveis</option>';
+                imoveisData.forEach(imovel => {
+                    const option = document.createElement('option');
+                    option.value = imovel.id;
+                    option.textContent = `${imovel.nome} - ${imovel.endereco}`;
+                    selectFiltro.appendChild(option);
+                });
+            }
             
-            imoveisData.forEach(imovel => {
-                const option1 = document.createElement('option');
-                option1.value = imovel.id;
-                option1.textContent = `${imovel.nome} - ${imovel.endereco}`;
-                selectFiltro.appendChild(option1);
-                
-                const option2 = document.createElement('option');
-                option2.value = imovel.id;
-                option2.textContent = `${imovel.nome} - ${imovel.endereco}`;
-                selectModal.appendChild(option2);
-            });
+            if (selectModal) {
+                selectModal.innerHTML = '<option value="">Selecione o imóvel</option>';
+                imoveisData.forEach(imovel => {
+                    const option = document.createElement('option');
+                    option.value = imovel.id;
+                    option.textContent = `${imovel.nome} - ${imovel.endereco}`;
+                    selectModal.appendChild(option);
+                });
+            }
         }
     } catch (error) {
         console.error('Erro ao carregar imóveis:', error);
@@ -233,9 +238,14 @@ async function loadAlugueis() {
     const loading = document.getElementById('loading');
     const emptyState = document.getElementById('empty-state');
     
+    if (!tbody) {
+        console.warn('Elemento alugueis-tbody não encontrado');
+        return;
+    }
+    
     tbody.innerHTML = '';
-    loading.classList.remove('hidden');
-    emptyState.classList.add('hidden');
+    if (loading) loading.classList.remove('hidden');
+    if (emptyState) emptyState.classList.add('hidden');
     
     try {
         // Construir URL com filtros
@@ -256,7 +266,7 @@ async function loadAlugueis() {
             alugueisData = await response.json();
             
             if (alugueisData.length === 0) {
-                emptyState.classList.remove('hidden');
+                if (emptyState) emptyState.classList.remove('hidden');
             } else {
                 alugueisData.forEach(aluguel => {
                     const row = createAluguelRow(aluguel);
@@ -268,7 +278,7 @@ async function loadAlugueis() {
         console.error('Erro ao carregar aluguéis:', error);
         showToast('Erro ao carregar aluguéis', 'error');
     } finally {
-        loading.classList.add('hidden');
+        if (loading) loading.classList.add('hidden');
     }
 }
 
@@ -472,28 +482,50 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Botões
-    document.getElementById('btn-novo-aluguel').addEventListener('click', abrirModalNovo);
-    document.getElementById('btn-filtrar').addEventListener('click', () => {
-        loadAlugueis();
-        loadStats();
-    });
-    document.getElementById('btn-limpar-filtros').addEventListener('click', () => {
-        const filterMes = document.getElementById('filter-mes');
-        const filterImovel = document.getElementById('filter-imovel');
-        const filterStatus = document.getElementById('filter-status');
-        
-        if (filterMes) filterMes.value = '';
-        if (filterImovel) filterImovel.value = '';
-        if (filterStatus) filterStatus.value = '';
-        
-        loadAlugueis();
-        loadStats();
-    });
+    const btnNovoAluguel = document.getElementById('btn-novo-aluguel');
+    const btnFiltrar = document.getElementById('btn-filtrar');
+    const btnLimparFiltros = document.getElementById('btn-limpar-filtros');
+    
+    if (btnNovoAluguel) {
+        btnNovoAluguel.addEventListener('click', abrirModalNovo);
+    }
+    
+    if (btnFiltrar) {
+        btnFiltrar.addEventListener('click', () => {
+            loadAlugueis();
+            loadStats();
+        });
+    }
+    
+    if (btnLimparFiltros) {
+        btnLimparFiltros.addEventListener('click', () => {
+            const filterMes = document.getElementById('filter-mes');
+            const filterImovel = document.getElementById('filter-imovel');
+            const filterStatus = document.getElementById('filter-status');
+            
+            if (filterMes) filterMes.value = '';
+            if (filterImovel) filterImovel.value = '';
+            if (filterStatus) filterStatus.value = '';
+            
+            loadAlugueis();
+            loadStats();
+        });
+    }
     
     // Modal
-    document.getElementById('btn-fechar-modal').addEventListener('click', fecharModal);
-    document.getElementById('btn-cancelar-modal').addEventListener('click', fecharModal);
-    document.getElementById('form-aluguel').addEventListener('submit', salvarAluguel);
+    const btnFecharModal = document.getElementById('btn-fechar-modal');
+    const btnCancelarModal = document.getElementById('btn-cancelar-modal');
+    const formAluguel = document.getElementById('form-aluguel');
+    
+    if (btnFecharModal) {
+        btnFecharModal.addEventListener('click', fecharModal);
+    }
+    if (btnCancelarModal) {
+        btnCancelarModal.addEventListener('click', fecharModal);
+    }
+    if (formAluguel) {
+        formAluguel.addEventListener('submit', salvarAluguel);
+    }
     
     // Atualizar preview ao digitar valores
     const valorInputs = [
@@ -503,15 +535,21 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
     
     valorInputs.forEach(id => {
-        document.getElementById(id).addEventListener('input', atualizarTotalPreview);
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('input', atualizarTotalPreview);
+        }
     });
     
     // Fechar modal ao clicar fora
-    document.getElementById('modal-aluguel').addEventListener('click', (e) => {
-        if (e.target.id === 'modal-aluguel') {
-            fecharModal();
-        }
-    });
+    const modalAluguel = document.getElementById('modal-aluguel');
+    if (modalAluguel) {
+        modalAluguel.addEventListener('click', (e) => {
+            if (e.target.id === 'modal-aluguel') {
+                fecharModal();
+            }
+        });
+    }
 });
 </script>
 {% endblock %}
