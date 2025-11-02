@@ -54,10 +54,11 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
 # Importar e incluir rotas
-from app.routes import auth, imoveis, usuarios
+from app.routes import auth, imoveis, usuarios, alugueis
 app.include_router(auth.router)
 app.include_router(imoveis.router)
 app.include_router(usuarios.router)
+app.include_router(alugueis.router)
 
 @app.get("/", response_class=RedirectResponse)
 async def root():
