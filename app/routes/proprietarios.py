@@ -45,17 +45,6 @@ class ProprietarioBase(BaseModel):
     observacoes: Optional[str] = None
     is_active: bool = True
 
-    @validator('cpf', 'cnpj')
-    def validar_documento(cls, v, values):
-        if not v:
-            return v
-        tipo = values.get('tipo_pessoa')
-        if tipo == 'fisica' and not values.get('cpf'):
-            raise ValueError('CPF é obrigatório para pessoa física')
-        if tipo == 'juridica' and not values.get('cnpj'):
-            raise ValueError('CNPJ é obrigatório para pessoa jurídica')
-        return v
-
 
 class ProprietarioCreate(ProprietarioBase):
     pass
