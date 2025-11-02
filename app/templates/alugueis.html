@@ -344,27 +344,17 @@ async function loadAlugueis() {
         const url = `/api/alugueis/?${params}`;
         console.log('Carregando aluguéis de:', url);
         
-        const response = await fetchWithAuth(url);
-        console.log('Response status:', response ? response.status : 'null');
+        // fetchWithAuth retorna o JSON diretamente ou lança erro
+        alugueisData = await fetchWithAuth(url);
+        console.log('Aluguéis carregados:', alugueisData.length);
         
-        if (response && response.ok) {
-            alugueisData = await response.json();
-            console.log('Aluguéis carregados:', alugueisData.length);
-            
-            if (alugueisData.length === 0) {
-                if (emptyState) emptyState.classList.remove('hidden');
-            } else {
-                alugueisData.forEach(aluguel => {
-                    const row = createAluguelRow(aluguel);
-                    tbody.appendChild(row);
-                });
-            }
+        if (alugueisData.length === 0) {
+            if (emptyState) emptyState.classList.remove('hidden');
         } else {
-            console.error('Erro na resposta:', response ? response.status : 'null');
-            if (response && response.status === 401) {
-                showToast('Sessão expirada. Faça login novamente.', 'error');
-                setTimeout(() => window.location.href = '/login', 2000);
-            }
+            alugueisData.forEach(aluguel => {
+                const row = createAluguelRow(aluguel);
+                tbody.appendChild(row);
+            });
         }
     } catch (error) {
         console.error('Erro ao carregar aluguéis:', error);
