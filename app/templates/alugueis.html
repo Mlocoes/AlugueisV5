@@ -261,9 +261,15 @@ async function loadAlugueis() {
         
         params.append('limit', '1000');
         
-        const response = await fetchWithAuth(`/api/alugueis/?${params}`);
+        const url = `/api/alugueis/?${params}`;
+        console.log('Carregando aluguéis de:', url);
+        
+        const response = await fetchWithAuth(url);
+        console.log('Response status:', response ? response.status : 'null');
+        
         if (response && response.ok) {
             alugueisData = await response.json();
+            console.log('Aluguéis carregados:', alugueisData.length);
             
             if (alugueisData.length === 0) {
                 if (emptyState) emptyState.classList.remove('hidden');
@@ -272,6 +278,12 @@ async function loadAlugueis() {
                     const row = createAluguelRow(aluguel);
                     tbody.appendChild(row);
                 });
+            }
+        } else {
+            console.error('Erro na resposta:', response ? response.status : 'null');
+            if (response && response.status === 401) {
+                showToast('Sessão expirada. Faça login novamente.', 'error');
+                setTimeout(() => window.location.href = '/login', 2000);
             }
         }
     } catch (error) {
