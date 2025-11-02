@@ -162,7 +162,7 @@
 </div>
 
 <!-- Modal Novo/Editar Aluguel -->
-<div id="modal-aluguel" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
+<div id="modal-aluguel" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 items-center justify-center p-4">
     <div class="bg-card-dark rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         <div class="p-6">
             <div class="flex justify-between items-center mb-6">
@@ -458,7 +458,9 @@ function abrirModalNovo() {
     const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
     document.getElementById('aluguel-mes').value = mesAtual;
     
-    document.getElementById('modal-aluguel').classList.remove('hidden');
+    const modal = document.getElementById('modal-aluguel');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
 }
 
 // Editar aluguel
@@ -485,7 +487,9 @@ async function editarAluguel(id) {
             document.getElementById('aluguel-observacoes').value = aluguel.observacoes || '';
             
             atualizarTotalPreview();
-            document.getElementById('modal-aluguel').classList.remove('hidden');
+            const modal = document.getElementById('modal-aluguel');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
         }
     } catch (error) {
         console.error('Erro ao carregar aluguel:', error);
@@ -582,7 +586,9 @@ async function salvarAluguel(event) {
 
 // Fechar modal
 function fecharModal() {
-    document.getElementById('modal-aluguel').classList.add('hidden');
+    const modal = document.getElementById('modal-aluguel');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
 }
 
 // Event Listeners

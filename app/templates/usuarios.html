@@ -234,7 +234,7 @@
                                 <span>Alterar senha do usuário</span>
                             </label>
                         </div>
-                        <div id="password-fields" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
+                        <div id="password-fields" class="hidden grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm text-gray-400 mb-2">Nova Senha *</label>
                                 <input type="password" id="new-password" 
@@ -432,10 +432,12 @@
             
             if (checkbox.checked) {
                 fields.classList.remove('hidden');
+                fields.classList.add('grid');
                 document.getElementById('new-password').required = true;
                 document.getElementById('new-password-confirm').required = true;
             } else {
                 fields.classList.add('hidden');
+                fields.classList.remove('grid');
                 document.getElementById('new-password').required = false;
                 document.getElementById('new-password-confirm').required = false;
                 document.getElementById('new-password').value = '';
@@ -462,7 +464,9 @@
                 document.getElementById('password-section').classList.add('hidden');
                 document.getElementById('change-password-section').classList.remove('hidden');
                 document.getElementById('change-password-toggle').checked = false;
-                document.getElementById('password-fields').classList.add('hidden');
+                const passwordFields = document.getElementById('password-fields');
+                passwordFields.classList.add('hidden');
+                passwordFields.classList.remove('grid');
                 document.getElementById('password').required = false;
                 document.getElementById('password-confirm').required = false;
 

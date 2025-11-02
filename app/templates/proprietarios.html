@@ -180,7 +180,7 @@
     </div>
 
     <!-- Modal -->
-    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
         <div class="card max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div class="p-6">
                 <div class="flex justify-between items-center mb-6">
@@ -228,7 +228,7 @@
                     </div>
 
                     <!-- Pessoa Jurídica -->
-                    <div id="pessoa-juridica" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
+                    <div id="pessoa-juridica" class="hidden grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm text-gray-400 mb-2">Razão Social *</label>
                             <input type="text" id="razao_social"
@@ -514,12 +514,16 @@
             document.getElementById('proprietario-form').reset();
             document.querySelector('input[name="tipo_pessoa"][value="fisica"]').checked = true;
             toggleTipoPessoa();
-            document.getElementById('modal').classList.remove('hidden');
+            const modal = document.getElementById('modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
         }
 
         // Fechar modal
         function closeModal() {
-            document.getElementById('modal').classList.add('hidden');
+            const modal = document.getElementById('modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
         }
 
         // Toggle tipo pessoa
@@ -530,12 +534,16 @@
 
             if (tipo === 'fisica') {
                 fisicaDiv.classList.remove('hidden');
+                fisicaDiv.classList.add('grid');
                 juridicaDiv.classList.add('hidden');
+                juridicaDiv.classList.remove('grid');
                 document.getElementById('nome').required = true;
                 document.getElementById('razao_social').required = false;
             } else {
                 fisicaDiv.classList.add('hidden');
+                fisicaDiv.classList.remove('grid');
                 juridicaDiv.classList.remove('hidden');
+                juridicaDiv.classList.add('grid');
                 document.getElementById('nome').required = false;
                 document.getElementById('razao_social').required = true;
             }
@@ -577,7 +585,9 @@
                 document.getElementById('observacoes').value = prop.observacoes || '';
                 document.getElementById('is_active').checked = prop.is_active;
 
-                document.getElementById('modal').classList.remove('hidden');
+                const modal = document.getElementById('modal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
             } catch (error) {
                 showToast('Erro ao carregar proprietário', 'error');
                 console.error(error);
