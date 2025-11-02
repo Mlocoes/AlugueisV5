@@ -9,10 +9,10 @@ from typing import List, Optional
 from datetime import datetime, date
 
 from app.core.database import get_db
-from app.core.auth import get_current_user
+from app.core.auth import get_current_user_from_cookie
 from app.models.usuario import Usuario
 from app.models.transferencia import Transferencia
-from app.models.aluguel import Aluguel
+from app.models.aluguel import AluguelMensal
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -23,7 +23,7 @@ templates = Jinja2Templates(directory="app/templates")
 @router.get("/transferencias", response_class=HTMLResponse)
 async def transferencias_page(
     request: Request,
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user_from_cookie)
 ):
     """Renderiza a página de transferências"""
     return templates.TemplateResponse(
@@ -41,7 +41,7 @@ async def listar_transferencias(
     destino_id: Optional[int] = None,
     confirmada: Optional[bool] = None,
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user_from_cookie)
 ):
     """Lista todas as transferências com filtros opcionais"""
     query = db.query(Transferencia)
@@ -84,7 +84,7 @@ async def listar_transferencias(
 async def obter_transferencia(
     transferencia_id: int,
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user_from_cookie)
 ):
     """Obtém detalhes de uma transferência específica"""
     transferencia = db.query(Transferencia).filter(
@@ -114,7 +114,7 @@ async def obter_transferencia(
 async def criar_transferencia(
     data: dict,
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user_from_cookie)
 ):
     """Cria uma nova transferência"""
     
@@ -177,7 +177,7 @@ async def atualizar_transferencia(
     transferencia_id: int,
     data: dict,
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user_from_cookie)
 ):
     """Atualiza uma transferência existente"""
     
@@ -250,7 +250,7 @@ async def atualizar_transferencia(
 async def excluir_transferencia(
     transferencia_id: int,
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user_from_cookie)
 ):
     """Exclui uma transferência"""
     
@@ -271,7 +271,7 @@ async def excluir_transferencia(
 async def confirmar_transferencia(
     transferencia_id: int,
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user_from_cookie)
 ):
     """Confirma uma transferência pendente"""
     
@@ -306,7 +306,7 @@ async def confirmar_transferencia(
 async def obter_estatisticas(
     mes_referencia: Optional[str] = None,
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user_from_cookie)
 ):
     """Obtém estatísticas de transferências"""
     

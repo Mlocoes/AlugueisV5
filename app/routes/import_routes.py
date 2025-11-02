@@ -10,7 +10,7 @@ import io
 from pathlib import Path
 
 from app.core.database import get_db
-from app.core.auth import get_current_user
+from app.core.auth import get_current_user_from_cookie
 from app.models.usuario import Usuario
 from app.services.import_service import ImportacaoService
 
@@ -23,7 +23,7 @@ templates = Jinja2Templates(directory="app/templates")
 @router.get("/importacao", response_class=HTMLResponse)
 async def importacao_page(
     request: Request,
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user_from_cookie)
 ):
     """Renderiza a página de importação"""
     return templates.TemplateResponse(
@@ -37,7 +37,7 @@ async def importacao_page(
 @router.post("/api/importacao/preview")
 async def preview_importacao(
     file: UploadFile = File(...),
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user_from_cookie)
 ):
     """Gera preview do arquivo antes da importação"""
     try:
@@ -72,7 +72,7 @@ async def preview_importacao(
 async def importar_proprietarios(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user_from_cookie)
 ):
     """Importa proprietários de um arquivo Excel/CSV"""
     try:
@@ -103,7 +103,7 @@ async def importar_proprietarios(
 async def importar_imoveis(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user_from_cookie)
 ):
     """Importa imóveis de um arquivo Excel/CSV"""
     try:
@@ -134,7 +134,7 @@ async def importar_imoveis(
 async def importar_alugueis(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user_from_cookie)
 ):
     """Importa aluguéis de um arquivo Excel/CSV"""
     try:
@@ -166,7 +166,7 @@ async def importar_alugueis(
 @router.get("/api/importacao/template/{tipo}")
 async def download_template(
     tipo: str,
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user_from_cookie)
 ):
     """Baixa template Excel para importação"""
     
@@ -248,7 +248,7 @@ async def download_template(
 
 @router.get("/api/importacao/check-dependencies")
 async def check_dependencies(
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user_from_cookie)
 ):
     """Verifica se as dependências necessárias estão instaladas"""
     try:
