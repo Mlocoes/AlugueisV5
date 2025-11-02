@@ -57,6 +57,80 @@
 
     <!-- Main Content -->
     <div class="container mx-auto px-4 pb-8">
+        
+        <!-- Header com Botão Novo -->
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-white">Aluguéis Mensais</h2>
+            <button id="btn-novo-aluguel" class="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                <span class="material-symbols-outlined">add</span>
+                Novo Aluguel
+            </button>
+        </div>
+
+        <!-- Filtros -->
+        <div class="bg-card-dark rounded-lg p-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Mês</label>
+                    <input type="month" id="filter-mes" class="w-full bg-bg-dark border border-border-dark text-white rounded-lg px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Imóvel</label>
+                    <select id="filter-imovel" class="w-full bg-bg-dark border border-border-dark text-white rounded-lg px-3 py-2">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Status</label>
+                    <select id="filter-status" class="w-full bg-bg-dark border border-border-dark text-white rounded-lg px-3 py-2">
+                        <option value="">Todos</option>
+                        <option value="true">Pago</option>
+                        <option value="false">Pendente</option>
+                    </select>
+                </div>
+                <div class="flex items-end gap-2">
+                    <button id="btn-filtrar" class="flex-1 bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                        Filtrar
+                    </button>
+                    <button id="btn-limpar-filtros" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">
+                        Limpar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela -->
+        <div class="bg-card-dark rounded-lg overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-bg-dark">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Imóvel</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Mês</th>
+                            <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Valor Total</th>
+                            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Status</th>
+                            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="alugueis-tbody" class="divide-y divide-border-dark">
+                        <!-- Dados carregados via JS -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Loading -->
+            <div id="loading" class="hidden p-8 text-center">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <p class="text-gray-400 mt-2">Carregando...</p>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden p-8 text-center">
+                <span class="material-symbols-outlined text-6xl text-gray-600">inbox</span>
+                <p class="text-gray-400 mt-2">Nenhum aluguel encontrado</p>
+            </div>
+        </div>
+    </div>
 
 <!-- Modal Novo/Editar Aluguel -->
 <div id="modal-aluguel" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 items-center justify-center p-4">
@@ -170,12 +244,15 @@
 
 {% block scripts %}
 <script>
+console.log('=== ALUGUEIS.HTML: Script carregado ===');
+
 let alugueisData = [];
 let imoveisData = [];
 
 // Carregar informações do usuário
 // Carregar imóveis para os selects
 async function loadImoveis() {
+    console.log('loadImoveis: iniciando');
     try {
         imoveisData = await fetchWithAuth('/api/imoveis/?is_active=true&limit=1000');
         if (imoveisData) {
@@ -234,9 +311,12 @@ async function loadStats() {
 
 // Carregar aluguéis
 async function loadAlugueis() {
+    console.log('loadAlugueis: iniciando');
     const tbody = document.getElementById('alugueis-tbody');
     const loading = document.getElementById('loading');
     const emptyState = document.getElementById('empty-state');
+    
+    console.log('Elementos encontrados:', {tbody: !!tbody, loading: !!loading, emptyState: !!emptyState});
     
     if (!tbody) {
         console.warn('Elemento alugueis-tbody não encontrado');
@@ -483,6 +563,7 @@ function fecharModal() {
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('=== DOMContentLoaded disparado ===');
     loadImoveis();
     loadStats();
     loadAlugueis();
