@@ -302,7 +302,10 @@
         // Carregar proprietários
         async function loadProprietarios() {
             try {
-                proprietarios = await fetchWithAuth('/api/imoveis/proprietarios/list');
+                const response = await fetchWithAuth('/api/imoveis/proprietarios/list');
+                
+                // Garantir que temos um array
+                proprietarios = Array.isArray(response) ? response : [];
                 
                 // Criar mapa para lookup rápido
                 proprietariosMap = {};
@@ -358,7 +361,10 @@
                 if (proprietarioId) url += `&proprietario_id=${proprietarioId}`;
                 if (status) url += `&is_active=${status}`;
 
-                imoveis = await fetchWithAuth(url);
+                const response = await fetchWithAuth(url);
+                
+                // Garantir que temos um array
+                imoveis = Array.isArray(response) ? response : [];
 
                 loading.classList.add('hidden');
 

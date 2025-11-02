@@ -283,9 +283,8 @@ let imoveisData = [];
 // Carregar informações do usuário
 async function loadUserInfo() {
     try {
-        const response = await fetchWithAuth('/api/auth/me');
-        if (response && response.ok) {
-            const user = await response.json();
+        const user = await fetchWithAuth('/api/auth/me');
+        if (user) {
             document.getElementById('user-name').textContent = user.nome;
         }
     } catch (error) {
@@ -296,9 +295,8 @@ async function loadUserInfo() {
 // Carregar imóveis para os selects
 async function loadImoveis() {
     try {
-        const response = await fetchWithAuth('/api/imoveis/?is_active=true&limit=1000');
-        if (response && response.ok) {
-            imoveisData = await response.json();
+        imoveisData = await fetchWithAuth('/api/imoveis/?is_active=true&limit=1000');
+        if (imoveisData) {
             
             const selectFiltro = document.getElementById('filter-imovel');
             const selectModal = document.getElementById('aluguel-imovel');
@@ -469,9 +467,8 @@ function abrirModalNovo() {
 // Editar aluguel
 async function editarAluguel(id) {
     try {
-        const response = await fetchWithAuth(`/api/alugueis/${id}`);
-        if (response && response.ok) {
-            const aluguel = await response.json();
+        const aluguel = await fetchWithAuth(`/api/alugueis/${id}`);
+        if (aluguel) {
             
             document.getElementById('modal-title').textContent = 'Editar Aluguel';
             document.getElementById('aluguel-id').value = aluguel.id;

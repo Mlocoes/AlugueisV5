@@ -322,9 +322,8 @@ async function loadProprietarios() {
 
 async function loadStats() {
     try {
-        const response = await fetchWithAuth('/api/participacoes/stats/summary');
-        if (response.ok) {
-            const stats = await response.json();
+        const stats = await fetchWithAuth('/api/participacoes/stats/summary');
+        if (stats) {
             document.getElementById('stat-total').textContent = stats.total;
             document.getElementById('stat-imoveis').textContent = stats.imoveis_com_participacao;
             document.getElementById('stat-proprietarios').textContent = stats.proprietarios_participantes;
@@ -348,9 +347,8 @@ async function loadParticipacoes() {
         if (proprietarioId) url += `&proprietario_id=${proprietarioId}`;
         if (mes) url += `&mes_referencia=${mes}`;
         
-        const response = await fetchWithAuth(url);
-        if (response.ok) {
-            participacoes = await response.json();
+        participacoes = await fetchWithAuth(url);
+        if (participacoes) {
             renderParticipacoes();
         }
     } catch (error) {

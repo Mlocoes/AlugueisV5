@@ -94,11 +94,17 @@ async function fetchWithAuth(url, options = {}) {
             return null;
         }
 
-        return response;
+        // Se não for sucesso, lançar erro
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ detail: 'Erro desconhecido' }));
+            throw new Error(error.detail || `HTTP error! status: ${response.status}`);
+        }
+
+        // Retornar o JSON parseado
+        return await response.json();
     } catch (error) {
         console.error('Erro na requisição:', error);
-        showToast('Erro de conexão com o servidor', 'error');
-        return null;
+        throw error;
     }
 }
 

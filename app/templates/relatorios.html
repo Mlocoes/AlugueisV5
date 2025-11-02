@@ -257,8 +257,9 @@ document.addEventListener('DOMContentLoaded', function() {
 // Carregar lista de proprietários
 async function carregarProprietarios() {
     try {
-        const response = await fetch('/api/proprietarios/');
-        const data = await response.json();
+        const data = await fetchWithAuth('/api/proprietarios/');
+        
+        if (!data || !data.proprietarios) return;
         
         const selectMensal = document.getElementById('proprietario-mensal');
         const selectProprietario = document.getElementById('proprietario-id');

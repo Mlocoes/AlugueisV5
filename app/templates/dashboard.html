@@ -177,9 +177,8 @@
     // Carregar informações do usuário
     async function loadUserInfo() {
         try {
-            const response = await fetchWithAuth('/api/auth/me');
-            if (response && response.ok) {
-                const user = await response.json();
+            const user = await fetchWithAuth('/api/auth/me');
+            if (user) {
                 document.getElementById('user-name').textContent = user.nome;
             }
         } catch (error) {
@@ -191,19 +190,17 @@
     async function loadStats() {
         try {
             // Stats de imóveis
-            const imoveisResponse = await fetchWithAuth('/api/imoveis/stats/summary');
-            if (imoveisResponse && imoveisResponse.ok) {
-                const stats = await imoveisResponse.json();
-                document.getElementById('total-imoveis').textContent = stats.total;
-                document.getElementById('imoveis-ativos').textContent = stats.ativos;
-                document.getElementById('valor-total').textContent = formatCurrency(stats.valor_total_alugueis);
+            const imoveisStats = await fetchWithAuth('/api/imoveis/stats/summary');
+            if (imoveisStats) {
+                document.getElementById('total-imoveis').textContent = imoveisStats.total;
+                document.getElementById('imoveis-ativos').textContent = imoveisStats.ativos;
+                document.getElementById('valor-total').textContent = formatCurrency(imoveisStats.valor_total_alugueis);
             }
 
             // Stats de usuários (apenas para admins)
-            const usuariosResponse = await fetchWithAuth('/api/usuarios/stats/summary');
-            if (usuariosResponse && usuariosResponse.ok) {
-                const stats = await usuariosResponse.json();
-                document.getElementById('total-usuarios').textContent = stats.ativos;
+            const usuariosStats = await fetchWithAuth('/api/usuarios/stats/summary');
+            if (usuariosStats) {
+                document.getElementById('total-usuarios').textContent = usuariosStats.ativos;
             }
         } catch (error) {
             console.error('Erro ao carregar estatísticas:', error);
