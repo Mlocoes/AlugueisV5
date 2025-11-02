@@ -10,18 +10,39 @@
             <div class="flex items-center gap-8">
                 <h1 class="text-2xl font-bold text-[var(--primary)]">AlugueisV5</h1>
                 <div class="flex gap-6">
-                    <a href="/dashboard" class="text-gray-400 hover:text-white transition-colors">Dashboard</a>
-                    <a href="/proprietarios" class="text-gray-400 hover:text-white transition-colors">Proprietários</a>
-                    <a href="/imoveis" class="text-gray-400 hover:text-white transition-colors">Imóveis</a>
-                    <a href="/participacoes" class="text-gray-400 hover:text-white transition-colors">Participações</a>
-                    <a href="/alugueis" class="text-gray-400 hover:text-white transition-colors">Aluguéis</a>
-                    <a href="/relatorios" class="text-[var(--primary)] font-semibold">Relatórios</a>
-                    <a href="/usuarios" class="text-gray-400 hover:text-white transition-colors">Usuários</a>
+                    <a href="/dashboard" class="nav-link">
+                        <span class="material-symbols-outlined text-sm">dashboard</span>
+                        Dashboard
+                    </a>
+                    <a href="/proprietarios" class="nav-link">
+                        <span class="material-symbols-outlined text-sm">person</span>
+                        Proprietários
+                    </a>
+                    <a href="/imoveis" class="nav-link">
+                        <span class="material-symbols-outlined text-sm">home</span>
+                        Imóveis
+                    </a>
+                    <a href="/participacoes" class="nav-link">
+                        <span class="material-symbols-outlined text-sm">pie_chart</span>
+                        Participações
+                    </a>
+                    <a href="/alugueis" class="nav-link">
+                        <span class="material-symbols-outlined text-sm">payments</span>
+                        Aluguéis
+                    </a>
+                    <a href="/relatorios" class="nav-link active">
+                        <span class="material-symbols-outlined text-sm">assessment</span>
+                        Relatórios
+                    </a>
+                    <a href="/usuarios" class="nav-link">
+                        <span class="material-symbols-outlined text-sm">group</span>
+                        Usuários
+                    </a>
                 </div>
             </div>
             <button onclick="logout()" class="text-red-400 hover:text-red-300 flex items-center gap-2 transition-colors">
                 <span class="material-symbols-outlined">logout</span>
-                Sair
+                <span class="hidden md:inline">Sair</span>
             </button>
         </div>
     </div>
