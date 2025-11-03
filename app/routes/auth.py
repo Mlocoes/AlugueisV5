@@ -9,6 +9,7 @@ from app.core.auth import (
     create_refresh_token,
     decode_token,
     get_current_user_from_cookie,
+    require_admin,
     set_auth_cookie,
     set_refresh_cookie,
     clear_auth_cookies,
@@ -141,18 +142,19 @@ async def get_current_user_info(
     return UsuarioResponse.model_validate(current_user)
 
 
-@router.post("/register", response_model=UsuarioResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=UsuarioResponse, status_code=201)
 async def register_user(
-    nome: str,
-    email: str,
-    password: str,
-    cpf: str = None,
-    telefone: str = None,
-    db: Session = Depends(get_db)
+    nome: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+    cpf: Optional[str] = Form(None),
+    telefone: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(require_admin)
 ):
     """
-    Registra novo usuário (apenas para desenvolvimento)
-    Em produção, isso deve ser restrito a admins
+    Registra novo usuário (restrito a administradores)
+    Apenas usuários com is_admin=True podem criar novos usuários
     """
     # Verifica se email já existe
     existing_user = db.query(Usuario).filter(Usuario.email == email).first()
