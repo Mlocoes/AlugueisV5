@@ -10,9 +10,13 @@ from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.exceptions import HTTPException
 from app.core.auth import get_current_user_from_cookie
 from app.models.usuario import Usuario
+from slowapi.errors import RateLimitExceeded
 
 # Importar configurações
 from app.core.config import settings
+
+# Importar rate limiter
+from app.core.rate_limiter import limiter, custom_rate_limit_handler
 
 # Criar aplicação FastAPI
 app = FastAPI(
@@ -22,6 +26,10 @@ app = FastAPI(
     docs_url="/docs" if settings.DEBUG else None,
     redoc_url="/redoc" if settings.DEBUG else None,
 )
+
+# Adicionar rate limiter à aplicação
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, custom_rate_limit_handler)
 
 # Configurar CORS
 app.add_middleware(
