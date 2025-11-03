@@ -1,8 +1,9 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from datetime import datetime
 from decimal import Decimal
 from typing import Dict, List, Optional, Any
 import calendar
+from sqlalchemy import func, case
 
 from app.models.aluguel import AluguelMensal
 from app.models.imovel import Imovel
@@ -44,7 +45,8 @@ class RelatorioService:
         """Gera relatório mensal consolidado"""
         mes_ref = f"{ano}-{mes:02d}"
         
-        query = db.query(AluguelMensal).filter(AluguelMensal.mes_referencia == mes_ref)
+        # Usar joinedload para prevenir N+1 ao acessar aluguel.imovel.endereco
+        query = db.query(AluguelMensal).options(joinedload(AluguelMensal.imovel)).filter(AluguelMensal.mes_referencia == mes_ref)
         alugueis = query.all()
         
         total_esperado = Decimal('0')
@@ -132,30 +134,86 @@ class RelatorioService:
     
     @staticmethod
     def gerar_relatorio_anual(db: Session, ano: int) -> Dict[str, Any]:
-        """Gera relatório anual consolidado"""
+        """Gera relatório anual consolidado com query agregada (evita N+1)"""
+        
+        # Query agregada: uma única consulta ao invés de 12 chamadas a gerar_relatorio_mensal
+        # Agrupa por mês e calcula totais com SUM e COUNT
+        resultados = db.query(
+            func.substr(AluguelMensal.mes_referencia, 6, 2).label('mes'),  # Extrai mês da string 'YYYY-MM'
+            func.count(AluguelMensal.id).label('total_alugueis'),
+            func.sum(case((AluguelMensal.pago == True, 1), else_=0)).label('alugueis_pagos'),
+            func.sum(case((AluguelMensal.pago == False, 1), else_=0)).label('alugueis_pendentes'),
+            func.sum(
+                AluguelMensal.valor_aluguel + 
+                func.coalesce(AluguelMensal.valor_condominio, 0) +
+                func.coalesce(AluguelMensal.valor_iptu, 0) +
+                func.coalesce(AluguelMensal.valor_luz, 0) +
+                func.coalesce(AluguelMensal.valor_agua, 0) +
+                func.coalesce(AluguelMensal.valor_gas, 0) +
+                func.coalesce(AluguelMensal.valor_internet, 0) +
+                func.coalesce(AluguelMensal.outros_valores, 0)
+            ).label('total_esperado'),
+            func.sum(
+                case(
+                    (AluguelMensal.pago == True, 
+                     AluguelMensal.valor_aluguel + 
+                     func.coalesce(AluguelMensal.valor_condominio, 0) +
+                     func.coalesce(AluguelMensal.valor_iptu, 0) +
+                     func.coalesce(AluguelMensal.valor_luz, 0) +
+                     func.coalesce(AluguelMensal.valor_agua, 0) +
+                     func.coalesce(AluguelMensal.valor_gas, 0) +
+                     func.coalesce(AluguelMensal.valor_internet, 0) +
+                     func.coalesce(AluguelMensal.outros_valores, 0)),
+                    else_=0
+                )
+            ).label('total_recebido')
+        ).filter(
+            AluguelMensal.mes_referencia.like(f"{ano}-%")
+        ).group_by(
+            func.substr(AluguelMensal.mes_referencia, 6, 2)
+        ).all()
+        
+        # Organizar resultados por mês
+        receitas_por_mes = {int(r.mes): r for r in resultados}
+        
         receitas_mensais = []
         total_anual_esperado = Decimal('0')
         total_anual_recebido = Decimal('0')
         total_anual_pendente = Decimal('0')
         
         for mes in range(1, 13):
-            relatorio_mes = RelatorioService.gerar_relatorio_mensal(db, ano, mes)
-            resumo = relatorio_mes["resumo"]
-            
-            total_anual_esperado += Decimal(str(resumo["total_esperado"]))
-            total_anual_recebido += Decimal(str(resumo["total_recebido"]))
-            total_anual_pendente += Decimal(str(resumo["total_pendente"]))
-            
-            receitas_mensais.append({
-                "mes": mes,
-                "mes_nome": relatorio_mes["periodo"]["mes_nome"],
-                "total_alugueis": resumo["total_alugueis"],
-                "alugueis_pagos": resumo["alugueis_pagos"],
-                "alugueis_pendentes": resumo["alugueis_pendentes"],
-                "total_esperado": resumo["total_esperado"],
-                "total_recebido": resumo["total_recebido"],
-                "total_pendente": resumo["total_pendente"]
-            })
+            if mes in receitas_por_mes:
+                r = receitas_por_mes[mes]
+                total_esperado = Decimal(str(r.total_esperado or 0))
+                total_recebido = Decimal(str(r.total_recebido or 0))
+                total_pendente = total_esperado - total_recebido
+                
+                total_anual_esperado += total_esperado
+                total_anual_recebido += total_recebido
+                total_anual_pendente += total_pendente
+                
+                receitas_mensais.append({
+                    "mes": mes,
+                    "mes_nome": calendar.month_name[mes],
+                    "total_alugueis": r.total_alugueis or 0,
+                    "alugueis_pagos": r.alugueis_pagos or 0,
+                    "alugueis_pendentes": r.alugueis_pendentes or 0,
+                    "total_esperado": float(total_esperado),
+                    "total_recebido": float(total_recebido),
+                    "total_pendente": float(total_pendente)
+                })
+            else:
+                # Mês sem aluguéis
+                receitas_mensais.append({
+                    "mes": mes,
+                    "mes_nome": calendar.month_name[mes],
+                    "total_alugueis": 0,
+                    "alugueis_pagos": 0,
+                    "alugueis_pendentes": 0,
+                    "total_esperado": 0.0,
+                    "total_recebido": 0.0,
+                    "total_pendente": 0.0
+                })
         
         return {
             "ano": ano,

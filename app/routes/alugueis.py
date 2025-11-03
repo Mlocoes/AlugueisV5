@@ -1,6 +1,6 @@
 """Rotas para gestão de aluguéis mensais"""
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_, or_, func, extract
 from typing import Optional, List
 from datetime import datetime, date
@@ -93,7 +93,8 @@ async def listar_alugueis(
     - Admins veem todos
     - Usuários veem apenas seus imóveis
     """
-    query = db.query(AluguelMensal).join(Imovel)
+    # Usar joinedload para prevenir N+1 ao acessar aluguel.imovel.nome e aluguel.imovel.endereco
+    query = db.query(AluguelMensal).join(Imovel).options(joinedload(AluguelMensal.imovel))
     
     # Filtro de permissão
     if not current_user.is_admin:
@@ -229,7 +230,7 @@ async def obter_aluguel(
     db: Session = Depends(get_db)
 ):
     """Obtém aluguel específico"""
-    aluguel = db.query(AluguelMensal).filter(AluguelMensal.id == aluguel_id).first()
+    aluguel = db.query(AluguelMensal).options(joinedload(AluguelMensal.imovel)).filter(AluguelMensal.id == aluguel_id).first()
     
     if not aluguel:
         raise HTTPException(
@@ -279,7 +280,7 @@ async def atualizar_aluguel(
     db: Session = Depends(get_db)
 ):
     """Atualiza aluguel existente"""
-    aluguel = db.query(AluguelMensal).filter(AluguelMensal.id == aluguel_id).first()
+    aluguel = db.query(AluguelMensal).options(joinedload(AluguelMensal.imovel)).filter(AluguelMensal.id == aluguel_id).first()
     
     if not aluguel:
         raise HTTPException(

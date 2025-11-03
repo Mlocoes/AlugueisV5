@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 from datetime import datetime
 from pydantic import BaseModel, Field, validator
@@ -84,7 +84,8 @@ async def listar_participacoes(
     """
     Lista todas as participações com filtros opcionais
     """
-    query = db.query(Participacao)
+    # Usar joinedload para prevenir N+1 ao acessar p.imovel.nome e p.proprietario.nome
+    query = db.query(Participacao).options(joinedload(Participacao.imovel), joinedload(Participacao.proprietario))
     
     # Aplicar filtros
     if imovel_id:
@@ -173,7 +174,7 @@ async def obter_participacao(
     """
     Obtém uma participação específica
     """
-    participacao = db.query(Participacao).filter(Participacao.id == participacao_id).first()
+    participacao = db.query(Participacao).options(joinedload(Participacao.imovel), joinedload(Participacao.proprietario)).filter(Participacao.id == participacao_id).first()
     
     if not participacao:
         raise HTTPException(status_code=404, detail="Participação não encontrada")
@@ -196,7 +197,7 @@ async def atualizar_participacao(
     """
     Atualiza uma participação existente
     """
-    db_participacao = db.query(Participacao).filter(Participacao.id == participacao_id).first()
+    db_participacao = db.query(Participacao).options(joinedload(Participacao.imovel), joinedload(Participacao.proprietario)).filter(Participacao.id == participacao_id).first()
     
     if not db_participacao:
         raise HTTPException(status_code=404, detail="Participação não encontrada")
