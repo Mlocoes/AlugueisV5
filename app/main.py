@@ -79,6 +79,11 @@ async def root():
     """Rota raiz - redireciona para login"""
     return "/login"
 
+@app.get("/test", response_class=HTMLResponse)
+async def test_page(request: Request):
+    """Página de teste"""
+    return templates.TemplateResponse("test.html", {"request": request})
+
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     """Página de login"""

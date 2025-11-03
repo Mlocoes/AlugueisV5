@@ -112,7 +112,7 @@ async def get_dashboard_stats(
         query_imoveis = query_imoveis.filter(Imovel.proprietario_id == current_user.id)
     
     total_imoveis = query_imoveis.count()
-    imoveis_ativos = query_imoveis.filter(Imovel.status == 'alugado').count()
+    imoveis_ativos = query_imoveis.filter(Imovel.is_active == True).count()
     
     # Total de proprietários
     total_proprietarios = db.query(Proprietario).count()
