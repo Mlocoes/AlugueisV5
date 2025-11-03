@@ -10,20 +10,20 @@ class Settings(BaseSettings):
     """Configurações da aplicação"""
     
     # Database
-    DATABASE_URL: str = "postgresql://alugueisv5:alugueisv5_password@db:5432/alugueisv5_db"
+    DATABASE_URL: str
     
     # Security
-    SECRET_KEY: str = "your-secret-key-here-change-in-production-min-32-chars"
+    SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
     # Admin
-    ADMIN_EMAIL: str = "admin@sistema.com"
-    ADMIN_PASSWORD: str = "admin123"
+    ADMIN_EMAIL: str
+    ADMIN_PASSWORD: str
     
     # App
     APP_NAME: str = "AlugueisV5"
-    DEBUG: bool = True
+    DEBUG: bool = False
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     
