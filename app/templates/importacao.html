@@ -5,57 +5,7 @@
 {% block content %}
 <div class="min-h-screen bg-bg-dark">
     <!-- Navbar -->
-    <nav class="bg-[var(--card-dark)] shadow-lg mb-6">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center gap-4">
-                    <h1 class="text-xl font-bold text-[var(--primary)]">AlugueisV5</h1>
-                    <div class="flex gap-2">
-                        <a href="/dashboard" class="nav-link">
-                            <span class="material-symbols-outlined text-sm">dashboard</span>
-                            Dashboard
-                        </a>
-                        <a href="/proprietarios" class="nav-link">
-                            <span class="material-symbols-outlined text-sm">person</span>
-                            Proprietários
-                        </a>
-                        <a href="/imoveis" class="nav-link">
-                            <span class="material-symbols-outlined text-sm">home</span>
-                            Imóveis
-                        </a>
-                        <a href="/participacoes" class="nav-link">
-                            <span class="material-symbols-outlined text-sm">pie_chart</span>
-                            Participações
-                        </a>
-                        <a href="/alugueis" class="nav-link">
-                            <span class="material-symbols-outlined text-sm">payments</span>
-                            Aluguéis
-                        </a>
-                        <a href="/relatorios" class="nav-link">
-                            <span class="material-symbols-outlined text-sm">assessment</span>
-                            Relatórios
-                        </a>
-                        <a href="/transferencias" class="nav-link">
-                            <span class="material-symbols-outlined text-sm">sync_alt</span>
-                            Transferências
-                        </a>
-                        <a href="/importacao" class="nav-link active">
-                            <span class="material-symbols-outlined text-sm">upload_file</span>
-                            Importação
-                        </a>
-                        <a href="/usuarios" class="nav-link">
-                            <span class="material-symbols-outlined text-sm">group</span>
-                            Usuários
-                        </a>
-                    </div>
-                </div>
-                <button onclick="logout()" class="text-red-400 hover:text-red-300 flex items-center gap-2 transition-colors">
-                    <span class="material-symbols-outlined">logout</span>
-                    <span class="hidden md:inline">Sair</span>
-                </button>
-            </div>
-        </div>
-    </nav>
+    {% include "navbar.html" %}
 
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-6">
