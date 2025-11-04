@@ -47,11 +47,12 @@ fi
 log_info "entrypoint.sh is executable"
 
 # Verify Dockerfile has ENTRYPOINT
-if ! grep -q "ENTRYPOINT.*entrypoint.sh" Dockerfile; then
+if grep -qE "ENTRYPOINT\s*\[.*entrypoint\.sh.*\]|ENTRYPOINT\s+.*entrypoint\.sh" Dockerfile; then
+    log_info "Dockerfile has ENTRYPOINT directive"
+else
     log_error "Dockerfile does not have ENTRYPOINT directive"
     exit 1
 fi
-log_info "Dockerfile has ENTRYPOINT directive"
 
 # Check bash syntax
 log_step "Checking bash syntax..."
