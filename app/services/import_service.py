@@ -435,7 +435,9 @@ class ImportacaoService:
         """
         Importa aluguéis mensais de planilha Excel com estrutura matricial.
         
-        Estrutura esperada:
+        Lê TODAS as abas/sheets do arquivo Excel, processando cada mês separadamente.
+        
+        Estrutura esperada por aba:
         - Primeira coluna (cabeçalho): Data de referência (ex: 2025-01-25)
         - Segunda coluna: "Valor Total"
         - Colunas seguintes: Nomes dos proprietários
@@ -443,153 +445,188 @@ class ImportacaoService:
         - Linhas: Nomes dos imóveis na primeira coluna, valores nas demais
         """
         try:
-            # Ler Excel
-            df = pd.read_excel(BytesIO(file_content))
+            # Ler todas as abas do Excel
+            excel_file = pd.ExcelFile(BytesIO(file_content))
+            sheet_names = excel_file.sheet_names
             
-            if df.empty or len(df) < 1:
+            if not sheet_names:
                 return {
                     'success': False,
                     'importados': 0,
-                    'erros': ['Arquivo vazio ou com dados insuficientes'],
-                    'warnings': []
+                    'erros': ['Arquivo não contém nenhuma aba/sheet'],
+                    'warnings': [],
+                    'sheets_processadas': []
                 }
             
-            erros = []
-            warnings = []
-            importados = 0
+            # Variáveis globais para acumular resultados de todas as abas
+            erros_globais = []
+            warnings_globais = []
+            importados_total = 0
+            sheets_processadas = []
+            total_linhas_global = 0
             
-            # Extrair data de referência do nome da primeira coluna
-            primeira_coluna = df.columns[0]
-            try:
-                # A primeira coluna é um datetime
-                if isinstance(primeira_coluna, datetime):
-                    data_referencia = primeira_coluna.date()
-                else:
-                    # Tentar converter string para data
-                    data_str = str(primeira_coluna).strip()
-                    if '/' in data_str:
-                        data_referencia = datetime.strptime(data_str, '%d/%m/%Y').date()
-                    else:
-                        data_referencia = datetime.strptime(data_str.split(' ')[0], '%Y-%m-%d').date()
-            except Exception as e:
-                return {
-                    'success': False,
-                    'importados': 0,
-                    'erros': [f'Não foi possível extrair data de referência do cabeçalho: {str(e)}'],
-                    'warnings': []
-                }
-            
-            # Mapear proprietários das colunas (ignorar primeira "Valor Total" e última "Taxa de Administração")
-            proprietarios_cols = []
-            for col_idx in range(2, len(df.columns) - 1):  # Pular "data", "Valor Total" e "Taxa Administração"
-                nome_col = str(df.columns[col_idx]).strip()
-                
-                if nome_col.lower() in ['nan', 'none', 'unnamed', 'taxa', 'administração']:
-                    continue
-                
-                # Buscar proprietário no banco (busca parcial case-insensitive)
-                proprietario = db.query(Proprietario).filter(
-                    Proprietario.nome.ilike(f'%{nome_col}%')
-                ).first()
-                
-                if proprietario:
-                    proprietarios_cols.append((col_idx, nome_col, proprietario))
-                else:
-                    warnings.append(f"Proprietário '{nome_col}' não encontrado no banco")
-            
-            if not proprietarios_cols:
-                return {
-                    'success': False,
-                    'importados': 0,
-                    'erros': ['Nenhum proprietário válido encontrado nos cabeçalhos. Importe os proprietários primeiro.'],
-                    'warnings': warnings
-                }
-            
-            # Processar cada linha (cada linha é um imóvel)
-            for idx, row in df.iterrows():
+            # Processar cada aba/sheet
+            for sheet_name in sheet_names:
                 try:
-                    # Primeira célula da linha é o nome do imóvel
-                    imovel_nome = str(row.iloc[0]).strip()
-                    if not imovel_nome or imovel_nome.lower() in ['nan', 'none', '']:
+                    # Ler a aba específica
+                    df = pd.read_excel(BytesIO(file_content), sheet_name=sheet_name)
+                    
+                    if df.empty or len(df) < 1:
+                        warnings_globais.append(f"Sheet '{sheet_name}': vazia ou sem dados suficientes")
                         continue
                     
-                    # Buscar imóvel no banco
-                    imovel = db.query(Imovel).filter(
-                        Imovel.nome.ilike(f'%{imovel_nome}%')
-                    ).first()
+                    erros = []
+                    warnings = []
+                    importados = 0
                     
-                    if not imovel:
-                        # Tentar por endereço
-                        imovel = db.query(Imovel).filter(
-                            Imovel.endereco.ilike(f'%{imovel_nome}%')
-                        ).first()
-                    
-                    if not imovel:
-                        warnings.append(f"Linha {idx+2}: Imóvel '{imovel_nome}' não encontrado")
-                        continue
-                    
-                    # Valor total (segunda coluna)
-                    valor_total_str = str(row.iloc[1]).strip()
-                    valor_total = self.parse_valor(valor_total_str) or 0.0
-                    
-                    # Taxa de administração (última coluna)
-                    taxa_admin_str = str(row.iloc[-1]).strip()
-                    taxa_admin = self.parse_valor(taxa_admin_str) or 0.0
-                    
-                    # Processar valores para cada proprietário
-                    for col_idx, nome_prop, proprietario in proprietarios_cols:
-                        valor_str = str(row.iloc[col_idx]).strip()
-                        if not valor_str or valor_str.lower() in ['nan', 'none', '', '-']:
-                            continue
-                        
-                        # Converter valor
-                        valor_proprietario = self.parse_valor(valor_str)
-                        if valor_proprietario is None or valor_proprietario == 0:
-                            continue
-                        
-                        # Verificar se já existe aluguel para este mês/proprietário/imóvel
-                        existing = db.query(AluguelMensal).filter(
-                            AluguelMensal.imovel_id == imovel.id,
-                            AluguelMensal.proprietario_id == proprietario.id,
-                            AluguelMensal.data_referencia == data_referencia
-                        ).first()
-                        
-                        if existing:
-                            # Atualizar valores
-                            existing.valor_total = valor_total
-                            existing.valor_proprietario = valor_proprietario
-                            existing.taxa_administracao = taxa_admin
-                            existing.atualizado_em = func.now()
+                    # Extrair data de referência do nome da primeira coluna
+                    primeira_coluna = df.columns[0]
+                    try:
+                        # A primeira coluna é um datetime
+                        if isinstance(primeira_coluna, datetime):
+                            data_referencia = primeira_coluna.date()
                         else:
-                            # Criar novo registro
-                            # Gerar mes_referencia no formato YYYY-MM para compatibilidade
-                            mes_ref = data_referencia.strftime('%Y-%m')
-                            novo_aluguel = AluguelMensal(
-                                imovel_id=imovel.id,
-                                proprietario_id=proprietario.id,
-                                data_referencia=data_referencia,
-                                mes_referencia=mes_ref,
-                                valor_total=valor_total,
-                                valor_proprietario=valor_proprietario,
-                                taxa_administracao=taxa_admin
-                            )
-                            db.add(novo_aluguel)
+                            # Tentar converter string para data
+                            data_str = str(primeira_coluna).strip()
+                            if '/' in data_str:
+                                data_referencia = datetime.strptime(data_str, '%d/%m/%Y').date()
+                            else:
+                                data_referencia = datetime.strptime(data_str.split(' ')[0], '%Y-%m-%d').date()
+                    except Exception as e:
+                        erros_globais.append(f"Sheet '{sheet_name}': Não foi possível extrair data de referência do cabeçalho: {str(e)}")
+                        continue
+                    
+                    # Mapear proprietários das colunas (ignorar primeira "Valor Total" e última "Taxa de Administração")
+                    proprietarios_cols = []
+                    for col_idx in range(2, len(df.columns) - 1):  # Pular "data", "Valor Total" e "Taxa Administração"
+                        nome_col = str(df.columns[col_idx]).strip()
                         
-                        importados += 1
-                
+                        if nome_col.lower() in ['nan', 'none', 'unnamed', 'taxa', 'administração']:
+                            continue
+                        
+                        # Buscar proprietário no banco (busca parcial case-insensitive)
+                        proprietario = db.query(Proprietario).filter(
+                            Proprietario.nome.ilike(f'%{nome_col}%')
+                        ).first()
+                        
+                        if proprietario:
+                            proprietarios_cols.append((col_idx, nome_col, proprietario))
+                        else:
+                            warnings.append(f"Proprietário '{nome_col}' não encontrado no banco")
+                    
+                    if not proprietarios_cols:
+                        warnings_globais.append(f"Sheet '{sheet_name}': Nenhum proprietário válido encontrado nos cabeçalhos")
+                        continue
+                    
+                    # Processar cada linha (cada linha é um imóvel)
+                    for idx, row in df.iterrows():
+                        try:
+                            # Primeira célula da linha é o nome do imóvel
+                            imovel_nome = str(row.iloc[0]).strip()
+                            if not imovel_nome or imovel_nome.lower() in ['nan', 'none', '']:
+                                continue
+                            
+                            # Buscar imóvel no banco
+                            imovel = db.query(Imovel).filter(
+                                Imovel.nome.ilike(f'%{imovel_nome}%')
+                            ).first()
+                            
+                            if not imovel:
+                                # Tentar por endereço
+                                imovel = db.query(Imovel).filter(
+                                    Imovel.endereco.ilike(f'%{imovel_nome}%')
+                                ).first()
+                            
+                            if not imovel:
+                                warnings.append(f"Linha {idx+2}: Imóvel '{imovel_nome}' não encontrado")
+                                continue
+                            
+                            # Valor total (segunda coluna)
+                            valor_total_str = str(row.iloc[1]).strip()
+                            valor_total = self.parse_valor(valor_total_str) or 0.0
+                            
+                            # Taxa de administração (última coluna)
+                            taxa_admin_str = str(row.iloc[-1]).strip()
+                            taxa_admin = self.parse_valor(taxa_admin_str) or 0.0
+                            
+                            # Processar valores para cada proprietário
+                            for col_idx, nome_prop, proprietario in proprietarios_cols:
+                                valor_str = str(row.iloc[col_idx]).strip()
+                                if not valor_str or valor_str.lower() in ['nan', 'none', '', '-']:
+                                    continue
+                                
+                                # Converter valor
+                                valor_proprietario = self.parse_valor(valor_str)
+                                if valor_proprietario is None or valor_proprietario == 0:
+                                    continue
+                                
+                                # Verificar se já existe aluguel para este mês/proprietário/imóvel
+                                existing = db.query(AluguelMensal).filter(
+                                    AluguelMensal.imovel_id == imovel.id,
+                                    AluguelMensal.proprietario_id == proprietario.id,
+                                    AluguelMensal.data_referencia == data_referencia
+                                ).first()
+                                
+                                if existing:
+                                    # Atualizar valores
+                                    existing.valor_total = valor_total
+                                    existing.valor_proprietario = valor_proprietario
+                                    existing.taxa_administracao = taxa_admin
+                                    existing.atualizado_em = func.now()
+                                else:
+                                    # Criar novo registro
+                                    # Gerar mes_referencia no formato YYYY-MM para compatibilidade
+                                    mes_ref = data_referencia.strftime('%Y-%m')
+                                    novo_aluguel = AluguelMensal(
+                                        imovel_id=imovel.id,
+                                        proprietario_id=proprietario.id,
+                                        data_referencia=data_referencia,
+                                        mes_referencia=mes_ref,
+                                        valor_total=valor_total,
+                                        valor_proprietario=valor_proprietario,
+                                        taxa_administracao=taxa_admin
+                                    )
+                                    db.add(novo_aluguel)
+                                
+                                importados += 1
+                        
+                        except Exception as e:
+                            erros.append(f"Linha {idx+2} (imóvel '{imovel_nome}'): {str(e)}")
+                    
+                    # Acumular resultados desta aba
+                    importados_total += importados
+                    total_linhas_global += len(df)
+                    
+                    # Adicionar erros e warnings desta aba aos globais (com prefixo do sheet)
+                    for erro in erros:
+                        erros_globais.append(f"Sheet '{sheet_name}': {erro}")
+                    for warning in warnings:
+                        warnings_globais.append(f"Sheet '{sheet_name}': {warning}")
+                    
+                    # Registrar informações da aba processada
+                    sheets_processadas.append({
+                        'nome': sheet_name,
+                        'importados': importados,
+                        'linhas': len(df),
+                        'data_referencia': str(data_referencia)
+                    })
+                    
                 except Exception as e:
-                    erros.append(f"Linha {idx+2} (imóvel '{imovel_nome}'): {str(e)}")
+                    erros_globais.append(f"Sheet '{sheet_name}': Erro ao processar - {str(e)}")
+                    continue
             
-            if importados > 0:
+            # Commit apenas uma vez, ao final de todas as abas
+            if importados_total > 0:
                 db.commit()
             
             return {
                 'success': True,
-                'importados': importados,
-                'erros': erros,
-                'warnings': warnings,
-                'total_linhas': len(df),
-                'data_referencia': str(data_referencia)
+                'importados': importados_total,
+                'erros': erros_globais,
+                'warnings': warnings_globais,
+                'total_linhas': total_linhas_global,
+                'sheets_processadas': sheets_processadas,
+                'total_sheets': len(sheet_names)
             }
         
         except Exception as e:
@@ -599,7 +636,8 @@ class ImportacaoService:
                 'importados': 0,
                 'erros': [f"Erro ao processar arquivo: {str(e)}"],
                 'warnings': [],
-                'total_linhas': 0
+                'total_linhas': 0,
+                'sheets_processadas': []
             }
 
     # ==================== PREVIEW ====================
