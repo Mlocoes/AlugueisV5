@@ -56,7 +56,10 @@ class ImportacaoService:
 
     @staticmethod
     def parse_valor(valor) -> Optional[float]:
-        """Converte valor monetário para float"""
+        """Converte valor monetário para float
+        
+        Suporta formatos brasileiros (2.800,50) e internacionais (2,800.50)
+        """
         if valor is None or pd.isna(valor) or str(valor).strip() in ['', '-', 'nan', 'NaN']:
             return None
 
@@ -72,8 +75,59 @@ class ImportacaoService:
         # Remover símbolos de moeda e espaços
         s = re.sub(r'[R$\s]', '', s)
 
-        # Converter vírgula para ponto
-        s = s.replace(',', '.')
+        # Detectar formato do número baseado nos separadores
+        # Formato brasileiro: 2.800,50 (ponto para milhares, vírgula para decimal)
+        # Formato internacional: 2,800.50 (vírgula para milhares, ponto para decimal)
+        
+        # Contar pontos e vírgulas
+        num_pontos = s.count('.')
+        num_virgulas = s.count(',')
+        
+        # Se tem vírgula e ponto, determinar qual é o separador decimal
+        if num_pontos > 0 and num_virgulas > 0:
+            # O último separador é o decimal
+            idx_ponto = s.rfind('.')
+            idx_virgula = s.rfind(',')
+            
+            if idx_virgula > idx_ponto:
+                # Formato brasileiro: 2.800,50
+                # Remover pontos (separador de milhares) e converter vírgula em ponto
+                s = s.replace('.', '').replace(',', '.')
+            else:
+                # Formato internacional: 2,800.50
+                # Remover vírgulas (separador de milhares)
+                s = s.replace(',', '')
+        elif num_virgulas > 0:
+            # Só tem vírgulas
+            if num_virgulas == 1:
+                # Pode ser decimal (2,50) ou milhares (2,800)
+                # Verificar quantos dígitos depois da vírgula
+                partes = s.split(',')
+                if len(partes) == 2 and len(partes[1]) <= 2:
+                    # Provavelmente decimal: 2,50
+                    s = s.replace(',', '.')
+                else:
+                    # Provavelmente milhares: 2,800
+                    s = s.replace(',', '')
+            else:
+                # Múltiplas vírgulas: separador de milhares internacional
+                s = s.replace(',', '')
+        elif num_pontos > 0:
+            # Só tem pontos
+            if num_pontos == 1:
+                # Pode ser decimal (2.50) ou milhares (2.800)
+                # Verificar quantos dígitos depois do ponto
+                partes = s.split('.')
+                if len(partes) == 2 and len(partes[1]) <= 2:
+                    # Provavelmente decimal: 2.50 (formato internacional)
+                    # Já está no formato correto
+                    pass
+                else:
+                    # Provavelmente milhares brasileiro: 2.800
+                    s = s.replace('.', '')
+            else:
+                # Múltiplos pontos: separador de milhares brasileiro
+                s = s.replace('.', '')
 
         try:
             valor_float = float(s)
