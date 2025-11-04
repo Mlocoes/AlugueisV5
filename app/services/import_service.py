@@ -471,8 +471,8 @@ class ImportacaoService:
             # Processar cada aba/sheet
             for sheet_name in sheet_names:
                 try:
-                    # Ler a aba específica
-                    df = pd.read_excel(BytesIO(file_content), sheet_name=sheet_name)
+                    # Ler a aba específica (usando o objeto excel_file já carregado)
+                    df = excel_file.parse(sheet_name)
                     
                     if df.empty or len(df) < 1:
                         warnings_globais.append(f"Sheet '{sheet_name}': vazia ou sem dados suficientes")
@@ -523,6 +523,7 @@ class ImportacaoService:
                     
                     # Processar cada linha (cada linha é um imóvel)
                     for idx, row in df.iterrows():
+                        imovel_nome = "desconhecido"  # Inicializar para evitar NameError em exception handler
                         try:
                             # Primeira célula da linha é o nome do imóvel
                             imovel_nome = str(row.iloc[0]).strip()
