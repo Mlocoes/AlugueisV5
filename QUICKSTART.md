@@ -33,28 +33,13 @@ cd AlugueisV5
 docker-compose up -d
 ```
 
-### 2. Aguardar banco de dados ficar pronto
-```bash
-# Verificar logs
-docker-compose logs -f db
-# Aguarde mensagem: "database system is ready to accept connections"
-```
+**Pronto!** 🎉 A aplicação agora inicializa automaticamente:
+- ✅ Aguarda o banco de dados ficar pronto
+- ✅ Executa migrações do Alembic automaticamente
+- ✅ Cria o usuário administrador padrão
+- ✅ Inicia o servidor da aplicação
 
-### 3. Executar migrações Alembic
-```bash
-# Criar migração inicial
-docker-compose exec app alembic revision --autogenerate -m "initial migration"
-
-# Aplicar migração
-docker-compose exec app alembic upgrade head
-```
-
-### 4. Criar usuário admin
-```bash
-docker-compose exec app python create_admin.py
-```
-
-### 5. Acessar aplicação
+### 2. Acessar aplicação
 ```
 http://localhost:8000
 ```
@@ -63,10 +48,12 @@ http://localhost:8000
 - Email: `admin@sistema.com`
 - Senha: `admin123`
 
-### 6. Acessar documentação da API
+### 3. Acessar documentação da API
 ```
 http://localhost:8000/docs
 ```
+
+**Nota:** Os passos manuais de migração e criação de admin não são mais necessários! O sistema se reinicializa automaticamente quando o servidor reinicia.
 
 ---
 
