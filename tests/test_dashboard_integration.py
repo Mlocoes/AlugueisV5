@@ -181,8 +181,10 @@ def test_dashboard_with_valor_total_mismatch(client: TestClient, db_session: Ses
     db_session.commit()
     db_session.refresh(imovel)
     
-    # Criar aluguel com valor_total DIFERENTE da soma manual
-    # Isso simula um caso onde valor_total foi ajustado manualmente (desconto, ajuste, etc)
+    # Create rental with valor_total DIFFERENT from manual sum
+    # This simulates a case where valor_total was manually adjusted (discount, adjustment, etc)
+    # Individual fields sum to 1300.0, but valor_total is 1200.0 (100 discount applied)
+    # The dashboard MUST use valor_total (1200.0), not recalculate from fields (1300.0)
     aluguel = AluguelMensal(
         imovel_id=imovel.id,
         proprietario_id=proprietario.id,
@@ -229,11 +231,11 @@ def test_dashboard_with_valor_total_mismatch(client: TestClient, db_session: Ses
     print(f"Valor esperado pela API: {data['valor_total_esperado']}")
     print(f"Valor recebido pela API: {data['valor_total_recebido']}")
     
-    # BUG ESPERADO: Se a API usar soma manual, vai retornar 1300.0 em vez de 1200.0
-    # O correto seria usar valor_total = 1200.0
+    # EXPECTED BUG: If API uses manual sum, it will return 1300.0 instead of 1200.0
+    # The correct behavior is to use valor_total = 1200.0
     manual_sum = 1000.0 + 200.0 + 100.0  # 1300.0
     correct_value = 1200.0  # valor_total armazenado
     
-    # Este teste vai FALHAR se o bug existir (API retorna 1300 em vez de 1200)
+    # This test will FAIL if the bug exists (API returns 1300 instead of 1200)
     assert data["valor_total_esperado"] == correct_value, \
-        f"BUG DETECTADO: API deveria retornar valor_total (1200.0), mas retornou {data['valor_total_esperado']}"
+        f"BUG DETECTED: API should return valor_total (1200.0), but returned {data['valor_total_esperado']}"
