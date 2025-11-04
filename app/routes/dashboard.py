@@ -47,6 +47,37 @@ class DistributionData(BaseModel):
     percentual: float
 
 
+# Helper function
+def _build_base_query(db: Session, current_user: Usuario, ano_filtro: int, mes_filtro: Optional[int] = None):
+    """
+    Constrói query base de aluguéis com filtros de permissão, ano e mês (opcional)
+    
+    Args:
+        db: Sessão do banco
+        current_user: Usuário atual
+        ano_filtro: Ano para filtrar
+        mes_filtro: Mês para filtrar (opcional)
+    
+    Returns:
+        Query configurada com os filtros
+    """
+    query = db.query(AluguelMensal)
+    
+    # Filtro de permissões
+    if not current_user.is_admin:
+        query = query.join(Imovel).filter(Imovel.proprietario_id == current_user.id)
+    
+    # Filtrar por ano
+    query = query.filter(AluguelMensal.mes_referencia.like(f"{ano_filtro}%"))
+    
+    # Filtrar por mês se especificado
+    if mes_filtro:
+        mes_ref = f"{ano_filtro}-{mes_filtro:02d}"
+        query = query.filter(AluguelMensal.mes_referencia == mes_ref)
+    
+    return query
+
+
 @router.get("/stats", response_model=DashboardStats)
 async def get_dashboard_stats(
     ano: Optional[int] = Query(None, description="Ano para filtrar (padrão: ano atual)"),
@@ -67,19 +98,7 @@ async def get_dashboard_stats(
     mes_atual = datetime.now().month
     
     # Query para Valor Esperado (filtrado por mês se especificado)
-    query_esperado = db.query(AluguelMensal)
-    
-    # Filtro de permissões
-    if not current_user.is_admin:
-        query_esperado = query_esperado.join(Imovel).filter(Imovel.proprietario_id == current_user.id)
-    
-    # Filtrar por ano
-    query_esperado = query_esperado.filter(AluguelMensal.mes_referencia.like(f"{ano_filtro}%"))
-    
-    # Filtrar por mês se especificado (para Valor Esperado)
-    if mes:
-        mes_ref = f"{ano_filtro}-{mes:02d}"
-        query_esperado = query_esperado.filter(AluguelMensal.mes_referencia == mes_ref)
+    query_esperado = _build_base_query(db, current_user, ano_filtro, mes)
     
     # Calcular Valor Esperado (do mês ou ano conforme filtro)
     stats_esperado = query_esperado.with_entities(
@@ -87,15 +106,8 @@ async def get_dashboard_stats(
         func.sum(AluguelMensal.valor_total).label('valor_esperado')
     ).first()
     
-    # Query para Valor Recebido (SEMPRE acumulado do ano inteiro)
-    query_recebido = db.query(AluguelMensal)
-    
-    # Filtro de permissões
-    if not current_user.is_admin:
-        query_recebido = query_recebido.join(Imovel).filter(Imovel.proprietario_id == current_user.id)
-    
-    # Filtrar APENAS por ano (sem mês, para ter acumulado do ano)
-    query_recebido = query_recebido.filter(AluguelMensal.mes_referencia.like(f"{ano_filtro}%"))
+    # Query para Valor Recebido (SEMPRE acumulado do ano inteiro - sem filtro de mês)
+    query_recebido = _build_base_query(db, current_user, ano_filtro, mes_filtro=None)
     
     # Calcular Valor Recebido (acumulado do ano)
     stats_recebido = query_recebido.with_entities(
@@ -122,11 +134,8 @@ async def get_dashboard_stats(
     valor_esperado = float(stats_esperado.valor_esperado or 0)
     valor_recebido = float(stats_recebido.valor_recebido or 0)
     
-    # Taxa de recebimento é calculada sobre o total do ano
-    query_esperado_ano = db.query(AluguelMensal)
-    if not current_user.is_admin:
-        query_esperado_ano = query_esperado_ano.join(Imovel).filter(Imovel.proprietario_id == current_user.id)
-    query_esperado_ano = query_esperado_ano.filter(AluguelMensal.mes_referencia.like(f"{ano_filtro}%"))
+    # Taxa de recebimento é calculada sobre o total do ano (usar mesma query que valor_recebido)
+    query_esperado_ano = _build_base_query(db, current_user, ano_filtro, mes_filtro=None)
     stats_esperado_ano = query_esperado_ano.with_entities(
         func.sum(AluguelMensal.valor_total).label('valor_esperado_ano')
     ).first()
