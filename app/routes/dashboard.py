@@ -47,22 +47,20 @@ class DistributionData(BaseModel):
     percentual: float
 
 
-@router.get("/stats", response_model=DashboardStats)
-async def get_dashboard_stats(
-    ano: Optional[int] = Query(None, description="Ano para filtrar (padrão: ano atual)"),
-    mes: Optional[int] = Query(None, description="Mês para filtrar (padrão: todos os meses do ano)"),
-    current_user: Usuario = Depends(get_current_user_from_cookie),
-    db: Session = Depends(get_db)
-):
+# Helper function
+def _build_base_query(db: Session, current_user: Usuario, ano_filtro: int, mes_filtro: Optional[int] = None):
     """
-    Retorna estatísticas agregadas do dashboard
-    Query otimizada com agregações SQL
-    """
-    # Determinar período
-    ano_filtro = ano or datetime.now().year
-    mes_atual = datetime.now().month
+    Constrói query base de aluguéis com filtros de permissão, ano e mês (opcional)
     
-    # Query base de aluguéis
+    Args:
+        db: Sessão do banco
+        current_user: Usuário atual
+        ano_filtro: Ano para filtrar
+        mes_filtro: Mês para filtrar (opcional)
+    
+    Returns:
+        Query configurada com os filtros
+    """
     query = db.query(AluguelMensal)
     
     # Filtro de permissões
@@ -73,14 +71,46 @@ async def get_dashboard_stats(
     query = query.filter(AluguelMensal.mes_referencia.like(f"{ano_filtro}%"))
     
     # Filtrar por mês se especificado
-    if mes:
-        mes_ref = f"{ano_filtro}-{mes:02d}"
+    if mes_filtro:
+        mes_ref = f"{ano_filtro}-{mes_filtro:02d}"
         query = query.filter(AluguelMensal.mes_referencia == mes_ref)
     
-    # Calcular estatísticas agregadas usando valor_total
-    stats = query.with_entities(
+    return query
+
+
+@router.get("/stats", response_model=DashboardStats)
+async def get_dashboard_stats(
+    ano: Optional[int] = Query(None, description="Ano para filtrar (padrão: ano atual)"),
+    mes: Optional[int] = Query(None, description="Mês para filtrar (padrão: todos os meses do ano)"),
+    current_user: Usuario = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Retorna estatísticas agregadas do dashboard
+    Query otimizada com agregações SQL
+    
+    IMPORTANTE: 
+    - Valor Esperado: usa filtro de mês quando especificado (valor do mês selecionado)
+    - Valor Recebido: sempre usa dados acumulados do ano inteiro
+    """
+    # Determinar período
+    ano_filtro = ano or datetime.now().year
+    mes_atual = datetime.now().month
+    
+    # Query para Valor Esperado (filtrado por mês se especificado)
+    query_esperado = _build_base_query(db, current_user, ano_filtro, mes)
+    
+    # Calcular Valor Esperado (do mês ou ano conforme filtro)
+    stats_esperado = query_esperado.with_entities(
         func.count(AluguelMensal.id).label('total_alugueis'),
-        func.sum(AluguelMensal.valor_total).label('valor_esperado'),
+        func.sum(AluguelMensal.valor_total).label('valor_esperado')
+    ).first()
+    
+    # Query para Valor Recebido (SEMPRE acumulado do ano inteiro - sem filtro de mês)
+    query_recebido = _build_base_query(db, current_user, ano_filtro, mes_filtro=None)
+    
+    # Calcular Valor Recebido (acumulado do ano)
+    stats_recebido = query_recebido.with_entities(
         func.sum(
             case(
                 (AluguelMensal.pago == True, AluguelMensal.valor_total),
@@ -101,15 +131,23 @@ async def get_dashboard_stats(
     total_proprietarios = db.query(Proprietario).count()
     
     # Calcular valores
-    valor_esperado = float(stats.valor_esperado or 0)
-    valor_recebido = float(stats.valor_recebido or 0)
-    taxa_recebimento = (valor_recebido / valor_esperado * 100) if valor_esperado > 0 else 0
+    valor_esperado = float(stats_esperado.valor_esperado or 0)
+    valor_recebido = float(stats_recebido.valor_recebido or 0)
+    
+    # Taxa de recebimento é calculada sobre o total do ano (usar mesma query que valor_recebido)
+    query_esperado_ano = _build_base_query(db, current_user, ano_filtro, mes_filtro=None)
+    stats_esperado_ano = query_esperado_ano.with_entities(
+        func.sum(AluguelMensal.valor_total).label('valor_esperado_ano')
+    ).first()
+    valor_esperado_ano = float(stats_esperado_ano.valor_esperado_ano or 0)
+    
+    taxa_recebimento = (valor_recebido / valor_esperado_ano * 100) if valor_esperado_ano > 0 else 0
     
     return DashboardStats(
         total_imoveis=total_imoveis,
         imoveis_ativos=imoveis_ativos,
         total_proprietarios=total_proprietarios,
-        total_alugueis=stats.total_alugueis or 0,
+        total_alugueis=stats_esperado.total_alugueis or 0,
         valor_total_esperado=valor_esperado,
         valor_total_recebido=valor_recebido,
         taxa_recebimento=round(taxa_recebimento, 2),
