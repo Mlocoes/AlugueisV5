@@ -187,12 +187,15 @@ cp .env.example .env
 # 3. Inicie os containers
 docker-compose up -d
 
-# 4. Execute as migrações
-docker-compose exec app alembic upgrade head
-
-# 5. Acesse a aplicação
+# 4. Acesse a aplicação
 # http://localhost:8000
+# As migrações e inicialização são feitas automaticamente!
 ```
+
+**Nota:** A aplicação agora realiza automaticamente:
+- ✅ Migrações de banco de dados (`alembic upgrade head`)
+- ✅ Criação do usuário administrador padrão
+- ✅ Reinicialização automática quando o servidor reinicia
 
 ### Opção 2: Instalação Local
 
