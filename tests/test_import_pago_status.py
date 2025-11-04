@@ -8,6 +8,10 @@ from app.models.proprietario import Proprietario
 from app.models.imovel import Imovel
 from app.models.aluguel import AluguelMensal
 
+# Get the project root directory and construct the path to the Excel file
+PROJECT_ROOT = Path(__file__).parent.parent
+EXCEL_FILE_PATH = PROJECT_ROOT / 'excel' / 'Alugueis.xlsx'
+
 
 def test_imported_alugueis_are_marked_as_paid(db_session):
     """
@@ -47,12 +51,10 @@ def test_imported_alugueis_are_marked_as_paid(db_session):
     db_session.commit()
     
     # Load the actual Excel file
-    excel_path = Path('/home/runner/work/AlugueisV5/AlugueisV5/excel/Alugueis.xlsx')
+    if not EXCEL_FILE_PATH.exists():
+        pytest.skip(f"Excel file not found: {EXCEL_FILE_PATH}")
     
-    if not excel_path.exists():
-        pytest.skip(f"Excel file not found: {excel_path}")
-    
-    with open(excel_path, 'rb') as f:
+    with open(EXCEL_FILE_PATH, 'rb') as f:
         file_content = f.read()
     
     # Execute import
@@ -115,12 +117,10 @@ def test_reimporting_alugueis_keeps_paid_status(db_session):
     db_session.commit()
     
     # Load Excel file
-    excel_path = Path('/home/runner/work/AlugueisV5/AlugueisV5/excel/Alugueis.xlsx')
+    if not EXCEL_FILE_PATH.exists():
+        pytest.skip(f"Excel file not found: {EXCEL_FILE_PATH}")
     
-    if not excel_path.exists():
-        pytest.skip(f"Excel file not found: {excel_path}")
-    
-    with open(excel_path, 'rb') as f:
+    with open(EXCEL_FILE_PATH, 'rb') as f:
         file_content = f.read()
     
     service = ImportacaoService()
