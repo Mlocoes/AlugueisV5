@@ -576,6 +576,7 @@ class ImportacaoService:
                                     existing.valor_total = valor_total
                                     existing.valor_proprietario = valor_proprietario
                                     existing.taxa_administracao = taxa_admin
+                                    existing.pago = True
                                     existing.atualizado_em = func.now()
                                 else:
                                     # Criar novo registro
@@ -588,7 +589,8 @@ class ImportacaoService:
                                         mes_referencia=mes_ref,
                                         valor_total=valor_total,
                                         valor_proprietario=valor_proprietario,
-                                        taxa_administracao=taxa_admin
+                                        taxa_administracao=taxa_admin,
+                                        pago=True
                                     )
                                     db.add(novo_aluguel)
                                 
