@@ -98,12 +98,13 @@ async def get_dashboard_stats(
     mes_filtro = mes or datetime.now().month  # Se não especificado, usa mês atual
     
     # Query para Valor do MÊS (esperado)
+    # IMPORTANTE: Somar valor_proprietario para evitar duplicação quando há múltiplos proprietários
     query_mes = _build_base_query(db, current_user, ano_filtro, mes_filtro)
     
     # Calcular Valor do Mês
     stats_mes = query_mes.with_entities(
         func.count(AluguelMensal.id).label('total_alugueis'),
-        func.sum(AluguelMensal.valor_total).label('valor_mes')
+        func.sum(AluguelMensal.valor_proprietario).label('valor_mes')  # Corrigido: soma valor_proprietario
     ).first()
     
     # Query para Valor Recebido ACUMULADO DO ANO (sempre ano inteiro)
@@ -113,11 +114,11 @@ async def get_dashboard_stats(
     stats_ano = query_ano.with_entities(
         func.sum(
             case(
-                (AluguelMensal.pago == True, AluguelMensal.valor_total),
+                (AluguelMensal.pago == True, AluguelMensal.valor_proprietario),  # Corrigido
                 else_=0
             )
         ).label('valor_recebido_ano'),
-        func.sum(AluguelMensal.valor_total).label('valor_esperado_ano')
+        func.sum(AluguelMensal.valor_proprietario).label('valor_esperado_ano')  # Corrigido
     ).first()
     
     # Estatísticas de imóveis
@@ -163,13 +164,13 @@ async def get_evolution_data(
     """
     ano_filtro = ano or datetime.now().year
     
-    # Query agregada por mês usando valor_total
+    # Query agregada por mês usando valor_proprietario (evita duplicação)
     query = db.query(
         func.substr(AluguelMensal.mes_referencia, 6, 2).label('mes'),
-        func.sum(AluguelMensal.valor_total).label('valor_esperado'),
+        func.sum(AluguelMensal.valor_proprietario).label('valor_esperado'),
         func.sum(
             case(
-                (AluguelMensal.pago == True, AluguelMensal.valor_total),
+                (AluguelMensal.pago == True, AluguelMensal.valor_proprietario),
                 else_=0
             )
         ).label('valor_recebido')
@@ -231,10 +232,10 @@ async def get_distribution_data(
     """
     ano_filtro = ano or datetime.now().year
     
-    # Query agregada por imóvel usando valor_total
+    # Query agregada por imóvel usando valor_proprietario (evita duplicação)
     query = db.query(
         Imovel.nome.label('imovel_nome'),
-        func.sum(AluguelMensal.valor_total).label('valor_total')
+        func.sum(AluguelMensal.valor_proprietario).label('valor_total')
     ).join(
         AluguelMensal, AluguelMensal.imovel_id == Imovel.id
     )
