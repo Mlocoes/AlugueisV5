@@ -10,22 +10,28 @@ IMPORTANTE: Faça backup do banco de dados antes de executar este script!
 Uso:
     python fix_incorrect_values.py --dry-run  # Apenas mostra o que seria corrigido
     python fix_incorrect_values.py            # Aplica as correções
+    python fix_incorrect_values.py --min-value 50 --max-value 100000  # Configurar limites
 
 Cenários detectados e corrigidos:
-1. Valores muito pequenos (< 10) que deveriam ser maiores (multiplicados por 1000)
+1. Valores muito pequenos que deveriam ser maiores (multiplicados por 1000)
    Exemplo: valor_total = 2.8 deveria ser 2800.0
    
 2. Detecção baseada em padrões típicos de aluguéis brasileiros
-   - Valores típicos de aluguel: R$ 500 - R$ 50.000
-   - Se valor_aluguel < 10 e outros encargos também < 10, provável erro de importação
+   - Valores típicos de aluguel configuráveis (padrão: R$ 100 - R$ 50.000)
+   - Se valor_aluguel está abaixo do mínimo, provável erro de importação
 """
 
 import sys
-import os
+from pathlib import Path
 from decimal import Decimal
 
-# Adicionar o diretório raiz ao path
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+# Adicionar o diretório raiz ao path usando pathlib
+sys.path.insert(0, str(Path(__file__).parent))
+
+# Constantes configuráveis
+DEFAULT_MIN_SUSPICIOUS_VALUE = 100.0  # Valores abaixo disso são suspeitos
+DEFAULT_MIN_CORRECTED_VALUE = 100.0   # Valor corrigido deve estar acima disso
+DEFAULT_MAX_CORRECTED_VALUE = 50000.0 # Valor corrigido deve estar abaixo disso
 
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -34,22 +40,33 @@ from app.models.aluguel import AluguelMensal
 from datetime import datetime
 
 
-def detectar_valores_suspeitos(db: Session, dry_run: bool = True):
+def detectar_valores_suspeitos(db: Session, min_suspicious: float, 
+                              min_corrected: float, max_corrected: float, 
+                              dry_run: bool = True):
     """
     Detecta aluguéis com valores suspeitos que podem estar incorretos
+    
+    Args:
+        db: Sessão do banco de dados
+        min_suspicious: Valores abaixo disso são considerados suspeitos
+        min_corrected: Valor corrigido deve estar acima disso
+        max_corrected: Valor corrigido deve estar abaixo disso
+        dry_run: Se True, apenas mostra sem aplicar
     """
     print("=" * 80)
     print("ANÁLISE DE VALORES SUSPEITOS")
     print("=" * 80)
+    print(f"\nCritérios de detecção:")
+    print(f"  - Valores suspeitos: < R$ {min_suspicious:.2f}")
+    print(f"  - Valores corrigidos devem estar entre: R$ {min_corrected:.2f} e R$ {max_corrected:.2f}")
     
     # Buscar aluguéis com valores muito baixos (suspeito de divisão por 1000)
-    # Assumimos que aluguéis legítimos são raramente menores que R$ 100
     alugueis_suspeitos = db.query(AluguelMensal).filter(
-        AluguelMensal.valor_total < 100.0,
+        AluguelMensal.valor_total < min_suspicious,
         AluguelMensal.valor_total > 0.0
     ).all()
     
-    print(f"\nEncontrados {len(alugueis_suspeitos)} aluguéis com valor_total < R$ 100")
+    print(f"\nEncontrados {len(alugueis_suspeitos)} aluguéis com valor_total < R$ {min_suspicious:.2f}")
     
     correcoes = []
     
@@ -58,7 +75,7 @@ def detectar_valores_suspeitos(db: Session, dry_run: bool = True):
         valor_corrigido = aluguel.valor_total * 1000
         
         # Verificar se o valor corrigido está em um range mais razoável
-        if 100 <= valor_corrigido <= 50000:  # Range típico de aluguéis
+        if min_corrected <= valor_corrigido <= max_corrected:
             correcoes.append({
                 'id': aluguel.id,
                 'imovel_id': aluguel.imovel_id,
@@ -138,6 +155,12 @@ def main():
                        help='Apenas mostra o que seria corrigido sem fazer alterações')
     parser.add_argument('--force', action='store_true',
                        help='Aplica correções sem confirmação')
+    parser.add_argument('--min-suspicious', type=float, default=DEFAULT_MIN_SUSPICIOUS_VALUE,
+                       help=f'Valores abaixo disso são suspeitos (padrão: R$ {DEFAULT_MIN_SUSPICIOUS_VALUE})')
+    parser.add_argument('--min-corrected', type=float, default=DEFAULT_MIN_CORRECTED_VALUE,
+                       help=f'Valor corrigido mínimo aceitável (padrão: R$ {DEFAULT_MIN_CORRECTED_VALUE})')
+    parser.add_argument('--max-corrected', type=float, default=DEFAULT_MAX_CORRECTED_VALUE,
+                       help=f'Valor corrigido máximo aceitável (padrão: R$ {DEFAULT_MAX_CORRECTED_VALUE})')
     
     args = parser.parse_args()
     
@@ -145,7 +168,13 @@ def main():
     
     try:
         # Detectar valores suspeitos
-        correcoes = detectar_valores_suspeitos(db, args.dry_run)
+        correcoes = detectar_valores_suspeitos(
+            db, 
+            args.min_suspicious,
+            args.min_corrected,
+            args.max_corrected,
+            args.dry_run
+        )
         
         if not correcoes:
             print("\n✅ Nenhum valor suspeito encontrado!")
