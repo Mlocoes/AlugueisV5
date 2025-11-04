@@ -77,30 +77,13 @@ async def get_dashboard_stats(
         mes_ref = f"{ano_filtro}-{mes:02d}"
         query = query.filter(AluguelMensal.mes_referencia == mes_ref)
     
-    # Calcular estatísticas agregadas
+    # Calcular estatísticas agregadas usando valor_total
     stats = query.with_entities(
         func.count(AluguelMensal.id).label('total_alugueis'),
-        func.sum(
-            AluguelMensal.valor_aluguel + 
-            func.coalesce(AluguelMensal.valor_condominio, 0) +
-            func.coalesce(AluguelMensal.valor_iptu, 0) +
-            func.coalesce(AluguelMensal.valor_luz, 0) +
-            func.coalesce(AluguelMensal.valor_agua, 0) +
-            func.coalesce(AluguelMensal.valor_gas, 0) +
-            func.coalesce(AluguelMensal.valor_internet, 0) +
-            func.coalesce(AluguelMensal.outros_valores, 0)
-        ).label('valor_esperado'),
+        func.sum(AluguelMensal.valor_total).label('valor_esperado'),
         func.sum(
             case(
-                (AluguelMensal.pago == True,
-                 AluguelMensal.valor_aluguel + 
-                 func.coalesce(AluguelMensal.valor_condominio, 0) +
-                 func.coalesce(AluguelMensal.valor_iptu, 0) +
-                 func.coalesce(AluguelMensal.valor_luz, 0) +
-                 func.coalesce(AluguelMensal.valor_agua, 0) +
-                 func.coalesce(AluguelMensal.valor_gas, 0) +
-                 func.coalesce(AluguelMensal.valor_internet, 0) +
-                 func.coalesce(AluguelMensal.outros_valores, 0)),
+                (AluguelMensal.pago == True, AluguelMensal.valor_total),
                 else_=0
             )
         ).label('valor_recebido')
@@ -146,30 +129,13 @@ async def get_evolution_data(
     """
     ano_filtro = ano or datetime.now().year
     
-    # Query agregada por mês
+    # Query agregada por mês usando valor_total
     query = db.query(
         func.substr(AluguelMensal.mes_referencia, 6, 2).label('mes'),
-        func.sum(
-            AluguelMensal.valor_aluguel + 
-            func.coalesce(AluguelMensal.valor_condominio, 0) +
-            func.coalesce(AluguelMensal.valor_iptu, 0) +
-            func.coalesce(AluguelMensal.valor_luz, 0) +
-            func.coalesce(AluguelMensal.valor_agua, 0) +
-            func.coalesce(AluguelMensal.valor_gas, 0) +
-            func.coalesce(AluguelMensal.valor_internet, 0) +
-            func.coalesce(AluguelMensal.outros_valores, 0)
-        ).label('valor_esperado'),
+        func.sum(AluguelMensal.valor_total).label('valor_esperado'),
         func.sum(
             case(
-                (AluguelMensal.pago == True,
-                 AluguelMensal.valor_aluguel + 
-                 func.coalesce(AluguelMensal.valor_condominio, 0) +
-                 func.coalesce(AluguelMensal.valor_iptu, 0) +
-                 func.coalesce(AluguelMensal.valor_luz, 0) +
-                 func.coalesce(AluguelMensal.valor_agua, 0) +
-                 func.coalesce(AluguelMensal.valor_gas, 0) +
-                 func.coalesce(AluguelMensal.valor_internet, 0) +
-                 func.coalesce(AluguelMensal.outros_valores, 0)),
+                (AluguelMensal.pago == True, AluguelMensal.valor_total),
                 else_=0
             )
         ).label('valor_recebido')
@@ -231,19 +197,10 @@ async def get_distribution_data(
     """
     ano_filtro = ano or datetime.now().year
     
-    # Query agregada por imóvel
+    # Query agregada por imóvel usando valor_total
     query = db.query(
         Imovel.nome.label('imovel_nome'),
-        func.sum(
-            AluguelMensal.valor_aluguel + 
-            func.coalesce(AluguelMensal.valor_condominio, 0) +
-            func.coalesce(AluguelMensal.valor_iptu, 0) +
-            func.coalesce(AluguelMensal.valor_luz, 0) +
-            func.coalesce(AluguelMensal.valor_agua, 0) +
-            func.coalesce(AluguelMensal.valor_gas, 0) +
-            func.coalesce(AluguelMensal.valor_internet, 0) +
-            func.coalesce(AluguelMensal.outros_valores, 0)
-        ).label('valor_total')
+        func.sum(AluguelMensal.valor_total).label('valor_total')
     ).join(
         AluguelMensal, AluguelMensal.imovel_id == Imovel.id
     )
@@ -257,16 +214,7 @@ async def get_distribution_data(
     ).group_by(
         Imovel.id, Imovel.nome
     ).order_by(
-        func.sum(
-            AluguelMensal.valor_aluguel + 
-            func.coalesce(AluguelMensal.valor_condominio, 0) +
-            func.coalesce(AluguelMensal.valor_iptu, 0) +
-            func.coalesce(AluguelMensal.valor_luz, 0) +
-            func.coalesce(AluguelMensal.valor_agua, 0) +
-            func.coalesce(AluguelMensal.valor_gas, 0) +
-            func.coalesce(AluguelMensal.valor_internet, 0) +
-            func.coalesce(AluguelMensal.outros_valores, 0)
-        ).desc()
+        func.sum(AluguelMensal.valor_total).desc()
     ).limit(limit)
     
     resultados = query.all()
