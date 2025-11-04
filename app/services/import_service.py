@@ -6,8 +6,11 @@ Estruturas esperadas:
 - Proprietarios.xlsx: Nome, Sobrenome, Documento, Tipo Documento, Endereço, Telefone, Email
 - Imoveis.xlsx: Nome, Endereço, Tipo, Área Total, Área Construida, Valor Catastral, Valor Mercado, IPTU Anual, Condominio
 - Participacoes.xlsx: Nome, Endereço, VALOR, [nomes dos proprietários com percentuais]
-- Alugueis.xlsx: [data], Valor Total, [nomes dos proprietários com valores], Taxa de Administração
+- Alugueis.xlsx: Múltiplas abas/sheets (uma por mês), cada aba com [data], Valor Total, [nomes dos proprietários com valores], Taxa de Administração
 - Transferencias.xlsx: formato matricial com datas e valores
+
+IMPORTANTE: O importador de Alugueis agora processa TODAS as abas do arquivo Excel,
+permitindo importar dados de todos os meses de uma só vez.
 """
 from typing import List, Dict, Any, Optional, Tuple
 import re

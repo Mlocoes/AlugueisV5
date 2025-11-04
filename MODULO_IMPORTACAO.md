@@ -200,10 +200,29 @@ Response 200:
 {
   "success": true,
   "importados": 100,
-  "erros": ["Linha 15: Imóvel APT999 não encontrado"],
-  "warnings": ["Linha 20: Aluguel já existe"],
-  "total_linhas": 102
+  "erros": ["Sheet 'Jan2025': Linha 15: Imóvel APT999 não encontrado"],
+  "warnings": ["Sheet 'Feb2025': Linha 20: Aluguel já existe"],
+  "total_linhas": 102,
+  "sheets_processadas": [
+    {
+      "nome": "Jan2025",
+      "importados": 50,
+      "linhas": 51,
+      "data_referencia": "2025-01-25"
+    },
+    {
+      "nome": "Feb2025",
+      "importados": 50,
+      "linhas": 51,
+      "data_referencia": "2025-02-25"
+    }
+  ],
+  "total_sheets": 2
 }
+
+Nota: A partir da versão mais recente, o sistema importa TODAS as abas/sheets 
+do arquivo Excel, processando cada mês separadamente. Anteriormente apenas 
+a primeira aba era importada.
 ```
 
 #### 5. Baixar Template
@@ -269,6 +288,28 @@ resultado = service.importar_imoveis(file_content, db)
 #### 3. Importar Aluguéis
 ```python
 resultado = service.importar_alugueis(file_content, db)
+
+# Retorna (com informações de todas as abas processadas):
+{
+    'success': True,
+    'importados': 1900,  # Total de registros importados de todas as abas
+    'erros': [],
+    'warnings': [],
+    'total_linhas': 190,  # Total de linhas em todas as abas
+    'sheets_processadas': [  # Lista com detalhes de cada aba
+        {
+            'nome': 'Jan2025',
+            'importados': 190,
+            'linhas': 19,
+            'data_referencia': '2025-01-25'
+        },
+        # ... outras abas
+    ],
+    'total_sheets': 10  # Total de abas no arquivo
+}
+
+Nota: O método agora processa TODAS as abas/sheets do arquivo Excel,
+importando dados de todos os meses, ao invés de apenas a primeira aba.
 ```
 
 #### 4. Preview
