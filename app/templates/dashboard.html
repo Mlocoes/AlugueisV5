@@ -14,13 +14,24 @@
                     <span class="material-symbols-outlined text-gray-400">calendar_today</span>
                     <span class="text-gray-300 font-medium">Período:</span>
                 </div>
-                <select id="ano-filter" class="bg-gray-700 text-white px-4 py-2 rounded-lg border border-gray-600 focus:border-primary focus:outline-none">
+                <select id="ano-filter" class="bg-gray-700 text-white px-4 py-2 rounded-lg border border-gray-600 focus:border-primary focus:outline-none" onchange="applyFilter()">
                     <!-- Populated by JS -->
                 </select>
-                <button onclick="applyFilter()" class="bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-lg transition-colors flex items-center gap-2">
-                    <span class="material-symbols-outlined text-sm">filter_alt</span>
-                    Aplicar Filtro
-                </button>
+                <select id="mes-filter" class="bg-gray-700 text-white px-4 py-2 rounded-lg border border-gray-600 focus:border-primary focus:outline-none" onchange="applyFilter()">
+                    <option value="0">Todos os meses</option>
+                    <option value="1">Janeiro</option>
+                    <option value="2">Fevereiro</option>
+                    <option value="3">Março</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Maio</option>
+                    <option value="6">Junho</option>
+                    <option value="7">Julho</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Setembro</option>
+                    <option value="10">Outubro</option>
+                    <option value="11">Novembro</option>
+                    <option value="12">Dezembro</option>
+                </select>
                 <button onclick="refreshData()" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
                     <span class="material-symbols-outlined text-sm">refresh</span>
                 </button>
@@ -72,7 +83,7 @@
                             <span class="loading-shimmer">R$ -</span>
                         </p>
                         <p class="text-purple-200 text-xs mt-1">
-                            <span id="total-alugueis">-</span> aluguéis
+                            <span id="periodo-esperado">no período</span> | <span id="total-alugueis">-</span> aluguéis
                         </p>
                     </div>
                     <div class="bg-purple-600 bg-opacity-50 rounded-full p-4">
@@ -85,7 +96,7 @@
             <div class="bg-gradient-to-br from-orange-900 to-orange-700 rounded-lg shadow-lg p-6 card-hover transform transition-all hover:scale-105">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-orange-200 text-sm font-medium">Valor Recebido</p>
+                        <p class="text-orange-200 text-sm font-medium">Valor Recebido (Ano)</p>
                         <p id="valor-recebido" class="text-4xl font-bold text-white mt-2">
                             <span class="loading-shimmer">R$ -</span>
                         </p>
@@ -165,6 +176,7 @@
 <script>
 let evolutionChart, distributionChart, comparisonChart;
 let currentYear = new Date().getFullYear();
+let currentMonth = 0; // 0 = todos os meses
 
 // Inicializar ano filter
 function initYearFilter() {
@@ -181,10 +193,12 @@ function initYearFilter() {
     }
 }
 
-// Aplicar filtro
+// Aplicar filtro (chamado automaticamente ao mudar seleção)
 function applyFilter() {
     const year = document.getElementById('ano-filter').value;
+    const month = document.getElementById('mes-filter').value;
     currentYear = parseInt(year);
+    currentMonth = parseInt(month);
     refreshData();
 }
 
@@ -204,7 +218,20 @@ async function refreshData() {
 // Carregar estatísticas
 async function loadStats() {
     try {
-        const stats = await fetchWithAuth(`/api/dashboard/stats?ano=${currentYear}`);
+        // Construir URL com parâmetros
+        let url = `/api/dashboard/stats?ano=${currentYear}`;
+        if (currentMonth > 0) {
+            url += `&mes=${currentMonth}`;
+        }
+        
+        const stats = await fetchWithAuth(url);
+        
+        // Atualizar label do período de "Valor Esperado"
+        const mesesNomes = [
+            'no ano', 'em Janeiro', 'em Fevereiro', 'em Março', 'em Abril', 'em Maio', 'em Junho',
+            'em Julho', 'em Agosto', 'em Setembro', 'em Outubro', 'em Novembro', 'em Dezembro'
+        ];
+        document.getElementById('periodo-esperado').textContent = mesesNomes[currentMonth];
         
         // Animar números
         animateNumber('total-imoveis', stats.total_imoveis);

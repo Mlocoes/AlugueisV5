@@ -57,30 +57,48 @@ async def get_dashboard_stats(
     """
     Retorna estatísticas agregadas do dashboard
     Query otimizada com agregações SQL
+    
+    IMPORTANTE: 
+    - Valor Esperado: usa filtro de mês quando especificado (valor do mês selecionado)
+    - Valor Recebido: sempre usa dados acumulados do ano inteiro
     """
     # Determinar período
     ano_filtro = ano or datetime.now().year
     mes_atual = datetime.now().month
     
-    # Query base de aluguéis
-    query = db.query(AluguelMensal)
+    # Query para Valor Esperado (filtrado por mês se especificado)
+    query_esperado = db.query(AluguelMensal)
     
     # Filtro de permissões
     if not current_user.is_admin:
-        query = query.join(Imovel).filter(Imovel.proprietario_id == current_user.id)
+        query_esperado = query_esperado.join(Imovel).filter(Imovel.proprietario_id == current_user.id)
     
     # Filtrar por ano
-    query = query.filter(AluguelMensal.mes_referencia.like(f"{ano_filtro}%"))
+    query_esperado = query_esperado.filter(AluguelMensal.mes_referencia.like(f"{ano_filtro}%"))
     
-    # Filtrar por mês se especificado
+    # Filtrar por mês se especificado (para Valor Esperado)
     if mes:
         mes_ref = f"{ano_filtro}-{mes:02d}"
-        query = query.filter(AluguelMensal.mes_referencia == mes_ref)
+        query_esperado = query_esperado.filter(AluguelMensal.mes_referencia == mes_ref)
     
-    # Calcular estatísticas agregadas usando valor_total
-    stats = query.with_entities(
+    # Calcular Valor Esperado (do mês ou ano conforme filtro)
+    stats_esperado = query_esperado.with_entities(
         func.count(AluguelMensal.id).label('total_alugueis'),
-        func.sum(AluguelMensal.valor_total).label('valor_esperado'),
+        func.sum(AluguelMensal.valor_total).label('valor_esperado')
+    ).first()
+    
+    # Query para Valor Recebido (SEMPRE acumulado do ano inteiro)
+    query_recebido = db.query(AluguelMensal)
+    
+    # Filtro de permissões
+    if not current_user.is_admin:
+        query_recebido = query_recebido.join(Imovel).filter(Imovel.proprietario_id == current_user.id)
+    
+    # Filtrar APENAS por ano (sem mês, para ter acumulado do ano)
+    query_recebido = query_recebido.filter(AluguelMensal.mes_referencia.like(f"{ano_filtro}%"))
+    
+    # Calcular Valor Recebido (acumulado do ano)
+    stats_recebido = query_recebido.with_entities(
         func.sum(
             case(
                 (AluguelMensal.pago == True, AluguelMensal.valor_total),
@@ -101,15 +119,26 @@ async def get_dashboard_stats(
     total_proprietarios = db.query(Proprietario).count()
     
     # Calcular valores
-    valor_esperado = float(stats.valor_esperado or 0)
-    valor_recebido = float(stats.valor_recebido or 0)
-    taxa_recebimento = (valor_recebido / valor_esperado * 100) if valor_esperado > 0 else 0
+    valor_esperado = float(stats_esperado.valor_esperado or 0)
+    valor_recebido = float(stats_recebido.valor_recebido or 0)
+    
+    # Taxa de recebimento é calculada sobre o total do ano
+    query_esperado_ano = db.query(AluguelMensal)
+    if not current_user.is_admin:
+        query_esperado_ano = query_esperado_ano.join(Imovel).filter(Imovel.proprietario_id == current_user.id)
+    query_esperado_ano = query_esperado_ano.filter(AluguelMensal.mes_referencia.like(f"{ano_filtro}%"))
+    stats_esperado_ano = query_esperado_ano.with_entities(
+        func.sum(AluguelMensal.valor_total).label('valor_esperado_ano')
+    ).first()
+    valor_esperado_ano = float(stats_esperado_ano.valor_esperado_ano or 0)
+    
+    taxa_recebimento = (valor_recebido / valor_esperado_ano * 100) if valor_esperado_ano > 0 else 0
     
     return DashboardStats(
         total_imoveis=total_imoveis,
         imoveis_ativos=imoveis_ativos,
         total_proprietarios=total_proprietarios,
-        total_alugueis=stats.total_alugueis or 0,
+        total_alugueis=stats_esperado.total_alugueis or 0,
         valor_total_esperado=valor_esperado,
         valor_total_recebido=valor_recebido,
         taxa_recebimento=round(taxa_recebimento, 2),
