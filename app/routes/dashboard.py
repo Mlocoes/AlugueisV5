@@ -89,34 +89,35 @@ async def get_dashboard_stats(
     Retorna estatísticas agregadas do dashboard
     Query otimizada com agregações SQL
     
-    IMPORTANTE: 
-    - Valor Esperado: usa filtro de mês quando especificado (valor do mês selecionado)
-    - Valor Recebido: sempre usa dados acumulados do ano inteiro
+    CORRIGIDO: 
+    - valor_total_esperado: Sempre retorna o total do MÊS filtrado (ou mês atual se não filtrado)
+    - valor_total_recebido: Sempre retorna o total ACUMULADO DO ANO inteiro (pagos)
     """
     # Determinar período
     ano_filtro = ano or datetime.now().year
-    mes_atual = datetime.now().month
+    mes_filtro = mes or datetime.now().month  # Se não especificado, usa mês atual
     
-    # Query para Valor Esperado (filtrado por mês se especificado)
-    query_esperado = _build_base_query(db, current_user, ano_filtro, mes)
+    # Query para Valor do MÊS (esperado)
+    query_mes = _build_base_query(db, current_user, ano_filtro, mes_filtro)
     
-    # Calcular Valor Esperado (do mês ou ano conforme filtro)
-    stats_esperado = query_esperado.with_entities(
+    # Calcular Valor do Mês
+    stats_mes = query_mes.with_entities(
         func.count(AluguelMensal.id).label('total_alugueis'),
-        func.sum(AluguelMensal.valor_total).label('valor_esperado')
+        func.sum(AluguelMensal.valor_total).label('valor_mes')
     ).first()
     
-    # Query para Valor Recebido (SEMPRE acumulado do ano inteiro - sem filtro de mês)
-    query_recebido = _build_base_query(db, current_user, ano_filtro, mes_filtro=None)
+    # Query para Valor Recebido ACUMULADO DO ANO (sempre ano inteiro)
+    query_ano = _build_base_query(db, current_user, ano_filtro, mes_filtro=None)
     
-    # Calcular Valor Recebido (acumulado do ano)
-    stats_recebido = query_recebido.with_entities(
+    # Calcular Valor Recebido no Ano (apenas pagos)
+    stats_ano = query_ano.with_entities(
         func.sum(
             case(
                 (AluguelMensal.pago == True, AluguelMensal.valor_total),
                 else_=0
             )
-        ).label('valor_recebido')
+        ).label('valor_recebido_ano'),
+        func.sum(AluguelMensal.valor_total).label('valor_esperado_ano')
     ).first()
     
     # Estatísticas de imóveis
@@ -131,27 +132,22 @@ async def get_dashboard_stats(
     total_proprietarios = db.query(Proprietario).count()
     
     # Calcular valores
-    valor_esperado = float(stats_esperado.valor_esperado or 0)
-    valor_recebido = float(stats_recebido.valor_recebido or 0)
+    valor_mes = float(stats_mes.valor_mes or 0)
+    valor_recebido_ano = float(stats_ano.valor_recebido_ano or 0)
+    valor_esperado_ano = float(stats_ano.valor_esperado_ano or 0)
     
-    # Taxa de recebimento é calculada sobre o total do ano (usar mesma query que valor_recebido)
-    query_esperado_ano = _build_base_query(db, current_user, ano_filtro, mes_filtro=None)
-    stats_esperado_ano = query_esperado_ano.with_entities(
-        func.sum(AluguelMensal.valor_total).label('valor_esperado_ano')
-    ).first()
-    valor_esperado_ano = float(stats_esperado_ano.valor_esperado_ano or 0)
-    
-    taxa_recebimento = (valor_recebido / valor_esperado_ano * 100) if valor_esperado_ano > 0 else 0
+    # Taxa de recebimento do ano
+    taxa_recebimento = (valor_recebido_ano / valor_esperado_ano * 100) if valor_esperado_ano > 0 else 0
     
     return DashboardStats(
         total_imoveis=total_imoveis,
         imoveis_ativos=imoveis_ativos,
         total_proprietarios=total_proprietarios,
-        total_alugueis=stats_esperado.total_alugueis or 0,
-        valor_total_esperado=valor_esperado,
-        valor_total_recebido=valor_recebido,
+        total_alugueis=stats_mes.total_alugueis or 0,
+        valor_total_esperado=valor_mes,
+        valor_total_recebido=valor_recebido_ano,
         taxa_recebimento=round(taxa_recebimento, 2),
-        mes_atual=f"{mes_atual:02d}",
+        mes_atual=f"{mes_filtro:02d}",
         ano_atual=ano_filtro
     )
 
