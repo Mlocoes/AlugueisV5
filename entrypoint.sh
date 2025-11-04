@@ -33,18 +33,42 @@ RETRY_COUNT=0
 # Extract database connection info from DATABASE_URL
 # Format: postgresql://user:password@host:port/database
 # Using Python to parse URL reliably to handle special characters in passwords
-read DB_USER DB_HOST DB_PORT <<EOF
-$(python3 -c "
+DB_INFO=$(python3 << 'PYTHON_SCRIPT'
 import sys
+import os
 from urllib.parse import urlparse
+
 try:
-    parsed = urlparse('${DATABASE_URL}')
-    print(f'{parsed.username or \"\"} {parsed.hostname or \"\"} {parsed.port or 5432}')
+    database_url = os.environ.get('DATABASE_URL', '')
+    if not database_url:
+        print("ERROR: DATABASE_URL environment variable is not set", file=sys.stderr)
+        sys.exit(1)
+    
+    parsed = urlparse(database_url)
+    username = parsed.username or ''
+    hostname = parsed.hostname or ''
+    port = parsed.port or 5432
+    
+    if not hostname or not username:
+        print("ERROR: Invalid DATABASE_URL format", file=sys.stderr)
+        sys.exit(1)
+    
+    print(f"{username} {hostname} {port}")
 except Exception as e:
-    print('', '', '', file=sys.stderr)
+    print(f"ERROR: Failed to parse DATABASE_URL: {e}", file=sys.stderr)
     sys.exit(1)
-")
-EOF
+PYTHON_SCRIPT
+)
+
+# Check if Python script succeeded
+if [ $? -ne 0 ]; then
+    log_error "Failed to parse DATABASE_URL. Please check the format."
+    log_error "Expected format: postgresql://user:password@host:port/database"
+    exit 1
+fi
+
+# Parse the output
+read DB_USER DB_HOST DB_PORT <<< "$DB_INFO"
 
 # Validate parsed values
 if [ -z "$DB_HOST" ] || [ -z "$DB_USER" ]; then
