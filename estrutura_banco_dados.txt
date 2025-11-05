@@ -59,7 +59,6 @@ TABELA: PARTICIPACOES
   id                        | integer              | NOT NULL | nextval('participacoes_id_seq'::regclass) 
   imovel_id                 | integer              | NOT NULL |  
   proprietario_id           | integer              | NOT NULL |  
-  mes_referencia            | character varying    | NOT NULL |  
   percentual                | double precision     | NOT NULL |  
   observacoes               | character varying    | NULL     |  
   created_at                | timestamp without ti | NULL     |  
