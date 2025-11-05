@@ -1,0 +1,136 @@
+=== ESTRUTURA COMPLETA DO BANCO DE DADOS ===
+
+TABELA: ALIASES
+========================================
+  id                        | integer              | NOT NULL | nextval('aliases_id_seq'::regclass) 
+  nome_alias                | character varying    | NOT NULL |  
+  usuario_id                | integer              | NOT NULL |  
+  created_at                | timestamp without ti | NULL     |  
+  updated_at                | timestamp without ti | NULL     |  
+
+TABELA: ALUGUEIS_MENSAIS
+========================================
+  id                        | integer              | NOT NULL | nextval('alugueis_mensais_id_seq'::regclass) 
+  imovel_id                 | integer              | NOT NULL |  
+  mes_referencia            | character varying    | NOT NULL |  
+  valor_aluguel             | double precision     | NOT NULL |  
+  valor_condominio          | double precision     | NOT NULL |  
+  valor_iptu                | double precision     | NOT NULL |  
+  valor_luz                 | double precision     | NOT NULL |  
+  valor_agua                | double precision     | NOT NULL |  
+  valor_gas                 | double precision     | NOT NULL |  
+  valor_internet            | double precision     | NOT NULL |  
+  outros_valores            | double precision     | NOT NULL |  
+  valor_total               | double precision     | NOT NULL |  
+  pago                      | boolean              | NULL     |  
+  data_pagamento            | date                 | NULL     |  
+  observacoes               | character varying    | NULL     |  
+  created_at                | timestamp without ti | NULL     |  
+  updated_at                | timestamp without ti | NULL     |  
+  proprietario_id           | integer              | NULL     |  
+  data_referencia           | date                 | NULL     |  
+  valor_proprietario        | double precision     | NULL     |  
+  taxa_administracao        | double precision     | NULL     | 0.0 
+  atualizado_em             | timestamp without ti | NULL     | CURRENT_TIMESTAMP 
+
+TABELA: IMOVEIS
+========================================
+  id                        | integer              | NOT NULL | nextval('imoveis_id_seq'::regclass) 
+  nome                      | character varying    | NOT NULL |  
+  endereco                  | character varying    | NULL     |  
+  cidade                    | character varying    | NULL     |  
+  estado                    | character varying    | NULL     |  
+  cep                       | character varying    | NULL     |  
+  valor_aluguel             | double precision     | NULL     |  
+  valor_condominio          | double precision     | NULL     |  
+  valor_iptu                | double precision     | NULL     |  
+  proprietario_id           | integer              | NULL     |  
+  is_active                 | boolean              | NULL     |  
+  created_at                | timestamp without ti | NULL     |  
+  updated_at                | timestamp without ti | NULL     |  
+  tipo                      | character varying    | NULL     |  
+  area_total                | double precision     | NULL     |  
+  area_construida           | double precision     | NULL     |  
+  valor_catastral           | double precision     | NULL     |  
+  valor_mercado             | double precision     | NULL     |  
+  iptu_anual                | double precision     | NULL     |  
+  status                    | character varying    | NOT NULL | 'disponivel'::character varying 
+
+TABELA: PARTICIPACOES
+========================================
+  id                        | integer              | NOT NULL | nextval('participacoes_id_seq'::regclass) 
+  imovel_id                 | integer              | NOT NULL |  
+  proprietario_id           | integer              | NOT NULL |  
+  mes_referencia            | character varying    | NOT NULL |  
+  percentual                | double precision     | NOT NULL |  
+  valor_participacao        | double precision     | NOT NULL |  
+  observacoes               | character varying    | NULL     |  
+  created_at                | timestamp without ti | NULL     |  
+  updated_at                | timestamp without ti | NULL     |  
+
+TABELA: PERMISSOES_FINANCEIRAS
+========================================
+  id                        | integer              | NOT NULL | nextval('permissoes_financeiras_id_seq'::regclass) 
+  usuario_id                | integer              | NOT NULL |  
+  tipo_permissao            | character varying    | NOT NULL |  
+  ativa                     | boolean              | NULL     |  
+  descricao                 | character varying    | NULL     |  
+  created_at                | timestamp without ti | NULL     |  
+  updated_at                | timestamp without ti | NULL     |  
+
+TABELA: PROPRIETARIOS
+========================================
+  id                        | integer              | NOT NULL | nextval('proprietarios_id_seq'::regclass) 
+  tipo_pessoa               | character varying    | NOT NULL |  
+  nome                      | character varying    | NOT NULL |  
+  cpf                       | character varying    | NULL     |  
+  rg                        | character varying    | NULL     |  
+  razao_social              | character varying    | NULL     |  
+  nome_fantasia             | character varying    | NULL     |  
+  cnpj                      | character varying    | NULL     |  
+  inscricao_estadual        | character varying    | NULL     |  
+  email                     | character varying    | NULL     |  
+  telefone                  | character varying    | NULL     |  
+  celular                   | character varying    | NULL     |  
+  endereco                  | character varying    | NULL     |  
+  numero                    | character varying    | NULL     |  
+  complemento               | character varying    | NULL     |  
+  bairro                    | character varying    | NULL     |  
+  cidade                    | character varying    | NULL     |  
+  estado                    | character varying    | NULL     |  
+  cep                       | character varying    | NULL     |  
+  banco                     | character varying    | NULL     |  
+  agencia                   | character varying    | NULL     |  
+  conta                     | character varying    | NULL     |  
+  tipo_conta                | character varying    | NULL     |  
+  pix                       | character varying    | NULL     |  
+  observacoes               | text                 | NULL     |  
+  is_active                 | boolean              | NULL     |  
+  created_at                | timestamp without ti | NULL     |  
+  updated_at                | timestamp without ti | NULL     |  
+
+TABELA: TRANSFERENCIAS
+========================================
+  id                        | integer              | NOT NULL | nextval('transferencias_id_seq'::regclass) 
+  origem_id                 | integer              | NOT NULL |  
+  destino_id                | integer              | NOT NULL |  
+  mes_referencia            | character varying    | NOT NULL |  
+  valor                     | double precision     | NOT NULL |  
+  confirmada                | boolean              | NULL     |  
+  data_confirmacao          | date                 | NULL     |  
+  descricao                 | character varying    | NULL     |  
+  created_at                | timestamp without ti | NULL     |  
+  updated_at                | timestamp without ti | NULL     |  
+
+TABELA: USUARIOS
+========================================
+  id                        | integer              | NOT NULL | nextval('usuarios_id_seq'::regclass) 
+  nome                      | character varying    | NOT NULL |  
+  email                     | character varying    | NOT NULL |  
+  hashed_password           | character varying    | NOT NULL |  
+  cpf                       | character varying    | NULL     |  
+  telefone                  | character varying    | NULL     |  
+  is_admin                  | boolean              | NULL     |  
+  is_active                 | boolean              | NULL     |  
+  created_at                | timestamp without ti | NULL     |  
+  updated_at                | timestamp without ti | NULL     |  
