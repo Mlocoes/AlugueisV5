@@ -28,8 +28,9 @@ class Imovel(Base):
     valor_iptu = Column(Float, nullable=True)
     iptu_anual = Column(Float, nullable=True)
     
-    # Proprietário
-    proprietario_id = Column(Integer, ForeignKey("proprietarios.id"), nullable=False, index=True)
+    # Proprietário (DEPRECATED: usar tabela participacoes)
+    # Mantido para compatibilidade com dados antigos e filtros
+    proprietario_id = Column(Integer, ForeignKey("proprietarios.id"), nullable=True, index=True)
     
     # Status
     status = Column(String(20), nullable=False, default='disponivel')  # 'disponivel' ou 'alugado'

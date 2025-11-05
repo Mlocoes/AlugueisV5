@@ -103,12 +103,6 @@
                     <input type="text" id="search" placeholder="Nome, endereço, cidade..." 
                         class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
                 </div>
-                <div class="min-w-[200px]">
-                    <label class="block text-sm text-gray-400 mb-2">Proprietário</label>
-                    <select id="proprietario-filter" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
-                        <option value="">Todos</option>
-                    </select>
-                </div>
                 <div class="min-w-[150px]">
                     <label class="block text-sm text-gray-400 mb-2">Status</label>
                     <select id="status-filter" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
@@ -132,7 +126,7 @@
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Nome</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Endereço</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Proprietário</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Proprietários</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Aluguel</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Status</th>
                             <th class="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase">Ações</th>
@@ -177,12 +171,13 @@
                                 placeholder="Ex: Apartamento Centro"
                                 class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
                         </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-sm text-gray-400 mb-2">Proprietário *</label>
-                            <select id="proprietario_id" required
-                                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
-                                <option value="">Selecione um proprietário</option>
-                            </select>
+                        <div class="md:col-span-2 bg-blue-900 bg-opacity-30 border border-blue-700 rounded-lg p-4">
+                            <div class="flex items-start gap-2">
+                                <span class="material-symbols-outlined text-blue-400 text-lg">info</span>
+                                <p class="text-sm text-blue-200">
+                                    Os <strong>proprietários</strong> e seus <strong>percentuais de participação</strong> são definidos na aba <strong>Participações</strong> após criar o imóvel.
+                                </p>
+                            </div>
                         </div>
                     </div>
 
@@ -277,18 +272,14 @@
 
     <script>
         let imoveis = [];
-        let proprietarios = [];
-        let proprietariosMap = {};
 
         // Carregar dados ao iniciar
         document.addEventListener('DOMContentLoaded', () => {
-            loadProprietarios();
             loadStats();
             loadImoveis();
 
             // Event listeners para filtros
             document.getElementById('search').addEventListener('input', debounce(loadImoveis, 500));
-            document.getElementById('proprietario-filter').addEventListener('change', loadImoveis);
             document.getElementById('status-filter').addEventListener('change', loadImoveis);
 
             // Form submit
@@ -302,35 +293,6 @@
                 clearTimeout(timeout);
                 timeout = setTimeout(() => func.apply(this, args), wait);
             };
-        }
-
-        // Carregar proprietários
-        async function loadProprietarios() {
-            try {
-                const response = await fetchWithAuth('/api/imoveis/proprietarios/list');
-                
-                // Garantir que temos um array
-                proprietarios = Array.isArray(response) ? response : [];
-                
-                // Criar mapa para lookup rápido
-                proprietariosMap = {};
-                proprietarios.forEach(p => {
-                    proprietariosMap[p.id] = p.nome;
-                });
-
-                // Preencher selects
-                const filterSelect = document.getElementById('proprietario-filter');
-                const formSelect = document.getElementById('proprietario_id');
-                
-                proprietarios.forEach(p => {
-                    const filterOption = new Option(p.nome, p.id);
-                    const formOption = new Option(p.nome, p.id);
-                    filterSelect.add(filterOption);
-                    formSelect.add(formOption);
-                });
-            } catch (error) {
-                console.error('Erro ao carregar proprietários:', error);
-            }
         }
 
         // Carregar estatísticas
@@ -358,12 +320,10 @@
 
             try {
                 const search = document.getElementById('search').value;
-                const proprietarioId = document.getElementById('proprietario-filter').value;
                 const status = document.getElementById('status-filter').value;
 
                 let url = '/api/imoveis/?limit=100';
                 if (search) url += `&search=${encodeURIComponent(search)}`;
-                if (proprietarioId) url += `&proprietario_id=${proprietarioId}`;
                 if (status) url += `&is_active=${status}`;
 
                 const response = await fetchWithAuth(url);
@@ -397,15 +357,20 @@
             const endereco = [imovel.endereco, imovel.cidade, imovel.estado]
                 .filter(Boolean)
                 .join(', ') || '-';
-            
-            const proprietarioNome = proprietariosMap[imovel.proprietario_id] || 'Desconhecido';
 
             tr.innerHTML = `
                 <td class="px-6 py-4">
                     <div class="font-medium">${imovel.nome}</div>
                 </td>
                 <td class="px-6 py-4 text-sm">${endereco}</td>
-                <td class="px-6 py-4 text-sm">${proprietarioNome}</td>
+                <td class="px-6 py-4 text-sm">
+                    <span class="text-blue-400 cursor-pointer hover:text-blue-300" 
+                          onclick="window.location.href='/participacoes?imovel=${imovel.id}'" 
+                          title="Ver participações">
+                        <span class="material-symbols-outlined text-sm align-middle">group</span>
+                        Ver participações
+                    </span>
+                </td>
                 <td class="px-6 py-4 text-sm">${formatCurrency(imovel.valor_aluguel || 0)}</td>
                 <td class="px-6 py-4">
                     <span class="px-2 py-1 text-xs rounded-full badge-${imovel.status || 'disponivel'}">
@@ -459,7 +424,6 @@
                 document.getElementById('modal-title').textContent = 'Editar Imóvel';
                 
                 document.getElementById('nome').value = imovel.nome || '';
-                document.getElementById('proprietario_id').value = imovel.proprietario_id || '';
                 document.getElementById('endereco').value = imovel.endereco || '';
                 document.getElementById('cidade').value = imovel.cidade || '';
                 document.getElementById('estado').value = imovel.estado || '';
@@ -486,7 +450,6 @@
 
             const data = {
                 nome: document.getElementById('nome').value,
-                proprietario_id: parseInt(document.getElementById('proprietario_id').value),
                 endereco: document.getElementById('endereco').value || null,
                 cidade: document.getElementById('cidade').value || null,
                 estado: document.getElementById('estado').value.toUpperCase() || null,
