@@ -24,6 +24,7 @@ router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 class DashboardStats(BaseModel):
     total_imoveis: int
     imoveis_ativos: int
+    imoveis_disponiveis: int
     total_proprietarios: int
     total_alugueis: int
     valor_total_esperado: float
@@ -128,6 +129,10 @@ async def get_dashboard_stats(
     
     total_imoveis = query_imoveis.count()
     imoveis_ativos = query_imoveis.filter(Imovel.is_active == True).count()
+    imoveis_disponiveis = query_imoveis.filter(
+        Imovel.is_active == True,
+        Imovel.status == 'disponivel'
+    ).count()
     
     # Total de proprietários
     total_proprietarios = db.query(Proprietario).count()
@@ -143,6 +148,7 @@ async def get_dashboard_stats(
     return DashboardStats(
         total_imoveis=total_imoveis,
         imoveis_ativos=imoveis_ativos,
+        imoveis_disponiveis=imoveis_disponiveis,
         total_proprietarios=total_proprietarios,
         total_alugueis=stats_mes.total_alugueis or 0,
         valor_total_esperado=valor_mes,

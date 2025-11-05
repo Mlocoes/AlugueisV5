@@ -49,6 +49,7 @@ class ImovelBase(BaseModel):
     valor_aluguel: Optional[float] = Field(None, ge=0)
     valor_condominio: Optional[float] = Field(None, ge=0)
     valor_iptu: Optional[float] = Field(None, ge=0)
+    status: Optional[str] = Field('disponivel', pattern=r'^(disponivel|alugado)$')
 
 
 class ImovelCreate(ImovelBase):
@@ -64,6 +65,7 @@ class ImovelUpdate(BaseModel):
     valor_aluguel: Optional[float] = Field(None, ge=0)
     valor_condominio: Optional[float] = Field(None, ge=0)
     valor_iptu: Optional[float] = Field(None, ge=0)
+    status: Optional[str] = Field(None, pattern=r'^(disponivel|alugado)$')
     is_active: Optional[bool] = None
 
 

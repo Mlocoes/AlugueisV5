@@ -32,6 +32,7 @@ class Imovel(Base):
     proprietario_id = Column(Integer, ForeignKey("proprietarios.id"), nullable=False, index=True)
     
     # Status
+    status = Column(String(20), nullable=False, default='disponivel')  # 'disponivel' ou 'alugado'
     is_active = Column(Boolean, default=True)
     
     # Timestamps

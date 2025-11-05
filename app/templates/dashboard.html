@@ -58,11 +58,11 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-blue-200 text-sm font-medium">Imóveis Disponíveis</p>
-                        <p id="total-imoveis" class="text-3xl font-bold text-white mt-2">
+                        <p id="imoveis-disponiveis" class="text-3xl font-bold text-white mt-2">
                             <span class="loading-shimmer">-</span>
                         </p>
                         <p class="text-blue-200 text-xs mt-1">
-                            <span id="imoveis-ativos" class="font-semibold">-</span> disponíveis
+                            de <span id="total-imoveis" class="font-semibold">-</span> cadastrados
                         </p>
                     </div>
                     <div class="bg-blue-600 bg-opacity-50 rounded-full p-4">
@@ -249,8 +249,8 @@ async function loadStats() {
         document.getElementById('periodo-esperado').textContent = mesesNomes[currentMonth];
         
         // Animar números
+        animateNumber('imoveis-disponiveis', stats.imoveis_disponiveis);
         animateNumber('total-imoveis', stats.total_imoveis);
-        animateNumber('imoveis-ativos', stats.imoveis_ativos);
         animateNumber('total-proprietarios', stats.total_proprietarios);
         animateNumber('total-alugueis', stats.total_alugueis);
         
