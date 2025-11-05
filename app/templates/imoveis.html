@@ -108,8 +108,8 @@
                     <label class="block text-sm text-gray-400 mb-2">Status</label>
                     <select id="status-filter" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
                         <option value="">Todos</option>
-                        <option value="true">Ativos</option>
-                        <option value="false">Inativos</option>
+                        <option value="alugado">Alugado</option>
+                        <option value="disponivel">Disponível</option>
                     </select>
                 </div>
                 <button onclick="openModal()" class="btn-primary text-white px-6 py-2 rounded-lg flex items-center gap-2 hover:opacity-90">
@@ -325,7 +325,7 @@
 
                 let url = '/api/imoveis/?limit=100';
                 if (search) url += `&search=${encodeURIComponent(search)}`;
-                if (status) url += `&is_active=${status}`;
+                if (status) url += `&status=${status}`;
 
                 const response = await fetchWithAuth(url);
                 
