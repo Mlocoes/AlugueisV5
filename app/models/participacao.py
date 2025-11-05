@@ -14,9 +14,6 @@ class Participacao(Base):
     imovel_id = Column(Integer, ForeignKey("imoveis.id"), nullable=False, index=True)
     proprietario_id = Column(Integer, ForeignKey("proprietarios.id"), nullable=False, index=True)
     
-    # Período (formato: YYYY-MM)
-    mes_referencia = Column(String(7), nullable=False, index=True)
-    
     # Valores
     percentual = Column(Float, nullable=False)  # 0-100
     

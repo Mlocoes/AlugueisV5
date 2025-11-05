@@ -85,12 +85,6 @@
                         <option value="">Todos</option>
                     </select>
                 </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Mês de Referência</label>
-                    <input type="month" id="filter-mes" 
-                        class="w-full bg-[var(--bg-dark)] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--primary)]">
-                </div>
             </div>
         </div>
 
@@ -102,7 +96,6 @@
                         <tr>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Imóvel</th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Proprietário</th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Mês Referência</th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Percentual</th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Ações</th>
                         </tr>
@@ -146,13 +139,6 @@
                         <option value="">Selecione um proprietário</option>
                     </select>
                 </div>
-            </div>
-
-            <!-- Mês de Referência -->
-            <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Mês de Referência *</label>
-                <input type="month" id="mes_referencia" required
-                    class="w-full bg-[var(--bg-dark)] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--primary)]">
             </div>
 
             <!-- Percentual -->
@@ -204,7 +190,6 @@ function debounceSearch() {
 document.getElementById('search').addEventListener('input', debounceSearch);
 document.getElementById('filter-imovel').addEventListener('change', () => loadParticipacoes());
 document.getElementById('filter-proprietario').addEventListener('change', () => loadParticipacoes());
-document.getElementById('filter-mes').addEventListener('change', () => loadParticipacoes());
 
 // Carregar dados iniciais
 async function init() {
@@ -296,13 +281,11 @@ async function loadParticipacoes() {
         const search = document.getElementById('search').value;
         const imovelId = document.getElementById('filter-imovel').value;
         const proprietarioId = document.getElementById('filter-proprietario').value;
-        const mes = document.getElementById('filter-mes').value;
         
         let url = '/api/participacoes/?limit=1000';
         if (search) url += `&search=${encodeURIComponent(search)}`;
         if (imovelId) url += `&imovel_id=${imovelId}`;
         if (proprietarioId) url += `&proprietario_id=${proprietarioId}`;
-        if (mes) url += `&mes_referencia=${mes}`;
         
         participacoes = await fetchWithAuth(url);
         if (participacoes) {
@@ -333,13 +316,10 @@ function renderParticipacoes() {
 }
 
 function createParticipacaoRow(participacao) {
-    const mes = formatMesReferencia(participacao.mes_referencia);
-    
     return `
         <tr class="hover:bg-gray-800/50 transition-colors">
             <td class="px-6 py-4 text-gray-200">${participacao.imovel_nome || 'N/A'}</td>
             <td class="px-6 py-4 text-gray-200">${participacao.proprietario_nome || 'N/A'}</td>
-            <td class="px-6 py-4 text-gray-200">${mes}</td>
             <td class="px-6 py-4">
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-500/20 text-blue-400">
                     ${participacao.percentual.toFixed(2)}%
@@ -350,20 +330,13 @@ function createParticipacaoRow(participacao) {
                     <button onclick="editarParticipacao(${participacao.id})" class="text-blue-400 hover:text-blue-300" title="Editar">
                         <span class="material-symbols-outlined">edit</span>
                     </button>
-                    <button onclick="deletarParticipacao(${participacao.id}, '${participacao.imovel_nome}', '${mes}')" class="text-red-400 hover:text-red-300" title="Deletar">
+                    <button onclick="deletarParticipacao(${participacao.id}, '${participacao.imovel_nome}', '')" class="text-red-400 hover:text-red-300" title="Deletar">
                         <span class="material-symbols-outlined">delete</span>
                     </button>
                 </div>
             </td>
         </tr>
     `;
-}
-
-function formatMesReferencia(mesRef) {
-    if (!mesRef) return 'N/A';
-    const [ano, mes] = mesRef.split('-');
-    const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-    return `${meses[parseInt(mes) - 1]}/${ano}`;
 }
 
 function openModal() {
@@ -387,7 +360,6 @@ async function editarParticipacao(id) {
     document.getElementById('participacao-id').value = participacao.id;
     document.getElementById('imovel_id').value = participacao.imovel_id;
     document.getElementById('proprietario_id').value = participacao.proprietario_id;
-    document.getElementById('mes_referencia').value = participacao.mes_referencia;
     document.getElementById('percentual').value = participacao.percentual;
     document.getElementById('observacoes').value = participacao.observacoes || '';
     
@@ -421,7 +393,6 @@ document.getElementById('participacao-form').addEventListener('submit', async (e
     const data = {
         imovel_id: parseInt(document.getElementById('imovel_id').value),
         proprietario_id: parseInt(document.getElementById('proprietario_id').value),
-        mes_referencia: document.getElementById('mes_referencia').value,
         percentual: parseFloat(document.getElementById('percentual').value),
         observacoes: document.getElementById('observacoes').value || null
     };

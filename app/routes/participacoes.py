@@ -19,15 +19,8 @@ router = APIRouter(prefix="/api/participacoes", tags=["participacoes"])
 class ParticipacaoBase(BaseModel):
     imovel_id: int
     proprietario_id: int
-    mes_referencia: str = Field(..., description="Formato: YYYY-MM")
     percentual: float = Field(..., ge=0, le=100, description="Percentual de participação (0-100)")
     observacoes: Optional[str] = None
-
-    @validator('mes_referencia')
-    def validate_mes_referencia(cls, v):
-        if not re.match(r'^\d{4}-\d{2}$', v):
-            raise ValueError('mes_referencia deve estar no formato YYYY-MM')
-        return v
 
     class Config:
         from_attributes = True
@@ -40,15 +33,8 @@ class ParticipacaoCreate(ParticipacaoBase):
 class ParticipacaoUpdate(BaseModel):
     imovel_id: Optional[int] = None
     proprietario_id: Optional[int] = None
-    mes_referencia: Optional[str] = None
     percentual: Optional[float] = Field(None, ge=0, le=100)
     observacoes: Optional[str] = None
-
-    @validator('mes_referencia')
-    def validate_mes_referencia(cls, v):
-        if v is not None and not re.match(r'^\d{4}-\d{2}$', v):
-            raise ValueError('mes_referencia deve estar no formato YYYY-MM')
-        return v
 
     class Config:
         from_attributes = True
@@ -75,7 +61,6 @@ async def listar_participacoes(
     search: Optional[str] = Query(None, description="Buscar em observações, nome do imóvel ou proprietário"),
     imovel_id: Optional[int] = Query(None, description="Filtrar por imóvel"),
     proprietario_id: Optional[int] = Query(None, description="Filtrar por proprietário"),
-    mes_referencia: Optional[str] = Query(None, description="Filtrar por mês (YYYY-MM)"),
     db: Session = Depends(get_db),
     current_user: Usuario = Depends(get_current_user_from_cookie)
 ):
@@ -92,9 +77,6 @@ async def listar_participacoes(
     if proprietario_id:
         query = query.filter(Participacao.proprietario_id == proprietario_id)
     
-    if mes_referencia:
-        query = query.filter(Participacao.mes_referencia == mes_referencia)
-    
     if search:
         search_filter = f"%{search}%"
         query = query.join(Imovel).join(Proprietario).filter(
@@ -104,7 +86,7 @@ async def listar_participacoes(
         )
     
     # Paginação
-    participacoes = query.order_by(Participacao.mes_referencia.desc(), Participacao.id.desc()).offset(skip).limit(limit).all()
+    participacoes = query.order_by(Participacao.id.desc()).offset(skip).limit(limit).all()
     
     # Enriquecer com dados relacionados
     result = []
@@ -136,17 +118,16 @@ async def criar_participacao(
     if not proprietario:
         raise HTTPException(status_code=404, detail="Proprietário não encontrado")
     
-    # Verificar se já existe participação para este imóvel, proprietário e mês
+    # Verificar se já existe participação para este imóvel e proprietário
     existing = db.query(Participacao).filter(
         Participacao.imovel_id == participacao.imovel_id,
-        Participacao.proprietario_id == participacao.proprietario_id,
-        Participacao.mes_referencia == participacao.mes_referencia
+        Participacao.proprietario_id == participacao.proprietario_id
     ).first()
     
     if existing:
         raise HTTPException(
             status_code=400, 
-            detail="Já existe uma participação para este imóvel, proprietário e mês"
+            detail="Já existe uma participação para este imóvel e proprietário"
         )
     
     # Criar participação
@@ -213,22 +194,20 @@ async def atualizar_participacao(
             raise HTTPException(status_code=404, detail="Proprietário não encontrado")
     
     # Verificar duplicata se campos chave foram alterados
-    if any([participacao_update.imovel_id, participacao_update.proprietario_id, participacao_update.mes_referencia]):
+    if any([participacao_update.imovel_id, participacao_update.proprietario_id]):
         new_imovel_id = participacao_update.imovel_id or db_participacao.imovel_id
         new_proprietario_id = participacao_update.proprietario_id or db_participacao.proprietario_id
-        new_mes = participacao_update.mes_referencia or db_participacao.mes_referencia
         
         existing = db.query(Participacao).filter(
             Participacao.id != participacao_id,
             Participacao.imovel_id == new_imovel_id,
-            Participacao.proprietario_id == new_proprietario_id,
-            Participacao.mes_referencia == new_mes
+            Participacao.proprietario_id == new_proprietario_id
         ).first()
         
         if existing:
             raise HTTPException(
                 status_code=400,
-                detail="Já existe uma participação para este imóvel, proprietário e mês"
+                detail="Já existe uma participação para este imóvel e proprietário"
             )
     
     # Atualizar campos fornecidos
@@ -297,7 +276,6 @@ async def obter_estatisticas(
 @router.get("/imovel/{imovel_id}", response_model=List[ParticipacaoResponse])
 async def listar_participacoes_por_imovel(
     imovel_id: int,
-    mes_referencia: Optional[str] = Query(None, description="Filtrar por mês (YYYY-MM)"),
     db: Session = Depends(get_db),
     current_user: Usuario = Depends(get_current_user_from_cookie)
 ):
@@ -311,10 +289,7 @@ async def listar_participacoes_por_imovel(
     
     query = db.query(Participacao).filter(Participacao.imovel_id == imovel_id)
     
-    if mes_referencia:
-        query = query.filter(Participacao.mes_referencia == mes_referencia)
-    
-    participacoes = query.order_by(Participacao.mes_referencia.desc()).all()
+    participacoes = query.order_by(Participacao.id.desc()).all()
     
     # Enriquecer com dados relacionados
     result = []

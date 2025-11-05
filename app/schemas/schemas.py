@@ -128,7 +128,6 @@ class AluguelResponse(AluguelBase):
 # ===== PARTICIPACAO SCHEMAS =====
 
 class ParticipaçãoBase(BaseModel):
-    mes_referencia: str = Field(..., pattern=r"^\d{4}-(0[1-9]|1[0-2])$")
     percentual: float = Field(..., ge=0, le=100)
     observacoes: Optional[str] = None
 
