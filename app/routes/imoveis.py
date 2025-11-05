@@ -20,7 +20,6 @@ async def list_imoveis(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     search: Optional[str] = None,
-    proprietario_id: Optional[int] = None,
     is_active: Optional[bool] = None,
     status: Optional[str] = None,
     db: Session = Depends(get_db),
@@ -32,10 +31,6 @@ async def list_imoveis(
     - Usuários normais não têm restrição (todos podem ver todos os imóveis)
     """
     query = db.query(Imovel)
-    
-    # Filtro por proprietário
-    if proprietario_id:
-        query = query.filter(Imovel.proprietario_id == proprietario_id)
     
     # Filtro de busca
     if search:
@@ -93,16 +88,8 @@ async def create_imovel(
 ):
     """
     Cria novo imóvel
-    - Todos os usuários podem criar imóveis para qualquer proprietário
+    - Todos os usuários podem criar imóveis
     """
-    # Verificar se proprietário existe
-    proprietario = db.query(Proprietario).filter(Proprietario.id == imovel_data.proprietario_id).first()
-    if not proprietario:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Proprietário não encontrado"
-        )
-    
     # Criar imóvel
     new_imovel = Imovel(**imovel_data.model_dump())
     

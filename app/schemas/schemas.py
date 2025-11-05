@@ -53,7 +53,7 @@ class ImovelBase(BaseModel):
 
 
 class ImovelCreate(ImovelBase):
-    proprietario_id: Optional[int] = None  # Opcional: proprietários definidos em participacoes
+    pass  # Todos os campos são opcionais exceto nome
 
 
 class ImovelUpdate(BaseModel):
@@ -71,7 +71,6 @@ class ImovelUpdate(BaseModel):
 
 class ImovelResponse(ImovelBase):
     id: int
-    proprietario_id: Optional[int] = None
     is_active: bool
     created_at: datetime
     updated_at: datetime

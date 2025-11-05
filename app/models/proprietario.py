@@ -56,7 +56,6 @@ class Proprietario(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relacionamentos
-    imoveis = relationship("Imovel", back_populates="proprietario", cascade="all, delete-orphan")
     participacoes = relationship("Participacao", back_populates="proprietario", cascade="all, delete-orphan")
 
     def __repr__(self):

@@ -26,11 +26,6 @@ class Imovel(Base):
     valor_aluguel = Column(Float, nullable=True)
     valor_condominio = Column(Float, nullable=True)
     valor_iptu = Column(Float, nullable=True)
-    iptu_anual = Column(Float, nullable=True)
-    
-    # Proprietário (DEPRECATED: usar tabela participacoes)
-    # Mantido para compatibilidade com dados antigos e filtros
-    proprietario_id = Column(Integer, ForeignKey("proprietarios.id"), nullable=True, index=True)
     
     # Status
     status = Column(String(20), nullable=False, default='disponivel')  # 'disponivel' ou 'alugado'
@@ -41,9 +36,8 @@ class Imovel(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relacionamentos
-    proprietario = relationship("Proprietario", back_populates="imoveis")
     alugueis = relationship("AluguelMensal", back_populates="imovel", cascade="all, delete-orphan")
     participacoes = relationship("Participacao", back_populates="imovel", cascade="all, delete-orphan")
 
     def __repr__(self):
-        return f"<Imovel(id={self.id}, nome='{self.nome}', proprietario_id={self.proprietario_id})>"
+        return f"<Imovel(id={self.id}, nome='{self.nome}')>"
