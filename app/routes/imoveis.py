@@ -22,6 +22,7 @@ async def list_imoveis(
     search: Optional[str] = None,
     proprietario_id: Optional[int] = None,
     is_active: Optional[bool] = None,
+    status: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: Usuario = Depends(get_current_user_from_cookie)
 ):
@@ -47,9 +48,13 @@ async def list_imoveis(
             )
         )
     
-    # Filtro de status
+    # Filtro de status (is_active)
     if is_active is not None:
         query = query.filter(Imovel.is_active == is_active)
+    
+    # Filtro de status (alugado/disponivel)
+    if status:
+        query = query.filter(Imovel.status == status)
     
     # Paginação
     imoveis = query.offset(skip).limit(limit).all()
