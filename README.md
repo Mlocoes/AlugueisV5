@@ -188,7 +188,8 @@ cp .env.example .env
 docker-compose up -d
 
 # 4. Acesse a aplicação
-# http://localhost:8000
+# Localmente: http://localhost:8000
+# Por IP: http://<IP-DO-SERVIDOR>:8000
 # As migrações e inicialização são feitas automaticamente!
 ```
 
@@ -196,6 +197,7 @@ docker-compose up -d
 - ✅ Migrações de banco de dados (`alembic upgrade head`)
 - ✅ Criação do usuário administrador padrão
 - ✅ Reinicialização automática quando o servidor reinicia
+- ✅ Servidor configurado para aceitar conexões via IP (`HOST=0.0.0.0`)
 
 ### Opção 2: Instalação Local
 
@@ -212,15 +214,22 @@ source venv/bin/activate  # Linux/Mac
 # 3. Instale as dependências
 pip install -r requirements.txt
 
-# 4. Configure o banco de dados PostgreSQL
+# 4. Configure as variáveis de ambiente
+cp .env.example .env
 # Edite o .env com suas credenciais
+# IMPORTANTE: Mantenha HOST=0.0.0.0 para permitir acesso via IP
 
-# 5. Execute as migrações
+# 5. Configure o banco de dados PostgreSQL
+# Certifique-se de que o PostgreSQL está rodando e acessível
+
+# 6. Execute as migrações
 alembic upgrade head
 
-# 6. Inicie o servidor
+# 7. Inicie o servidor
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
+
+**⚠️ Importante:** O parâmetro `--host 0.0.0.0` permite acesso via IP da rede. Para restringir apenas a localhost, use `--host 127.0.0.1`.
 
 ---
 
@@ -228,12 +237,22 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ### Primeiro Acesso
 
-1. Acesse `http://localhost:8000/login`
+1. Acesse a aplicação:
+   - **Localmente**: `http://localhost:8000/login`
+   - **Por IP na rede**: `http://<IP-DO-SERVIDOR>:8000/login`
+     - Exemplo: `http://192.168.1.100:8000/login`
+     - Para descobrir o IP do servidor: `ip addr` (Linux) ou `ipconfig` (Windows)
+
 2. Use as credenciais padrão (criadas automaticamente):
    - **Email**: admin@sistema.com
    - **Senha**: admin123
 
 3. ⚠️ **IMPORTANTE**: Altere a senha padrão em "Administração > Meu Perfil"
+
+**📝 Nota sobre Acesso por IP:**
+- A aplicação está configurada para aceitar conexões de qualquer IP (`HOST=0.0.0.0`)
+- Certifique-se de que o firewall permite acesso à porta 8000
+- Em produção, recomenda-se usar HTTPS e configurar um proxy reverso (Nginx/Apache)
 
 ### Fluxo Básico de Uso
 
@@ -472,6 +491,92 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 - Google Material Symbols
 - Handsontable
 - Chart.js
+
+---
+
+## 🔧 Troubleshooting
+
+### Não consigo acessar o sistema via IP
+
+**Problema:** O sistema só funciona em `localhost`, mas não via IP (ex: `192.168.1.100:8000`)
+
+**Soluções:**
+
+1. **Verificar configuração do HOST**
+   ```bash
+   # Certifique-se de que o .env contém:
+   HOST=0.0.0.0
+   PORT=8000
+   ```
+
+2. **Verificar comando de inicialização**
+   ```bash
+   # Use o parâmetro --host 0.0.0.0
+   uvicorn app.main:app --host 0.0.0.0 --port 8000
+   ```
+
+3. **Verificar firewall**
+   ```bash
+   # Linux (Ubuntu/Debian)
+   sudo ufw allow 8000/tcp
+   sudo ufw status
+   
+   # Windows
+   # Painel de Controle > Sistema e Segurança > Firewall do Windows
+   # Adicionar regra de entrada para porta 8000
+   ```
+
+4. **Verificar o IP do servidor**
+   ```bash
+   # Linux
+   ip addr show
+   # ou
+   hostname -I
+   
+   # Windows
+   ipconfig
+   
+   # macOS
+   ifconfig
+   ```
+
+5. **Docker: Verificar mapeamento de portas**
+   ```bash
+   # O docker-compose.yml deve ter:
+   ports:
+     - "8000:8000"
+   
+   # Verificar containers rodando:
+   docker-compose ps
+   ```
+
+6. **Testar conectividade**
+   ```bash
+   # De outra máquina na rede, teste:
+   curl http://<IP-DO-SERVIDOR>:8000/health
+   
+   # Ou via navegador:
+   http://<IP-DO-SERVIDOR>:8000
+   ```
+
+### Outros Problemas Comuns
+
+**Porta já em uso:**
+```bash
+# Encontrar processo usando a porta 8000
+lsof -i :8000  # Linux/Mac
+netstat -ano | findstr :8000  # Windows
+
+# Matar o processo ou usar outra porta
+uvicorn app.main:app --host 0.0.0.0 --port 8001
+```
+
+**Erro de conexão com banco de dados:**
+```bash
+# Verificar se PostgreSQL está rodando
+docker-compose ps
+docker-compose logs db
+```
 
 ---
 

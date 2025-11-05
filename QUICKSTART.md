@@ -40,9 +40,22 @@ docker-compose up -d
 - ✅ Inicia o servidor da aplicação
 
 ### 2. Acessar aplicação
+
+**Localmente:**
 ```
 http://localhost:8000
 ```
+
+**Por IP na rede:**
+```
+http://<IP-DO-SERVIDOR>:8000
+```
+Exemplo: `http://192.168.1.100:8000`
+
+Para descobrir o IP:
+- Linux: `ip addr show` ou `hostname -I`
+- Windows: `ipconfig`
+- macOS: `ifconfig` ou `ipconfig getifaddr en0`
 
 **Credenciais padrão:**
 - Email: `admin@sistema.com`
@@ -51,9 +64,13 @@ http://localhost:8000
 ### 3. Acessar documentação da API
 ```
 http://localhost:8000/docs
+ou
+http://<IP-DO-SERVIDOR>:8000/docs
 ```
 
 **Nota:** Os passos manuais de migração e criação de admin não são mais necessários! O sistema se reinicializa automaticamente quando o servidor reinicia.
+
+**🌐 Acesso via IP:** A aplicação está configurada com `HOST=0.0.0.0`, permitindo acesso de qualquer IP na rede. Certifique-se de que o firewall permite conexões na porta 8000.
 
 ---
 
@@ -86,6 +103,7 @@ pip install -r requirements.txt
 ```bash
 cp .env.example .env
 # Editar .env com suas credenciais
+# IMPORTANTE: Verifique que HOST=0.0.0.0 para permitir acesso via IP
 ```
 
 ### 4. Executar migrações
@@ -104,9 +122,12 @@ python create_admin.py
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
+**⚠️ Importante:** O parâmetro `--host 0.0.0.0` é essencial para permitir acesso via IP da rede.
+
 ### 7. Acessar
 ```
-http://localhost:8000
+Localmente: http://localhost:8000
+Por IP: http://<IP-DO-SERVIDOR>:8000
 ```
 
 ---
