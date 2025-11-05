@@ -217,7 +217,9 @@ pip install -r requirements.txt
 # 4. Configure as variáveis de ambiente
 cp .env.example .env
 # Edite o .env com suas credenciais
-# IMPORTANTE: Mantenha HOST=0.0.0.0 para permitir acesso via IP
+# IMPORTANTE sobre HOST:
+#   HOST=0.0.0.0 - Permite acesso de qualquer IP (recomendado para servidores)
+#   HOST=127.0.0.1 - Permite apenas acesso local (mais seguro para desenvolvimento)
 
 # 5. Configure o banco de dados PostgreSQL
 # Certifique-se de que o PostgreSQL está rodando e acessível
@@ -241,7 +243,10 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
    - **Localmente**: `http://localhost:8000/login`
    - **Por IP na rede**: `http://<IP-DO-SERVIDOR>:8000/login`
      - Exemplo: `http://192.168.1.100:8000/login`
-     - Para descobrir o IP do servidor: `ip addr` (Linux) ou `ipconfig` (Windows)
+     - Para descobrir o IP do servidor:
+       - Linux: `ip addr` ou `hostname -I`
+       - Windows: `ipconfig`
+       - macOS: `ipconfig getifaddr en0`
 
 2. Use as credenciais padrão (criadas automaticamente):
    - **Email**: admin@sistema.com

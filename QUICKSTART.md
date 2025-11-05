@@ -55,7 +55,7 @@ Exemplo: `http://192.168.1.100:8000`
 Para descobrir o IP:
 - Linux: `ip addr show` ou `hostname -I`
 - Windows: `ipconfig`
-- macOS: `ifconfig` ou `ipconfig getifaddr en0`
+- macOS: `ipconfig getifaddr en0` (interface principal)
 
 **Credenciais padrão:**
 - Email: `admin@sistema.com`
