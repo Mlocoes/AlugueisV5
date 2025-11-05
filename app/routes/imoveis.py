@@ -52,8 +52,13 @@ async def list_imoveis(
     if is_active is not None:
         query = query.filter(Imovel.is_active == is_active)
     
-    # Filtro de status (alugado/disponivel)
+    # Filtro de status por situação de aluguel (alugado/disponivel)
     if status:
+        if status not in ['alugado', 'disponivel']:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Status deve ser 'alugado' ou 'disponivel'"
+            )
         query = query.filter(Imovel.status == status)
     
     # Paginação
