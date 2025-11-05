@@ -21,7 +21,6 @@ class ParticipacaoBase(BaseModel):
     proprietario_id: int
     mes_referencia: str = Field(..., description="Formato: YYYY-MM")
     percentual: float = Field(..., ge=0, le=100, description="Percentual de participação (0-100)")
-    valor_participacao: float = Field(default=0.0, ge=0)
     observacoes: Optional[str] = None
 
     @validator('mes_referencia')
@@ -43,7 +42,6 @@ class ParticipacaoUpdate(BaseModel):
     proprietario_id: Optional[int] = None
     mes_referencia: Optional[str] = None
     percentual: Optional[float] = Field(None, ge=0, le=100)
-    valor_participacao: Optional[float] = Field(None, ge=0)
     observacoes: Optional[str] = None
 
     @validator('mes_referencia')
@@ -289,18 +287,10 @@ async def obter_estatisticas(
     # Contar participações únicas por proprietário
     proprietarios_distintos = db.query(Participacao.proprietario_id).distinct().count()
     
-    # Valor total de participações
-    valor_total = db.query(Participacao).with_entities(
-        Participacao.valor_participacao
-    ).all()
-    
-    soma_valores = sum([v[0] for v in valor_total if v[0]])
-    
     return {
         "total": total,
         "imoveis_com_participacao": imoveis_distintos,
-        "proprietarios_participantes": proprietarios_distintos,
-        "valor_total": round(soma_valores, 2)
+        "proprietarios_participantes": proprietarios_distintos
     }
 
 

@@ -22,7 +22,7 @@
         </div>
 
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="bg-[var(--card-dark)] rounded-lg p-6 border border-gray-800">
                 <div class="flex items-center justify-between">
                     <div>
@@ -55,18 +55,6 @@
                     </div>
                     <div class="bg-purple-500/20 p-3 rounded-lg">
                         <span class="material-symbols-outlined text-purple-400 text-2xl">person</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-[var(--card-dark)] rounded-lg p-6 border border-gray-800">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-400 text-sm mb-1">Valor Total</p>
-                        <p id="stat-valor" class="text-2xl font-bold text-white">R$ 0,00</p>
-                    </div>
-                    <div class="bg-yellow-500/20 p-3 rounded-lg">
-                        <span class="material-symbols-outlined text-yellow-400 text-2xl">payments</span>
                     </div>
                 </div>
             </div>
@@ -116,7 +104,6 @@
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Proprietário</th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Mês Referência</th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Percentual</th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Valor</th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Ações</th>
                         </tr>
                     </thead>
@@ -168,20 +155,12 @@
                     class="w-full bg-[var(--bg-dark)] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--primary)]">
             </div>
 
-            <!-- Percentual e Valor -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Percentual (%) *</label>
-                    <input type="number" id="percentual" min="0" max="100" step="0.01" required placeholder="0.00"
-                        class="w-full bg-[var(--bg-dark)] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--primary)]">
-                    <p class="text-xs text-gray-500 mt-1">Valor entre 0 e 100</p>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Valor de Participação (R$) *</label>
-                    <input type="number" id="valor_participacao" min="0" step="0.01" required placeholder="0.00"
-                        class="w-full bg-[var(--bg-dark)] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--primary)]">
-                </div>
+            <!-- Percentual -->
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Percentual (%) *</label>
+                <input type="number" id="percentual" min="0" max="100" step="0.01" required placeholder="0.00"
+                    class="w-full bg-[var(--bg-dark)] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--primary)]">
+                <p class="text-xs text-gray-500 mt-1">Valor entre 0 e 100</p>
             </div>
 
             <!-- Observações -->
@@ -306,7 +285,6 @@ async function loadStats() {
             document.getElementById('stat-total').textContent = stats.total;
             document.getElementById('stat-imoveis').textContent = stats.imoveis_com_participacao;
             document.getElementById('stat-proprietarios').textContent = stats.proprietarios_participantes;
-            document.getElementById('stat-valor').textContent = formatCurrency(stats.valor_total);
         }
     } catch (error) {
         console.error('Erro ao carregar estatísticas:', error);
@@ -367,7 +345,6 @@ function createParticipacaoRow(participacao) {
                     ${participacao.percentual.toFixed(2)}%
                 </span>
             </td>
-            <td class="px-6 py-4 text-gray-200 font-medium">${formatCurrency(participacao.valor_participacao)}</td>
             <td class="px-6 py-4">
                 <div class="flex gap-2">
                     <button onclick="editarParticipacao(${participacao.id})" class="text-blue-400 hover:text-blue-300" title="Editar">
@@ -412,7 +389,6 @@ async function editarParticipacao(id) {
     document.getElementById('proprietario_id').value = participacao.proprietario_id;
     document.getElementById('mes_referencia').value = participacao.mes_referencia;
     document.getElementById('percentual').value = participacao.percentual;
-    document.getElementById('valor_participacao').value = participacao.valor_participacao;
     document.getElementById('observacoes').value = participacao.observacoes || '';
     
     openModal();
@@ -447,7 +423,6 @@ document.getElementById('participacao-form').addEventListener('submit', async (e
         proprietario_id: parseInt(document.getElementById('proprietario_id').value),
         mes_referencia: document.getElementById('mes_referencia').value,
         percentual: parseFloat(document.getElementById('percentual').value),
-        valor_participacao: parseFloat(document.getElementById('valor_participacao').value),
         observacoes: document.getElementById('observacoes').value || null
     };
     
@@ -459,16 +434,6 @@ document.getElementById('participacao-form').addEventListener('submit', async (e
     
     if (!data.proprietario_id) {
         showToast('Selecione um proprietário', 'error');
-        return;
-    }
-    
-    if (data.percentual < 0 || data.percentual > 100) {
-        showToast('Percentual deve estar entre 0 e 100', 'error');
-        return;
-    }
-    
-    if (data.valor_participacao < 0) {
-        showToast('Valor não pode ser negativo', 'error');
         return;
     }
     

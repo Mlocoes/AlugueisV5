@@ -147,7 +147,6 @@ class ParticipaçãoResponse(ParticipaçãoBase):
     id: int
     imovel_id: int
     proprietario_id: int
-    valor_participacao: float
     created_at: datetime
     updated_at: datetime
 

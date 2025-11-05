@@ -19,7 +19,6 @@ class Participacao(Base):
     
     # Valores
     percentual = Column(Float, nullable=False)  # 0-100
-    valor_participacao = Column(Float, nullable=False, default=0.0)
     
     # Observações
     observacoes = Column(String(500), nullable=True)
