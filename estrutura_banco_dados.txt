@@ -44,7 +44,6 @@ TABELA: IMOVEIS
   valor_aluguel             | double precision     | NULL     |  
   valor_condominio          | double precision     | NULL     |  
   valor_iptu                | double precision     | NULL     |  
-  proprietario_id           | integer              | NULL     |  
   is_active                 | boolean              | NULL     |  
   created_at                | timestamp without ti | NULL     |  
   updated_at                | timestamp without ti | NULL     |  
@@ -53,7 +52,6 @@ TABELA: IMOVEIS
   area_construida           | double precision     | NULL     |  
   valor_catastral           | double precision     | NULL     |  
   valor_mercado             | double precision     | NULL     |  
-  iptu_anual                | double precision     | NULL     |  
   status                    | character varying    | NOT NULL | 'disponivel'::character varying 
 
 TABELA: PARTICIPACOES
@@ -63,7 +61,6 @@ TABELA: PARTICIPACOES
   proprietario_id           | integer              | NOT NULL |  
   mes_referencia            | character varying    | NOT NULL |  
   percentual                | double precision     | NOT NULL |  
-  valor_participacao        | double precision     | NOT NULL |  
   observacoes               | character varying    | NULL     |  
   created_at                | timestamp without ti | NULL     |  
   updated_at                | timestamp without ti | NULL     |  
