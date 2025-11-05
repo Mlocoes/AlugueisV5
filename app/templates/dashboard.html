@@ -5,6 +5,19 @@
     <!-- Navbar -->
     {% include "navbar.html" %}
 
+    <style>
+    /* Escala todo o bloco de stats em 70% (reduz 30%) */
+    .dashboard-scale {
+        transform: scale(0.7);
+        transform-origin: top left;
+        display: inline-block; /* para que o scale afete o bloco inteiro */
+    }
+    /* Ajuste para evitar overflow horizontal indesejado */
+    @media (min-width: 1024px) {
+        .dashboard-scale { margin-left: 0; }
+    }
+    </style>
+
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <!-- Filtros de Período -->
@@ -37,8 +50,9 @@
             </div>
         </div>
 
-        <!-- Stats Cards with Animations -->
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+        <!-- Stats Cards with Animations (scaled) -->
+        <div class="dashboard-scale origin-top-left">
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
             <!-- Card 1: Total Imóveis -->
             <div class="bg-gradient-to-br from-blue-900 to-blue-700 rounded-lg shadow-lg p-6 card-hover transform transition-all hover:scale-105">
                 <div class="flex items-center justify-between">
