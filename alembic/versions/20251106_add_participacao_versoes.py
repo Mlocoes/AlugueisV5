@@ -1,7 +1,7 @@
 """add participacao_versoes table
 
 Revision ID: 20251106_add_participacao_versoes
-Revises: 20251105_add_status_to_imoveis
+Revises: remove_mes_referencia
 Create Date: 2025-11-06
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '20251106_add_participacao_versoes'
-down_revision = '20251105_add_status_to_imoveis'
+down_revision = 'remove_mes_referencia'
 branch_labels = None
 depends_on = None
 
