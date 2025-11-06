@@ -1,0 +1,442 @@
+{% extends "base.html" %}
+
+{% block title %}Participações - Sistema de Aluguéis{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-bg-dark">
+    <!-- Navbar -->
+    {% include "navbar.html" %}
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-white mb-2">Participações</h1>
+                <p class="text-gray-400">Gestão de participações de proprietários nos imóveis</p>
+            </div>
+            <button onclick="openModal()" class="bg-[var(--primary)] hover:bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-colors">
+                <span class="material-symbols-outlined">add</span>
+                Nova Participação
+            </button>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-[var(--card-dark)] rounded-lg p-6 border border-gray-800">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm mb-1">Total</p>
+                        <p id="stat-total" class="text-2xl font-bold text-white">0</p>
+                    </div>
+                    <div class="bg-blue-500/20 p-3 rounded-lg">
+                        <span class="material-symbols-outlined text-blue-400 text-2xl">group</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-[var(--card-dark)] rounded-lg p-6 border border-gray-800">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm mb-1">Imóveis com Participação</p>
+                        <p id="stat-imoveis" class="text-2xl font-bold text-white">0</p>
+                    </div>
+                    <div class="bg-green-500/20 p-3 rounded-lg">
+                        <span class="material-symbols-outlined text-green-400 text-2xl">home</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-[var(--card-dark)] rounded-lg p-6 border border-gray-800">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm mb-1">Proprietários</p>
+                        <p id="stat-proprietarios" class="text-2xl font-bold text-white">0</p>
+                    </div>
+                    <div class="bg-purple-500/20 p-3 rounded-lg">
+                        <span class="material-symbols-outlined text-purple-400 text-2xl">person</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-[var(--card-dark)] rounded-lg p-6 border border-gray-800 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Buscar</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">search</span>
+                        <input type="text" id="search" placeholder="Buscar..." 
+                            class="w-full bg-[var(--bg-dark)] border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:border-[var(--primary)]">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Imóvel</label>
+                    <select id="filter-imovel" class="w-full bg-[var(--bg-dark)] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--primary)]">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Proprietário</label>
+                    <select id="filter-proprietario" class="w-full bg-[var(--bg-dark)] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--primary)]">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="bg-[var(--card-dark)] rounded-lg border border-gray-800 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-[var(--bg-dark)] border-b border-gray-800">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Imóvel</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Proprietário</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Percentual</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="participacoes-tbody" class="divide-y divide-gray-800">
+                        <!-- Dados serão inseridos aqui -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-[var(--card-dark)] rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="sticky top-0 bg-[var(--card-dark)] border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+            <h2 id="modal-title" class="text-xl font-bold text-white">Nova Participação</h2>
+            <button onclick="closeModal()" class="text-gray-400 hover:text-white">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <form id="participacao-form" class="p-6 space-y-6">
+            <input type="hidden" id="participacao-id">
+
+            <!-- Seleção de Imóvel e Proprietário -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Imóvel *</label>
+                    <select id="imovel_id" required
+                        class="w-full bg-[var(--bg-dark)] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--primary)]">
+                        <option value="">Selecione um imóvel</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Proprietário *</label>
+                    <select id="proprietario_id" required
+                        class="w-full bg-[var(--bg-dark)] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--primary)]">
+                        <option value="">Selecione um proprietário</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Percentual -->
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Percentual (%) *</label>
+                <input type="number" id="percentual" min="0" max="100" step="0.01" required placeholder="0.00"
+                    class="w-full bg-[var(--bg-dark)] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--primary)]">
+                <p class="text-xs text-gray-500 mt-1">Valor entre 0 e 100</p>
+            </div>
+
+            <!-- Observações -->
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Observações</label>
+                <textarea id="observacoes" rows="3" placeholder="Observações adicionais..."
+                    class="w-full bg-[var(--bg-dark)] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--primary)]"></textarea>
+            </div>
+
+            <!-- Botões -->
+            <div class="flex gap-3 justify-end pt-4 border-t border-gray-800">
+                <button type="button" onclick="closeModal()" 
+                    class="px-6 py-2 border border-gray-700 text-gray-300 rounded-lg hover:bg-gray-800 transition-colors">
+                    Cancelar
+                </button>
+                <button type="submit" 
+                    class="px-6 py-2 bg-[var(--primary)] hover:bg-blue-600 text-white rounded-lg transition-colors">
+                    Salvar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let participacoes = [];
+let imoveis = [];
+let proprietarios = [];
+let imoveisMap = {};
+let proprietariosMap = {};
+
+// Debounce para busca
+let searchTimeout;
+function debounceSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => loadParticipacoes(), 500);
+}
+
+document.getElementById('search').addEventListener('input', debounceSearch);
+document.getElementById('filter-imovel').addEventListener('change', () => loadParticipacoes());
+document.getElementById('filter-proprietario').addEventListener('change', () => loadParticipacoes());
+
+// Carregar dados iniciais
+async function init() {
+    await Promise.all([
+        loadImoveis(),
+        loadProprietarios(),
+        loadStats(),
+        loadParticipacoes()
+    ]);
+}
+
+async function loadImoveis() {
+    try {
+        imoveis = await fetchWithAuth('/api/imoveis/?limit=100&is_active=true');
+        
+        if (imoveis) {
+            // Criar map para lookup rápido
+            imoveisMap = {};
+            imoveis.forEach(i => {
+                imoveisMap[i.id] = i;
+            });
+            
+            // Preencher selects
+            const filterSelect = document.getElementById('filter-imovel');
+            const modalSelect = document.getElementById('imovel_id');
+            
+            filterSelect.innerHTML = '<option value="">Todos</option>';
+            modalSelect.innerHTML = '<option value="">Selecione um imóvel</option>';
+            
+            imoveis.forEach(imovel => {
+                if (imovel.is_active) {
+                    const option1 = `<option value="${imovel.id}">${imovel.nome}</option>`;
+                    filterSelect.innerHTML += option1;
+                    modalSelect.innerHTML += option1;
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Erro ao carregar imóveis:', error);
+    }
+}
+
+async function loadProprietarios() {
+    try {
+        proprietarios = await fetchWithAuth('/api/proprietarios/?limit=100&is_active=true');
+        
+        if (proprietarios) {
+            // Criar map para lookup rápido
+            proprietariosMap = {};
+            proprietarios.forEach(p => {
+                proprietariosMap[p.id] = p;
+            });
+            
+            // Preencher selects
+            const filterSelect = document.getElementById('filter-proprietario');
+            const modalSelect = document.getElementById('proprietario_id');
+            
+            filterSelect.innerHTML = '<option value="">Todos</option>';
+            modalSelect.innerHTML = '<option value="">Selecione um proprietário</option>';
+            
+            proprietarios.forEach(prop => {
+                if (prop.is_active) {
+                    const option = `<option value="${prop.id}">${prop.nome}</option>`;
+                    filterSelect.innerHTML += option;
+                    modalSelect.innerHTML += option;
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Erro ao carregar proprietários:', error);
+    }
+}
+
+async function loadStats() {
+    try {
+        const stats = await fetchWithAuth('/api/participacoes/stats/summary');
+        if (stats) {
+            document.getElementById('stat-total').textContent = stats.total;
+            document.getElementById('stat-imoveis').textContent = stats.imoveis_com_participacao;
+            document.getElementById('stat-proprietarios').textContent = stats.proprietarios_participantes;
+        }
+    } catch (error) {
+        console.error('Erro ao carregar estatísticas:', error);
+    }
+}
+
+async function loadParticipacoes() {
+    try {
+        const search = document.getElementById('search').value;
+        const imovelId = document.getElementById('filter-imovel').value;
+        const proprietarioId = document.getElementById('filter-proprietario').value;
+        
+        let url = '/api/participacoes/?limit=1000';
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        if (imovelId) url += `&imovel_id=${imovelId}`;
+        if (proprietarioId) url += `&proprietario_id=${proprietarioId}`;
+        
+        participacoes = await fetchWithAuth(url);
+        if (participacoes) {
+            renderParticipacoes();
+        }
+    } catch (error) {
+        console.error('Erro ao carregar participações:', error);
+        showToast('Erro ao carregar participações', 'error');
+    }
+}
+
+function renderParticipacoes() {
+    const tbody = document.getElementById('participacoes-tbody');
+    
+    if (participacoes.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="px-6 py-8 text-center text-gray-400">
+                    <span class="material-symbols-outlined text-5xl mb-2 opacity-50">search_off</span>
+                    <p>Nenhuma participação encontrada</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = participacoes.map(p => createParticipacaoRow(p)).join('');
+}
+
+function createParticipacaoRow(participacao) {
+    return `
+        <tr class="hover:bg-gray-800/50 transition-colors">
+            <td class="px-6 py-4 text-gray-200">${participacao.imovel_nome || 'N/A'}</td>
+            <td class="px-6 py-4 text-gray-200">${participacao.proprietario_nome || 'N/A'}</td>
+            <td class="px-6 py-4">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-500/20 text-blue-400">
+                    ${participacao.percentual.toFixed(2)}%
+                </span>
+            </td>
+            <td class="px-6 py-4">
+                <div class="flex gap-2">
+                    <button onclick="editarParticipacao(${participacao.id})" class="text-blue-400 hover:text-blue-300" title="Editar">
+                        <span class="material-symbols-outlined">edit</span>
+                    </button>
+                    <button onclick="deletarParticipacao(${participacao.id}, '${participacao.imovel_nome}', '')" class="text-red-400 hover:text-red-300" title="Deletar">
+                        <span class="material-symbols-outlined">delete</span>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
+function openModal() {
+    document.getElementById('modal').classList.remove('hidden');
+    document.getElementById('modal').classList.add('flex');
+    document.getElementById('modal-title').textContent = 'Nova Participação';
+    document.getElementById('participacao-form').reset();
+    document.getElementById('participacao-id').value = '';
+}
+
+function closeModal() {
+    document.getElementById('modal').classList.add('hidden');
+    document.getElementById('modal').classList.remove('flex');
+}
+
+async function editarParticipacao(id) {
+    const participacao = participacoes.find(p => p.id === id);
+    if (!participacao) return;
+    
+    document.getElementById('modal-title').textContent = 'Editar Participação';
+    document.getElementById('participacao-id').value = participacao.id;
+    document.getElementById('imovel_id').value = participacao.imovel_id;
+    document.getElementById('proprietario_id').value = participacao.proprietario_id;
+    document.getElementById('percentual').value = participacao.percentual;
+    document.getElementById('observacoes').value = participacao.observacoes || '';
+    
+    openModal();
+}
+
+async function deletarParticipacao(id, imovelNome, mes) {
+    if (!confirm(`Deseja realmente deletar a participação do imóvel "${imovelNome}" em ${mes}?`)) {
+        return;
+    }
+    
+    try {
+        const success = await fetchWithAuth(`/api/participacoes/${id}`, {
+            method: 'DELETE'
+        });
+        
+        if (success) {
+            showToast('Participação deletada com sucesso', 'success');
+            await Promise.all([loadStats(), loadParticipacoes()]);
+        }
+    } catch (error) {
+        console.error('Erro ao deletar:', error);
+        showToast(error.message || 'Erro ao deletar participação', 'error');
+    }
+}
+
+document.getElementById('participacao-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const id = document.getElementById('participacao-id').value;
+    const data = {
+        imovel_id: parseInt(document.getElementById('imovel_id').value),
+        proprietario_id: parseInt(document.getElementById('proprietario_id').value),
+        percentual: parseFloat(document.getElementById('percentual').value),
+        observacoes: document.getElementById('observacoes').value || null
+    };
+    
+    // Validações
+    if (!data.imovel_id) {
+        showToast('Selecione um imóvel', 'error');
+        return;
+    }
+    
+    if (!data.proprietario_id) {
+        showToast('Selecione um proprietário', 'error');
+        return;
+    }
+    
+    try {
+        const url = id ? `/api/participacoes/${id}` : '/api/participacoes/';
+        const method = id ? 'PUT' : 'POST';
+        
+        const result = await fetchWithAuth(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        if (result) {
+            showToast(`Participação ${id ? 'atualizada' : 'criada'} com sucesso`, 'success');
+            closeModal();
+            await Promise.all([loadStats(), loadParticipacoes()]);
+        }
+    } catch (error) {
+        console.error('Erro ao salvar:', error);
+        showToast(error.message || 'Erro ao salvar participação', 'error');
+    }
+});
+
+// Função de logout
+function logout() {
+    if (confirm('Tem certeza que deseja sair?')) {
+        window.location.href = '/logout';
+    }
+}
+
+// Inicializar
+init();
+</script>
+{% endblock %}

@@ -7,6 +7,7 @@ from app.models.proprietario import Proprietario
 from app.models.imovel import Imovel
 from app.models.aluguel import AluguelMensal
 from app.models.participacao import Participacao
+from app.models.participacao_versao import ParticipacaoVersao
 from app.models.alias import Alias
 from app.models.transferencia import Transferencia
 from app.models.permissao_financeira import PermissaoFinanceira
@@ -17,6 +18,7 @@ __all__ = [
     "Imovel",
     "AluguelMensal",
     "Participacao",
+    "ParticipacaoVersao",
     "Alias",
     "Transferencia",
     "PermissaoFinanceira"
