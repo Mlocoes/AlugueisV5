@@ -156,45 +156,17 @@
                     </div>
                 </div>
 
-                <!-- Valores Principais -->
+                <!-- Valor Total -->
                 <div class="mb-4">
-                    <h4 class="text-white font-semibold mb-3">Valores</h4>
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <h4 class="text-white font-semibold mb-3">Valor</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm text-gray-300 mb-1">Aluguel</label>
-                            <input type="number" step="0.01" id="aluguel-valor-aluguel" class="w-full bg-bg-dark border border-border-dark text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-1">Condomínio</label>
-                            <input type="number" step="0.01" id="aluguel-valor-condominio" class="w-full bg-bg-dark border border-border-dark text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-1">IPTU</label>
-                            <input type="number" step="0.01" id="aluguel-valor-iptu" class="w-full bg-bg-dark border border-border-dark text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-1">Luz</label>
-                            <input type="number" step="0.01" id="aluguel-valor-luz" class="w-full bg-bg-dark border border-border-dark text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-1">Água</label>
-                            <input type="number" step="0.01" id="aluguel-valor-agua" class="w-full bg-bg-dark border border-border-dark text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-1">Gás</label>
-                            <input type="number" step="0.01" id="aluguel-valor-gas" class="w-full bg-bg-dark border border-border-dark text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-1">Internet</label>
-                            <input type="number" step="0.01" id="aluguel-valor-internet" class="w-full bg-bg-dark border border-border-dark text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-1">Outros</label>
-                            <input type="number" step="0.01" id="aluguel-valor-outros" class="w-full bg-bg-dark border border-border-dark text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Valor Total do Aluguel (R$) *</label>
+                            <input type="number" step="0.01" id="aluguel-valor-total" required class="w-full bg-bg-dark border border-border-dark text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
                         </div>
                         <div class="flex items-end">
                             <div class="w-full bg-primary/20 border border-primary rounded-lg px-4 py-2">
-                                <div class="text-xs text-gray-400">Total</div>
+                                <div class="text-xs text-gray-400">Valor</div>
                                 <div class="text-lg font-bold text-white" id="aluguel-total-preview">R$ 0,00</div>
                             </div>
                         </div>
@@ -543,19 +515,11 @@ async function editarAluguel(id) {
             document.getElementById('aluguel-id').value = aluguel.id;
             document.getElementById('aluguel-imovel').value = aluguel.imovel_id;
             document.getElementById('aluguel-mes').value = aluguel.mes_referencia;
-            document.getElementById('aluguel-valor-aluguel').value = aluguel.valor_aluguel;
-            document.getElementById('aluguel-valor-condominio').value = aluguel.valor_condominio;
-            document.getElementById('aluguel-valor-iptu').value = aluguel.valor_iptu;
-            document.getElementById('aluguel-valor-luz').value = aluguel.valor_luz;
-            document.getElementById('aluguel-valor-agua').value = aluguel.valor_agua;
-            document.getElementById('aluguel-valor-gas').value = aluguel.valor_gas;
-            document.getElementById('aluguel-valor-internet').value = aluguel.valor_internet;
-            document.getElementById('aluguel-valor-outros').value = aluguel.outros_valores;
+            document.getElementById('aluguel-valor-total').value = aluguel.valor_total;
             document.getElementById('aluguel-pago').checked = aluguel.pago;
             document.getElementById('aluguel-data-pagamento').value = aluguel.data_pagamento || '';
             document.getElementById('aluguel-observacoes').value = aluguel.observacoes || '';
             
-            atualizarTotalPreview();
             const modal = document.getElementById('modal-aluguel');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
@@ -585,23 +549,6 @@ async function deletarAluguel(id) {
     }
 }
 
-// Atualizar preview do total
-function atualizarTotalPreview() {
-    const valores = [
-        'aluguel-valor-aluguel', 'aluguel-valor-condominio', 'aluguel-valor-iptu',
-        'aluguel-valor-luz', 'aluguel-valor-agua', 'aluguel-valor-gas',
-        'aluguel-valor-internet', 'aluguel-valor-outros'
-    ];
-    
-    let total = 0;
-    valores.forEach(id => {
-        const valor = parseFloat(document.getElementById(id).value) || 0;
-        total += valor;
-    });
-    
-    document.getElementById('aluguel-total-preview').textContent = formatCurrency(total);
-}
-
 // Salvar aluguel
 async function salvarAluguel(event) {
     event.preventDefault();
@@ -612,14 +559,7 @@ async function salvarAluguel(event) {
     const data = {
         imovel_id: parseInt(document.getElementById('aluguel-imovel').value),
         mes_referencia: document.getElementById('aluguel-mes').value,
-        valor_aluguel: parseFloat(document.getElementById('aluguel-valor-aluguel').value) || 0,
-        valor_condominio: parseFloat(document.getElementById('aluguel-valor-condominio').value) || 0,
-        valor_iptu: parseFloat(document.getElementById('aluguel-valor-iptu').value) || 0,
-        valor_luz: parseFloat(document.getElementById('aluguel-valor-luz').value) || 0,
-        valor_agua: parseFloat(document.getElementById('aluguel-valor-agua').value) || 0,
-        valor_gas: parseFloat(document.getElementById('aluguel-valor-gas').value) || 0,
-        valor_internet: parseFloat(document.getElementById('aluguel-valor-internet').value) || 0,
-        outros_valores: parseFloat(document.getElementById('aluguel-valor-outros').value) || 0,
+        valor_total: parseFloat(document.getElementById('aluguel-valor-total').value) || 0,
         pago: document.getElementById('aluguel-pago').checked,
         data_pagamento: document.getElementById('aluguel-data-pagamento').value || null,
         observacoes: document.getElementById('aluguel-observacoes').value || null
@@ -715,27 +655,12 @@ document.addEventListener('DOMContentLoaded', () => {
         formAluguel.addEventListener('submit', salvarAluguel);
     }
     
-    // Atualizar preview ao digitar valores
-    const valorInputs = [
-        'aluguel-valor-aluguel', 'aluguel-valor-condominio', 'aluguel-valor-iptu',
-        'aluguel-valor-luz', 'aluguel-valor-agua', 'aluguel-valor-gas',
-        'aluguel-valor-internet', 'aluguel-valor-outros'
-    ];
-    
-    valorInputs.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.addEventListener('input', atualizarTotalPreview);
-        }
-    });
-    
-    // Fechar modal ao clicar fora
-    const modalAluguel = document.getElementById('modal-aluguel');
-    if (modalAluguel) {
-        modalAluguel.addEventListener('click', (e) => {
-            if (e.target.id === 'modal-aluguel') {
-                fecharModal();
-            }
+    // Atualizar preview do total
+    const valorTotalInput = document.getElementById('aluguel-valor-total');
+    if (valorTotalInput) {
+        valorTotalInput.addEventListener('input', () => {
+            const valor = parseFloat(valorTotalInput.value) || 0;
+            document.getElementById('aluguel-total-preview').textContent = valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         });
     }
 });

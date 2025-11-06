@@ -1,0 +1,4 @@
+- [ ] Criar endpoint backend para fornecer dados da Handsontable de aluguéis
+- [ ] Substituir tabela HTML na tela de aluguéis por Handsontable não editável
+- [ ] Ajustar scripts/estilos para formatação brasileira e responsividade
+- [ ] Testar fluxo e reiniciar aplicação

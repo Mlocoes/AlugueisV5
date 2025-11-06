@@ -23,14 +23,7 @@ router = APIRouter(prefix="/api/alugueis", tags=["alugueis"])
 class AluguelBase(BaseModel):
     imovel_id: int
     mes_referencia: str = Field(..., pattern=r'^\d{4}-\d{2}$')  # YYYY-MM
-    valor_aluguel: float = 0.0
-    valor_condominio: float = 0.0
-    valor_iptu: float = 0.0
-    valor_luz: float = 0.0
-    valor_agua: float = 0.0
-    valor_gas: float = 0.0
-    valor_internet: float = 0.0
-    outros_valores: float = 0.0
+    valor_total: float = 0.0
     pago: bool = False
     data_pagamento: Optional[date] = None
     observacoes: Optional[str] = None
@@ -41,14 +34,7 @@ class AluguelCreate(AluguelBase):
 
 
 class AluguelUpdate(BaseModel):
-    valor_aluguel: Optional[float] = None
-    valor_condominio: Optional[float] = None
-    valor_iptu: Optional[float] = None
-    valor_luz: Optional[float] = None
-    valor_agua: Optional[float] = None
-    valor_gas: Optional[float] = None
-    valor_internet: Optional[float] = None
-    outros_valores: Optional[float] = None
+    valor_total: Optional[float] = None
     pago: Optional[bool] = None
     data_pagamento: Optional[date] = None
     observacoes: Optional[str] = None
@@ -56,7 +42,6 @@ class AluguelUpdate(BaseModel):
 
 class AluguelResponse(AluguelBase):
     id: int
-    valor_total: float
     created_at: datetime
     updated_at: datetime
     imovel_nome: Optional[str] = None
@@ -87,17 +72,8 @@ class AluguelGridResponse(BaseModel):
 
 
 def calcular_valor_total(aluguel_data: dict) -> float:
-    """Calcula o valor total do aluguel"""
-    return (
-        aluguel_data.get('valor_aluguel', 0) +
-        aluguel_data.get('valor_condominio', 0) +
-        aluguel_data.get('valor_iptu', 0) +
-        aluguel_data.get('valor_luz', 0) +
-        aluguel_data.get('valor_agua', 0) +
-        aluguel_data.get('valor_gas', 0) +
-        aluguel_data.get('valor_internet', 0) +
-        aluguel_data.get('outros_valores', 0)
-    )
+    """Calcula o valor total do aluguel - agora apenas retorna o valor_total fornecido"""
+    return aluguel_data.get('valor_total', 0.0)
 
 
 def _format_mes_header(mes_referencia: Optional[str]) -> str:
@@ -160,14 +136,6 @@ async def listar_alugueis(
             "id": aluguel.id,
             "imovel_id": aluguel.imovel_id,
             "mes_referencia": aluguel.mes_referencia,
-            "valor_aluguel": aluguel.valor_aluguel,
-            "valor_condominio": aluguel.valor_condominio,
-            "valor_iptu": aluguel.valor_iptu,
-            "valor_luz": aluguel.valor_luz,
-            "valor_agua": aluguel.valor_agua,
-            "valor_gas": aluguel.valor_gas,
-            "valor_internet": aluguel.valor_internet,
-            "outros_valores": aluguel.outros_valores,
             "valor_total": aluguel.valor_total,
             "pago": aluguel.pago,
             "data_pagamento": aluguel.data_pagamento,
@@ -350,14 +318,6 @@ async def criar_aluguel(
             "id": novo_aluguel.id,
             "imovel_id": novo_aluguel.imovel_id,
             "mes_referencia": novo_aluguel.mes_referencia,
-            "valor_aluguel": novo_aluguel.valor_aluguel,
-            "valor_condominio": novo_aluguel.valor_condominio,
-            "valor_iptu": novo_aluguel.valor_iptu,
-            "valor_luz": novo_aluguel.valor_luz,
-            "valor_agua": novo_aluguel.valor_agua,
-            "valor_gas": novo_aluguel.valor_gas,
-            "valor_internet": novo_aluguel.valor_internet,
-            "outros_valores": novo_aluguel.outros_valores,
             "valor_total": novo_aluguel.valor_total,
             "pago": novo_aluguel.pago,
             "data_pagamento": novo_aluguel.data_pagamento,
@@ -399,14 +359,6 @@ async def obter_aluguel(
             "id": aluguel.id,
             "imovel_id": aluguel.imovel_id,
             "mes_referencia": aluguel.mes_referencia,
-            "valor_aluguel": aluguel.valor_aluguel,
-            "valor_condominio": aluguel.valor_condominio,
-            "valor_iptu": aluguel.valor_iptu,
-            "valor_luz": aluguel.valor_luz,
-            "valor_agua": aluguel.valor_agua,
-            "valor_gas": aluguel.valor_gas,
-            "valor_internet": aluguel.valor_internet,
-            "outros_valores": aluguel.outros_valores,
             "valor_total": aluguel.valor_total,
             "pago": aluguel.pago,
             "data_pagamento": aluguel.data_pagamento,
@@ -449,22 +401,7 @@ async def atualizar_aluguel(
     for field, value in update_data.items():
         setattr(aluguel, field, value)
     
-    # Recalcular valor total se algum valor foi alterado
-    valores_fields = ['valor_aluguel', 'valor_condominio', 'valor_iptu', 'valor_luz', 
-                      'valor_agua', 'valor_gas', 'valor_internet', 'outros_valores']
-    
-    if any(field in update_data for field in valores_fields):
-        aluguel.valor_total = calcular_valor_total({
-            'valor_aluguel': aluguel.valor_aluguel,
-            'valor_condominio': aluguel.valor_condominio,
-            'valor_iptu': aluguel.valor_iptu,
-            'valor_luz': aluguel.valor_luz,
-            'valor_agua': aluguel.valor_agua,
-            'valor_gas': aluguel.valor_gas,
-            'valor_internet': aluguel.valor_internet,
-            'outros_valores': aluguel.outros_valores
-        })
-    
+    # O valor_total é fornecido diretamente, não precisa recalcular
     aluguel.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(aluguel)
@@ -474,14 +411,6 @@ async def atualizar_aluguel(
             "id": aluguel.id,
             "imovel_id": aluguel.imovel_id,
             "mes_referencia": aluguel.mes_referencia,
-            "valor_aluguel": aluguel.valor_aluguel,
-            "valor_condominio": aluguel.valor_condominio,
-            "valor_iptu": aluguel.valor_iptu,
-            "valor_luz": aluguel.valor_luz,
-            "valor_agua": aluguel.valor_agua,
-            "valor_gas": aluguel.valor_gas,
-            "valor_internet": aluguel.valor_internet,
-            "outros_valores": aluguel.outros_valores,
             "valor_total": aluguel.valor_total,
             "pago": aluguel.pago,
             "data_pagamento": aluguel.data_pagamento,

@@ -25,14 +25,6 @@ class AluguelMensal(Base):
     mes_referencia = Column(String(7), nullable=False, index=True)
     
     # Valores
-    valor_aluguel = Column(Float, nullable=False, default=0.0)
-    valor_condominio = Column(Float, nullable=False, default=0.0)
-    valor_iptu = Column(Float, nullable=False, default=0.0)
-    valor_luz = Column(Float, nullable=False, default=0.0)
-    valor_agua = Column(Float, nullable=False, default=0.0)
-    valor_gas = Column(Float, nullable=False, default=0.0)
-    valor_internet = Column(Float, nullable=False, default=0.0)
-    outros_valores = Column(Float, nullable=False, default=0.0)
     valor_total = Column(Float, nullable=False, default=0.0)
     
     # Status de pagamento
