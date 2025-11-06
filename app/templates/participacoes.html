@@ -138,6 +138,11 @@ let proprietarios = [];
 let currentData = {};
 let versions = [];
 
+// Format percentage with Brazilian locale (comma as decimal separator)
+function formatPercentage(value) {
+    return value.toFixed(2).replace('.', ',') + ' %';
+}
+
 // Initialize
 async function init() {
     try {
@@ -215,12 +220,12 @@ function initializeTable() {
             total += value;
         });
         
-        row.push(total.toFixed(6) + ' %');
+        row.push(formatPercentage(total));
         
         // Add each proprietario's participation
         proprietarios.forEach(prop => {
             const value = imovelData[prop.id.toString()] || 0;
-            row.push(value.toFixed(6) + ' %');
+            row.push(formatPercentage(value));
         });
         
         tableData.push(row);
@@ -306,7 +311,7 @@ function updateTotals() {
             total += value;
         }
         
-        hot.setDataAtCell(rowIndex, 1, total.toFixed(6) + ' %', 'internal');
+        hot.setDataAtCell(rowIndex, 1, formatPercentage(total), 'internal');
     });
 }
 
@@ -459,7 +464,7 @@ document.getElementById('version-select').addEventListener('change', async (e) =
                 
                 proprietarios.forEach((prop, propIndex) => {
                     const value = imovelData[prop.id.toString()] || 0;
-                    hot.setDataAtCell(index, propIndex + 2, value.toFixed(6) + ' %', 'loadData');
+                    hot.setDataAtCell(index, propIndex + 2, formatPercentage(value), 'loadData');
                 });
             });
             
