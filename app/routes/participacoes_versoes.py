@@ -139,21 +139,27 @@ async def criar_versao(
     db.flush()
     
     # Aplicar as participações ao banco
-    # Primeiro, remover participações existentes
-    db.query(Participacao).delete()
+    # Use a transaction to ensure atomicity
+    try:
+        # Remove existing participacoes
+        db.query(Participacao).delete()
+        
+        # Create new participacoes
+        for imovel_id, proprietarios_dict in versao.dados_json.items():
+            for proprietario_id, percentual in proprietarios_dict.items():
+                if percentual > 0:  # Only create if there's a percentage
+                    participacao = Participacao(
+                        imovel_id=int(imovel_id),
+                        proprietario_id=int(proprietario_id),
+                        percentual=percentual
+                    )
+                    db.add(participacao)
+        
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao aplicar participações: {str(e)}")
     
-    # Depois, criar novas participações
-    for imovel_id, proprietarios_dict in versao.dados_json.items():
-        for proprietario_id, percentual in proprietarios_dict.items():
-            if percentual > 0:  # Só criar se tiver percentual
-                participacao = Participacao(
-                    imovel_id=int(imovel_id),
-                    proprietario_id=int(proprietario_id),
-                    percentual=percentual
-                )
-                db.add(participacao)
-    
-    db.commit()
     db.refresh(db_versao)
     
     # Retornar resposta
@@ -201,21 +207,26 @@ async def aplicar_versao(
     # Parse JSON
     dados_json = json.loads(versao.dados_json)
     
-    # Remover participações existentes
-    db.query(Participacao).delete()
-    
-    # Criar novas participações
-    for imovel_id, proprietarios_dict in dados_json.items():
-        for proprietario_id, percentual in proprietarios_dict.items():
-            if percentual > 0:
-                participacao = Participacao(
-                    imovel_id=int(imovel_id),
-                    proprietario_id=int(proprietario_id),
-                    percentual=percentual
-                )
-                db.add(participacao)
-    
-    db.commit()
+    # Apply participacoes in a transaction
+    try:
+        # Remove existing participacoes
+        db.query(Participacao).delete()
+        
+        # Create new participacoes
+        for imovel_id, proprietarios_dict in dados_json.items():
+            for proprietario_id, percentual in proprietarios_dict.items():
+                if percentual > 0:
+                    participacao = Participacao(
+                        imovel_id=int(imovel_id),
+                        proprietario_id=int(proprietario_id),
+                        percentual=percentual
+                    )
+                    db.add(participacao)
+        
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao aplicar versão: {str(e)}")
     
     return {"message": "Versão aplicada com sucesso"}
 

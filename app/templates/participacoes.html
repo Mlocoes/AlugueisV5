@@ -313,19 +313,22 @@ function validateData() {
     
     // Update validation status
     const statusDiv = document.getElementById('validation-status');
+    const statusCard = statusDiv.querySelector('div');
     const icon = document.getElementById('validation-icon');
     const message = document.getElementById('validation-message');
     
     if (hasErrors) {
         statusDiv.classList.remove('hidden');
-        statusDiv.querySelector('.bg-\\[var\\(--card-dark\\)\\]').classList.add('border-red-500');
+        statusCard.classList.remove('border-gray-800', 'border-yellow-500');
+        statusCard.classList.add('border-red-500');
         icon.textContent = 'error';
         icon.className = 'material-symbols-outlined text-red-400';
         message.textContent = 'Erro: Alguns imóveis não somam 100% (±0.05%): ' + issues.join(', ');
         message.className = 'text-sm text-red-400';
     } else if (hasWarnings) {
         statusDiv.classList.remove('hidden');
-        statusDiv.querySelector('.bg-\\[var\\(--card-dark\\)\\]').classList.add('border-yellow-500');
+        statusCard.classList.remove('border-gray-800', 'border-red-500');
+        statusCard.classList.add('border-yellow-500');
         icon.textContent = 'warning';
         icon.className = 'material-symbols-outlined text-yellow-400';
         message.textContent = 'Aviso: Alguns valores estão próximos do limite (recomendado: 100% ±0.02%)';
