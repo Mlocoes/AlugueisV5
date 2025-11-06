@@ -216,10 +216,19 @@ async def obter_grid_alugueis(
 
     alugueis = query.order_by(AluguelMensal.mes_referencia.desc(), Imovel.nome.asc()).all()
 
-    mes_ref_para_header = mes_referencia or (alugueis[0].mes_referencia if alugueis else None)
+    # Agrupar aluguéis por imóvel, pegando o mais recente de cada um
+    alugueis_por_imovel: Dict[int, AluguelMensal] = {}
+    for aluguel in alugueis:
+        if aluguel.imovel_id not in alugueis_por_imovel:
+            alugueis_por_imovel[aluguel.imovel_id] = aluguel
+
+    # Usar apenas um aluguel por imóvel (o mais recente filtrado)
+    alugueis_unicos = list(alugueis_por_imovel.values())
+
+    mes_ref_para_header = mes_referencia or (alugueis_unicos[0].mes_referencia if alugueis_unicos else None)
     mes_label = _format_mes_header(mes_ref_para_header)
 
-    if not alugueis:
+    if not alugueis_unicos:
         return AluguelGridResponse(
             mes_referencia=mes_referencia,
             mes_label=mes_label,
@@ -228,7 +237,7 @@ async def obter_grid_alugueis(
             rows=[]
         )
 
-    imovel_ids = {aluguel.imovel_id for aluguel in alugueis if aluguel.imovel_id}
+    imovel_ids = {aluguel.imovel_id for aluguel in alugueis_unicos if aluguel.imovel_id}
     participacoes_por_imovel = defaultdict(list)
     proprietarios_dict: Dict[int, str] = {}
 
@@ -255,7 +264,7 @@ async def obter_grid_alugueis(
 
     linhas: List[AluguelDistribuicaoRow] = []
 
-    for aluguel in alugueis:
+    for aluguel in alugueis_unicos:
         valor_total = float(aluguel.valor_total or 0)
         distribuicao: Dict[int, float] = {}
 
