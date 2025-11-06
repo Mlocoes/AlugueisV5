@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Participações - Preview</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@13.1.0/dist/handsontable.full.min.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #101622;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .header h1 {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0 0 8px 0;
+        }
+        .header p {
+            color: #9ca3af;
+            margin: 0;
+        }
+        .controls {
+            display: flex;
+            gap: 12px;
+        }
+        select, button {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: 1px solid #374151;
+            background-color: #1e293b;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        button {
+            background-color: #135bec;
+            border-color: #135bec;
+        }
+        button:hover {
+            background-color: #0d47c4;
+        }
+        .validation-status {
+            padding: 16px;
+            border-radius: 8px;
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .validation-status.error {
+            border-color: #ef4444;
+            display: block;
+        }
+        .validation-status.warning {
+            border-color: #f59e0b;
+            display: block;
+        }
+        .validation-status.success {
+            border-color: #10b981;
+        }
+        .table-container {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 24px;
+        }
+        .handsontable {
+            font-size: 12px;
+        }
+        .handsontable td, .handsontable th {
+            background-color: #1e293b;
+            color: white;
+            border-color: #374151;
+            text-align: center;
+        }
+        .handsontable thead th {
+            background-color: #101622;
+            border-bottom: 2px solid #374151;
+            font-weight: 600;
+        }
+        .handsontable tbody th {
+            background-color: #101622;
+            font-weight: 600;
+            text-align: left;
+        }
+        .validation-error {
+            background-color: rgba(239, 68, 68, 0.2) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>Participações</h1>
+            <p>Gestão de participações de proprietários nos imóveis</p>
+        </div>
+        <div class="controls">
+            <select>
+                <option>Versão Atual</option>
+                <option>Versão Nov 2025 (06/11/2025)</option>
+                <option>Versão Out 2025 (01/10/2025)</option>
+            </select>
+            <button>💾 Salvar Versão</button>
+        </div>
+    </div>
+
+    <div class="validation-status success">
+        <strong>✅ Todas as participações estão corretas!</strong>
+    </div>
+
+    <div class="table-container">
+        <div id="example"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@13.1.0/dist/handsontable.full.min.js"></script>
+    <script>
+        const container = document.getElementById('example');
+        const data = [
+            ['Cunha Gago 223', '100,000000 %', '25,000000 %', '8,333333 %', '8,333333 %', '8,333333 %', '12,500000 %', '12,500000 %', '4,166667 %', '4,166667 %', '8,333333 %', '8,333333 %'],
+            ['Teodoro Sampaio 1779', '100,000000 %', '12,500000 %', '6,944444 %', '6,944444 %', '6,944444 %', '16,666667 %', '16,666667 %', '5,555556 %', '5,555556 %', '11,111111 %', '11,111111 %'],
+            ['Dep. Lacerda', '100,000000 %', '12,500000 %', '6,944444 %', '6,944444 %', '6,944444 %', '16,666667 %', '16,666667 %', '5,555556 %', '5,555556 %', '11,111111 %', '11,111111 %'],
+            ['Cardeal Arcoverde 1840', '100,000000 %', '12,500000 %', '6,944444 %', '6,944444 %', '6,944444 %', '16,666667 %', '16,666667 %', '5,555556 %', '5,555556 %', '11,111111 %', '11,111111 %'],
+            ['Cardeal Arcoverde 1838', '100,000000 %', '12,500000 %', '6,944444 %', '6,944444 %', '6,944444 %', '16,666667 %', '16,666667 %', '5,555556 %', '5,555556 %', '11,111111 %', '11,111111 %'],
+            ['Cardeal Arcoverde 1836', '100,000000 %', '12,500000 %', '6,944444 %', '6,944444 %', '6,944444 %', '16,666667 %', '16,666667 %', '5,555556 %', '5,555556 %', '11,111111 %', '11,111111 %'],
+            ['Floresta 369', '100,000000 %', '12,500000 %', '6,944444 %', '6,944444 %', '6,944444 %', '16,666667 %', '16,666667 %', '5,555556 %', '5,555556 %', '11,111111 %', '11,111111 %'],
+            ['Floresta 393', '100,000000 %', '12,500000 %', '6,944444 %', '6,944444 %', '6,944444 %', '16,666667 %', '16,666667 %', '5,555556 %', '5,555556 %', '11,111111 %', '11,111111 %'],
+            ['Vila Ema', '100,000000 %', '12,500000 %', '6,944444 %', '6,944444 %', '6,944444 %', '16,666667 %', '16,666667 %', '5,555556 %', '5,555556 %', '11,111111 %', '11,111111 %'],
+            ['D. Leopoldina', '100,000000 %', '12,500000 %', '6,944444 %', '6,944444 %', '6,944444 %', '16,666667 %', '16,666667 %', '5,555556 %', '5,555556 %', '11,111111 %', '11,111111 %'],
+        ];
+
+        const hot = new Handsontable(container, {
+            data: data,
+            colHeaders: ['Nome', 'VALOR', 'Jandira', 'Manoel', 'Fabio', 'Carla', 'Armando', 'Suely', 'Felipe', 'Adriana', 'Regina', 'Mario Angelo'],
+            rowHeaders: false,
+            width: '100%',
+            height: 500,
+            licenseKey: 'non-commercial-and-evaluation',
+            stretchH: 'all',
+            manualColumnResize: true,
+            contextMenu: false,
+            columns: [
+                { readOnly: true },
+                { readOnly: true },
+                {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+            ],
+            cells: function(row, col) {
+                const cellProperties = {};
+                if (col === 0) {
+                    cellProperties.className = 'htLeft';
+                } else {
+                    cellProperties.className = 'htCenter';
+                }
+                return cellProperties;
+            }
+        });
+    </script>
+</body>
+</html>
