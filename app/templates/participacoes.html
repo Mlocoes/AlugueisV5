@@ -140,18 +140,29 @@ let versions = [];
 
 // Initialize
 async function init() {
-    await loadGridData();
-    await loadVersions();
+    try {
+        await loadGridData();
+        await loadVersions();
+    } catch (error) {
+        console.error('Erro na inicialização:', error);
+        showToast('Erro ao inicializar a página', 'error');
+    }
 }
 
 async function loadGridData() {
     try {
         const data = await fetchWithAuth('/api/participacoes-versoes/grid-data');
-        if (data) {
+        if (data && data.imoveis && data.proprietarios) {
             imoveis = data.imoveis;
             proprietarios = data.proprietarios;
-            currentData = data.dados;
-            initializeTable();
+            currentData = data.dados || {};
+            
+            // Only initialize if we have data
+            if (imoveis.length > 0 && proprietarios.length > 0) {
+                initializeTable();
+            } else {
+                showToast('Nenhum dado disponível para exibir', 'info');
+            }
         }
     } catch (error) {
         console.error('Erro ao carregar dados:', error);
@@ -176,6 +187,11 @@ async function loadVersions() {
 
 function initializeTable() {
     const container = document.getElementById('handsontable-container');
+    
+    if (!container) {
+        console.error('Handsontable container not found');
+        return;
+    }
     
     // Prepare data for Handsontable
     const tableData = [];
@@ -225,6 +241,12 @@ function initializeTable() {
         });
     }
     
+    // Destroy existing instance if any
+    if (hot) {
+        hot.destroy();
+        hot = null;
+    }
+    
     // Initialize Handsontable
     hot = new Handsontable(container, {
         data: tableData,
@@ -238,6 +260,12 @@ function initializeTable() {
         manualColumnResize: true,
         manualRowResize: false,
         contextMenu: false,
+        fillHandle: false, // Disable fill handle to avoid overlay errors
+        autoColumnSize: false,
+        autoRowSize: false,
+        disableVisualSelection: false,
+        outsideClickDeselects: true,
+        enterBeginsEditing: true,
         afterChange: function(changes, source) {
             if (source === 'loadData' || source === 'internal') {
                 return;
@@ -256,6 +284,12 @@ function initializeTable() {
             }
             
             return cellProperties;
+        },
+        beforeOnCellMouseOver: function(event, coords, TD) {
+            // Prevent errors from cell hover
+            if (!coords || coords.row < 0 || coords.col < 0) {
+                return false;
+            }
         }
     });
 }
@@ -440,7 +474,12 @@ document.getElementById('version-select').addEventListener('change', async (e) =
     }
 });
 
-// Initialize on load
-init();
+// Initialize on load - wait for DOM
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    // DOM already loaded
+    init();
+}
 </script>
 {% endblock %}
