@@ -255,31 +255,21 @@ async def obter_grid_alugueis(
 
     linhas: List[AluguelDistribuicaoRow] = []
 
-    # Agrupar aluguéis por imóvel
-    alugueis_por_imovel: Dict[int, List[AluguelMensal]] = defaultdict(list)
     for aluguel in alugueis:
-        alugueis_por_imovel[aluguel.imovel_id].append(aluguel)
-
-    for imovel_id, alugueis_imovel in alugueis_por_imovel.items():
-        # Somar valores totais para o imóvel
-        valor_total_imovel = sum(float(aluguel.valor_total or 0) for aluguel in alugueis_imovel)
+        valor_total = float(aluguel.valor_total or 0)
         distribuicao: Dict[int, float] = {}
 
-        # Calcular distribuição baseada nas participações
-        for participacao in participacoes_por_imovel.get(imovel_id, []):
+        for participacao in participacoes_por_imovel.get(aluguel.imovel_id, []):
             percentual = participacao.percentual or 0
-            distribuicao[participacao.proprietario_id] = round(valor_total_imovel * (percentual / 100), 2)
-
-        # Usar o primeiro aluguel para informações do imóvel
-        primeiro_aluguel = alugueis_imovel[0]
+            distribuicao[participacao.proprietario_id] = round(valor_total * (percentual / 100), 2)
 
         linhas.append(
             AluguelDistribuicaoRow(
-                aluguel_id=primeiro_aluguel.id,  # ID do primeiro aluguel como referência
-                imovel_id=imovel_id,
-                imovel_nome=primeiro_aluguel.imovel.nome if primeiro_aluguel.imovel else "Imóvel não cadastrado",
-                mes_referencia=mes_referencia or primeiro_aluguel.mes_referencia,  # Usar filtro ou primeiro mês
-                valor_total=valor_total_imovel,
+                aluguel_id=aluguel.id,
+                imovel_id=aluguel.imovel_id,
+                imovel_nome=aluguel.imovel.nome if aluguel.imovel else "Imóvel não cadastrado",
+                mes_referencia=aluguel.mes_referencia,
+                valor_total=valor_total,
                 distribuicao=distribuicao
             )
         )
