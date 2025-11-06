@@ -99,7 +99,7 @@ async def listar_versoes(
     # Enriquecer com dados do usuário
     result = []
     for v in versoes:
-        data = ParticipacaoVersaoResponse.from_orm(v)
+        data = ParticipacaoVersaoResponse.model_validate(v)
         if v.usuario:
             data.created_by_nome = v.usuario.nome
         result.append(data)
@@ -163,7 +163,7 @@ async def criar_versao(
     db.refresh(db_versao)
     
     # Retornar resposta
-    response = ParticipacaoVersaoResponse.from_orm(db_versao)
+    response = ParticipacaoVersaoResponse.model_validate(db_versao)
     response.created_by_nome = current_user.nome
     
     return response
@@ -183,7 +183,7 @@ async def obter_versao(
     if not versao:
         raise HTTPException(status_code=404, detail="Versão não encontrada")
     
-    response = ParticipacaoVersaoResponse.from_orm(versao)
+    response = ParticipacaoVersaoResponse.model_validate(versao)
     if versao.usuario:
         response.created_by_nome = versao.usuario.nome
     
