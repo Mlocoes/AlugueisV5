@@ -2,7 +2,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_, or_, func, extract
-from typing import Optional, List
+from typing import Optional, List, Dict
+from collections import defaultdict
 from datetime import datetime, date
 
 from app.core.database import get_db
@@ -10,6 +11,8 @@ from app.core.auth import get_current_user_from_cookie, require_admin
 from app.models.usuario import Usuario
 from app.models.aluguel import AluguelMensal
 from app.models.imovel import Imovel
+from app.models.participacao import Participacao
+from app.models.proprietario import Proprietario
 from pydantic import BaseModel, Field
 
 
@@ -63,6 +66,26 @@ class AluguelResponse(AluguelBase):
         from_attributes = True
 
 
+class AluguelDistribuicaoRow(BaseModel):
+    aluguel_id: int
+    imovel_id: int
+    imovel_nome: str
+    mes_referencia: str
+    valor_total: float
+    distribuicao: Dict[int, float]
+
+    class Config:
+        from_attributes = True
+
+
+class AluguelGridResponse(BaseModel):
+    mes_referencia: Optional[str]
+    mes_label: str
+    col_headers: List[str]
+    proprietarios: List[Dict[str, str]]
+    rows: List[AluguelDistribuicaoRow]
+
+
 def calcular_valor_total(aluguel_data: dict) -> float:
     """Calcula o valor total do aluguel"""
     return (
@@ -75,6 +98,18 @@ def calcular_valor_total(aluguel_data: dict) -> float:
         aluguel_data.get('valor_internet', 0) +
         aluguel_data.get('outros_valores', 0)
     )
+
+
+def _format_mes_header(mes_referencia: Optional[str]) -> str:
+    """Formata o cabeçalho da primeira coluna para o padrão brasileiro (DD/MM/AAAA)."""
+    if not mes_referencia:
+        return "Imóvel"
+    try:
+        mes_dt = datetime.strptime(mes_referencia, "%Y-%m")
+        mes_dt = mes_dt.replace(day=1)
+        return mes_dt.strftime("%d/%m/%Y")
+    except ValueError:
+        return "Imóvel"
 
 
 @router.get("/", response_model=List[AluguelResponse])
@@ -145,6 +180,109 @@ async def listar_alugueis(
         result.append(aluguel_dict)
     
     return result
+
+
+@router.get("/grid-data", response_model=AluguelGridResponse)
+async def obter_grid_alugueis(
+    mes_referencia: Optional[str] = None,
+    imovel_id: Optional[int] = None,
+    ano: Optional[int] = None,
+    mes_like: Optional[str] = None,
+    pago: Optional[bool] = None,
+    current_user: Usuario = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """Retorna dados agregados para exibição dos aluguéis em formato de planilha."""
+
+    query = db.query(AluguelMensal).join(Imovel).options(joinedload(AluguelMensal.imovel))
+
+    if not current_user.is_admin:
+        query = query.filter(Imovel.proprietario_id == current_user.id)
+
+    if mes_referencia:
+        query = query.filter(AluguelMensal.mes_referencia == mes_referencia)
+
+    if imovel_id:
+        query = query.filter(AluguelMensal.imovel_id == imovel_id)
+
+    if ano:
+        query = query.filter(AluguelMensal.mes_referencia.like(f"{ano}%"))
+
+    if mes_like:
+        query = query.filter(AluguelMensal.mes_referencia.like(f"%{mes_like}"))
+
+    if pago is not None:
+        query = query.filter(AluguelMensal.pago == pago)
+
+    alugueis = query.order_by(AluguelMensal.mes_referencia.desc(), Imovel.nome.asc()).all()
+
+    mes_ref_para_header = mes_referencia or (alugueis[0].mes_referencia if alugueis else None)
+    mes_label = _format_mes_header(mes_ref_para_header)
+
+    if not alugueis:
+        return AluguelGridResponse(
+            mes_referencia=mes_referencia,
+            mes_label=mes_label,
+            col_headers=[mes_label, "Valor Total"],
+            proprietarios=[],
+            rows=[]
+        )
+
+    imovel_ids = {aluguel.imovel_id for aluguel in alugueis if aluguel.imovel_id}
+    participacoes_por_imovel = defaultdict(list)
+    proprietarios_dict: Dict[int, str] = {}
+
+    if imovel_ids:
+        participacoes = (
+            db.query(Participacao)
+            .options(joinedload(Participacao.proprietario))
+            .filter(Participacao.imovel_id.in_(imovel_ids))
+            .all()
+        )
+
+        for participacao in participacoes:
+            participacoes_por_imovel[participacao.imovel_id].append(participacao)
+            if participacao.proprietario and participacao.proprietario_id:
+                proprietarios_dict[participacao.proprietario_id] = participacao.proprietario.nome
+
+    proprietarios_ordenados = sorted(
+        (
+            {"id": str(prop_id), "nome": nome}
+            for prop_id, nome in proprietarios_dict.items()
+        ),
+        key=lambda item: item["nome"].lower()
+    )
+
+    linhas: List[AluguelDistribuicaoRow] = []
+
+    for aluguel in alugueis:
+        valor_total = float(aluguel.valor_total or 0)
+        distribuicao: Dict[int, float] = {}
+
+        for participacao in participacoes_por_imovel.get(aluguel.imovel_id, []):
+            percentual = participacao.percentual or 0
+            distribuicao[participacao.proprietario_id] = round(valor_total * (percentual / 100), 2)
+
+        linhas.append(
+            AluguelDistribuicaoRow(
+                aluguel_id=aluguel.id,
+                imovel_id=aluguel.imovel_id,
+                imovel_nome=aluguel.imovel.nome if aluguel.imovel else "Imóvel não cadastrado",
+                mes_referencia=aluguel.mes_referencia,
+                valor_total=valor_total,
+                distribuicao=distribuicao
+            )
+        )
+
+    col_headers = [mes_label, "Valor Total"] + [prop["nome"] for prop in proprietarios_ordenados]
+
+    return AluguelGridResponse(
+        mes_referencia=mes_referencia,
+        mes_label=mes_label,
+        col_headers=col_headers,
+        proprietarios=proprietarios_ordenados,
+        rows=linhas
+    )
 
 
 @router.post("/", response_model=AluguelResponse, status_code=status.HTTP_201_CREATED)

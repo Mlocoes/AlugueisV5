@@ -65,8 +65,28 @@
         <div class="bg-card-dark rounded-lg p-4 mb-6">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
+                    <label class="block text-sm text-gray-400 mb-1">Ano</label>
+                    <select id="filter-ano" class="w-full bg-bg-dark border border-border-dark text-white rounded-lg px-3 py-2">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+                <div>
                     <label class="block text-sm text-gray-400 mb-1">Mês</label>
-                    <input type="month" id="filter-mes" class="w-full bg-bg-dark border border-border-dark text-white rounded-lg px-3 py-2">
+                    <select id="filter-mes" class="w-full bg-bg-dark border border-border-dark text-white rounded-lg px-3 py-2">
+                        <option value="">Todos</option>
+                        <option value="01">Janeiro</option>
+                        <option value="02">Fevereiro</option>
+                        <option value="03">Março</option>
+                        <option value="04">Abril</option>
+                        <option value="05">Maio</option>
+                        <option value="06">Junho</option>
+                        <option value="07">Julho</option>
+                        <option value="08">Agosto</option>
+                        <option value="09">Setembro</option>
+                        <option value="10">Outubro</option>
+                        <option value="11">Novembro</option>
+                        <option value="12">Dezembro</option>
+                    </select>
                 </div>
                 <div>
                     <label class="block text-sm text-gray-400 mb-1">Imóvel</label>
@@ -81,14 +101,6 @@
                         <option value="true">Pago</option>
                         <option value="false">Pendente</option>
                     </select>
-                </div>
-                <div class="flex items-end gap-2">
-                    <button id="btn-filtrar" class="flex-1 bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
-                        Filtrar
-                    </button>
-                    <button id="btn-limpar-filtros" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">
-                        Limpar
-                    </button>
                 </div>
             </div>
         </div>
@@ -283,6 +295,37 @@ async function loadImoveis() {
         }
     } catch (error) {
         console.error('Erro ao carregar imóveis:', error);
+        showToast('Erro ao carregar imóveis', 'error');
+    }
+}
+
+async function loadAnos() {
+    console.log('loadAnos: iniciando');
+    try {
+        const alugueis = await fetchWithAuth('/api/alugueis/?limit=1000');
+        if (alugueis) {
+            const anos = new Set();
+            alugueis.forEach(aluguel => {
+                if (aluguel.mes_referencia) {
+                    const ano = aluguel.mes_referencia.split('-')[0];
+                    anos.add(ano);
+                }
+            });
+            
+            const selectAno = document.getElementById('filter-ano');
+            if (selectAno) {
+                selectAno.innerHTML = '<option value="">Todos os anos</option>';
+                Array.from(anos).sort().reverse().forEach(ano => {
+                    const option = document.createElement('option');
+                    option.value = ano;
+                    option.textContent = ano;
+                    selectAno.appendChild(option);
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao carregar anos:', error);
+        showToast('Erro ao carregar anos', 'error');
     }
 }
 
@@ -339,11 +382,22 @@ async function loadAlugueis() {
     try {
         const params = new URLSearchParams();
 
+        const ano = document.getElementById('filter-ano')?.value;
         const mes = document.getElementById('filter-mes')?.value;
         const imovelId = document.getElementById('filter-imovel')?.value;
         const status = document.getElementById('filter-status')?.value;
 
-        if (mes) params.append('mes_referencia', mes);
+        // Combinar ano e mês se ambos estiverem selecionados
+        if (ano && mes) {
+            params.append('mes_referencia', `${ano}-${mes}`);
+        } else if (ano) {
+            // Filtrar por ano apenas (todos os meses do ano)
+            params.append('ano', ano);
+        } else if (mes) {
+            // Filtrar por mês apenas (independente do ano) - usar like para buscar --mes
+            params.append('mes_like', `--${mes}`);
+        }
+
         if (imovelId) params.append('imovel_id', imovelId);
         if (status !== '') params.append('pago', status);
 
@@ -602,6 +656,7 @@ function fecharModal() {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('=== DOMContentLoaded disparado ===');
     loadImoveis();
+    loadAnos();
     loadStats();
     loadAlugueis();
     
@@ -611,27 +666,35 @@ document.addEventListener('DOMContentLoaded', () => {
         logoutBtn.addEventListener('click', () => logout());
     }
     
-    // Botões
-    const btnFiltrar = document.getElementById('btn-filtrar');
-    const btnLimparFiltros = document.getElementById('btn-limpar-filtros');
+    // Filtros automáticos
+    const filterAno = document.getElementById('filter-ano');
+    const filterMes = document.getElementById('filter-mes');
+    const filterImovel = document.getElementById('filter-imovel');
+    const filterStatus = document.getElementById('filter-status');
     
-    if (btnFiltrar) {
-        btnFiltrar.addEventListener('click', () => {
+    if (filterAno) {
+        filterAno.addEventListener('change', () => {
             loadAlugueis();
             loadStats();
         });
     }
     
-    if (btnLimparFiltros) {
-        btnLimparFiltros.addEventListener('click', () => {
-            const filterMes = document.getElementById('filter-mes');
-            const filterImovel = document.getElementById('filter-imovel');
-            const filterStatus = document.getElementById('filter-status');
-            
-            if (filterMes) filterMes.value = '';
-            if (filterImovel) filterImovel.value = '';
-            if (filterStatus) filterStatus.value = '';
-            
+    if (filterMes) {
+        filterMes.addEventListener('change', () => {
+            loadAlugueis();
+            loadStats();
+        });
+    }
+    
+    if (filterImovel) {
+        filterImovel.addEventListener('change', () => {
+            loadAlugueis();
+            loadStats();
+        });
+    }
+    
+    if (filterStatus) {
+        filterStatus.addEventListener('change', () => {
             loadAlugueis();
             loadStats();
         });
