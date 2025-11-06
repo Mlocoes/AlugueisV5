@@ -161,7 +161,7 @@ async def listar_proprietarios(
             "is_active": prop.is_active,
             "created_at": prop.created_at.isoformat() if prop.created_at else None,
             "updated_at": prop.updated_at.isoformat() if prop.updated_at else None,
-            "total_imoveis": len(prop.imoveis)
+            "total_imoveis": len(set(p.imovel_id for p in prop.participacoes if p.ativa))
         }
         result.append(prop_dict)
     
