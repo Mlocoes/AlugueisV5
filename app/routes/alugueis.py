@@ -25,8 +25,6 @@ class AluguelBase(BaseModel):
     mes_referencia: str = Field(..., pattern=r'^\d{4}-\d{2}$')  # YYYY-MM
     valor_total: float = 0.0
     pago: bool = False
-    data_pagamento: Optional[date] = None
-    observacoes: Optional[str] = None
 
 
 class AluguelCreate(AluguelBase):
@@ -36,14 +34,11 @@ class AluguelCreate(AluguelBase):
 class AluguelUpdate(BaseModel):
     valor_total: Optional[float] = None
     pago: Optional[bool] = None
-    data_pagamento: Optional[date] = None
-    observacoes: Optional[str] = None
 
 
 class AluguelResponse(AluguelBase):
     id: int
     created_at: datetime
-    updated_at: datetime
     imovel_nome: Optional[str] = None
     imovel_endereco: Optional[str] = None
 
@@ -138,10 +133,7 @@ async def listar_alugueis(
             "mes_referencia": aluguel.mes_referencia,
             "valor_total": aluguel.valor_total,
             "pago": aluguel.pago,
-            "data_pagamento": aluguel.data_pagamento,
-            "observacoes": aluguel.observacoes,
             "created_at": aluguel.created_at,
-            "updated_at": aluguel.updated_at,
             "imovel_nome": aluguel.imovel.nome if aluguel.imovel else None,
             "imovel_endereco": aluguel.imovel.endereco if aluguel.imovel else None
         }
@@ -320,10 +312,7 @@ async def criar_aluguel(
             "mes_referencia": novo_aluguel.mes_referencia,
             "valor_total": novo_aluguel.valor_total,
             "pago": novo_aluguel.pago,
-            "data_pagamento": novo_aluguel.data_pagamento,
-            "observacoes": novo_aluguel.observacoes,
             "created_at": novo_aluguel.created_at,
-            "updated_at": novo_aluguel.updated_at,
             "imovel_nome": imovel.nome,
             "imovel_endereco": imovel.endereco
         }
@@ -361,10 +350,7 @@ async def obter_aluguel(
             "mes_referencia": aluguel.mes_referencia,
             "valor_total": aluguel.valor_total,
             "pago": aluguel.pago,
-            "data_pagamento": aluguel.data_pagamento,
-            "observacoes": aluguel.observacoes,
             "created_at": aluguel.created_at,
-            "updated_at": aluguel.updated_at,
             "imovel_nome": aluguel.imovel.nome if aluguel.imovel else None,
             "imovel_endereco": aluguel.imovel.endereco if aluguel.imovel else None
         }
@@ -402,7 +388,6 @@ async def atualizar_aluguel(
         setattr(aluguel, field, value)
     
     # O valor_total é fornecido diretamente, não precisa recalcular
-    aluguel.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(aluguel)
     
@@ -413,10 +398,7 @@ async def atualizar_aluguel(
             "mes_referencia": aluguel.mes_referencia,
             "valor_total": aluguel.valor_total,
             "pago": aluguel.pago,
-            "data_pagamento": aluguel.data_pagamento,
-            "observacoes": aluguel.observacoes,
             "created_at": aluguel.created_at,
-            "updated_at": aluguel.updated_at,
             "imovel_nome": aluguel.imovel.nome if aluguel.imovel else None,
             "imovel_endereco": aluguel.imovel.endereco if aluguel.imovel else None
         }

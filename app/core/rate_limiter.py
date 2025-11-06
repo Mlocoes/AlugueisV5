@@ -16,11 +16,11 @@ security_logger = logging.getLogger("security")
 security_logger.setLevel(logging.INFO)
 
 # Handler para salvar logs de segurança em arquivo
-security_handler = logging.FileHandler("logs/security.log")
-security_handler.setFormatter(
-    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-)
-security_logger.addHandler(security_handler)
+# security_handler = logging.FileHandler("logs/security.log")
+# security_handler.setFormatter(
+#     logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+# )
+# security_logger.addHandler(security_handler)
 
 
 # Configuração do Limiter

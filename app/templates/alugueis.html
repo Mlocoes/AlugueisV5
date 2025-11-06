@@ -181,17 +181,7 @@
                             <input type="checkbox" id="aluguel-pago" class="w-5 h-5 text-primary bg-bg-dark border-border-dark rounded focus:ring-primary">
                             <label for="aluguel-pago" class="ml-2 text-gray-300">Marcar como pago</label>
                         </div>
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-1">Data de Pagamento</label>
-                            <input type="date" id="aluguel-data-pagamento" class="w-full bg-bg-dark border border-border-dark text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
-                        </div>
                     </div>
-                </div>
-
-                <!-- Observações -->
-                <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Observações</label>
-                    <textarea id="aluguel-observacoes" rows="3" class="w-full bg-bg-dark border border-border-dark text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Observações sobre este aluguel..."></textarea>
                 </div>
 
                 <!-- Botões -->
@@ -517,8 +507,6 @@ async function editarAluguel(id) {
             document.getElementById('aluguel-mes').value = aluguel.mes_referencia;
             document.getElementById('aluguel-valor-total').value = aluguel.valor_total;
             document.getElementById('aluguel-pago').checked = aluguel.pago;
-            document.getElementById('aluguel-data-pagamento').value = aluguel.data_pagamento || '';
-            document.getElementById('aluguel-observacoes').value = aluguel.observacoes || '';
             
             const modal = document.getElementById('modal-aluguel');
             modal.classList.remove('hidden');
@@ -560,9 +548,7 @@ async function salvarAluguel(event) {
         imovel_id: parseInt(document.getElementById('aluguel-imovel').value),
         mes_referencia: document.getElementById('aluguel-mes').value,
         valor_total: parseFloat(document.getElementById('aluguel-valor-total').value) || 0,
-        pago: document.getElementById('aluguel-pago').checked,
-        data_pagamento: document.getElementById('aluguel-data-pagamento').value || null,
-        observacoes: document.getElementById('aluguel-observacoes').value || null
+        pago: document.getElementById('aluguel-pago').checked
     };
     
     try {
