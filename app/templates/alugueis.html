@@ -1,5 +1,53 @@
 {% extends "base.html" %}
 
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@13.1.0/dist/handsontable.full.min.css" />
+<style>
+    .htDarkTable .handsontable td,
+    .htDarkTable .handsontable th {
+        background-color: var(--card-dark);
+        color: #f9fafb;
+        border-color: #334155;
+    }
+
+    .htDarkTable .handsontable thead th {
+        background-color: var(--bg-dark);
+        font-weight: 600;
+    }
+
+    .htDarkTable .handsontable .negative-value {
+        color: #f87171 !important;
+    }
+
+    #alugueis-handsontable {
+        min-height: 440px;
+        width: 100%;
+    }
+
+    .handsontable .htRight {
+        text-align: right;
+    }
+
+    .handsontable .htLeft {
+        text-align: left;
+    }
+
+    .htDarkTable .wtHolder {
+        border: 1px solid #334155;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .htDarkTable .handsontable tbody tr:hover td {
+        background-color: rgba(148, 163, 184, 0.08);
+    }
+
+    .htDarkTable .handsontable .htBorder.current {
+        border-color: var(--primary) !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="min-h-screen bg-bg-dark">
     <!-- Navbar -->
@@ -49,35 +97,25 @@
             </div>
         </div>
 
-        <!-- Tabela -->
-        <div class="bg-card-dark rounded-lg overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-bg-dark">
-                        <tr>
-                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Imóvel</th>
-                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Mês</th>
-                            <th class="px-4 py-3 text-right text-sm font-semibold text-gray-300">Valor Total</th>
-                            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Status</th>
-                            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-300">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="alugueis-tbody" class="divide-y divide-border-dark">
-                        <!-- Dados carregados via JS -->
-                    </tbody>
-                </table>
-            </div>
-            
-            <!-- Loading -->
-            <div id="loading" class="hidden p-8 text-center">
-                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <p class="text-gray-400 mt-2">Carregando...</p>
-            </div>
-            
-            <!-- Empty State -->
-            <div id="empty-state" class="hidden p-8 text-center">
-                <span class="material-symbols-outlined text-6xl text-gray-600">inbox</span>
-                <p class="text-gray-400 mt-2">Nenhum aluguel encontrado</p>
+        <!-- Grid Handsontable -->
+        <div class="bg-card-dark rounded-lg p-4 htDarkTable">
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <p class="text-sm text-gray-400">Dê um duplo clique em um imóvel para editar.</p>
+                    <div class="flex gap-2">
+                    </div>
+                </div>
+                <div class="relative">
+                    <div id="alugueis-loading" class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-bg-dark/70 backdrop-blur-sm" style="display: none;">
+                        <div class="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent"></div>
+                        <p class="mt-4 text-gray-300 text-sm">Carregando aluguéis...</p>
+                    </div>
+                    <div id="alugueis-empty" class="hidden py-12 text-center text-gray-400 text-sm">
+                        <span class="material-symbols-outlined text-5xl block mb-3">inbox</span>
+                        Nenhum aluguel encontrado para os filtros selecionados.
+                    </div>
+                    <div id="alugueis-handsontable"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -193,11 +231,28 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/handsontable@13.1.0/dist/handsontable.full.min.js"></script>
 <script>
 console.log('=== ALUGUEIS.HTML: Script carregado ===');
 
-let alugueisData = [];
+let alugueisHot = null;
+let alugueisGridRows = [];
+let proprietariosGrid = [];
+let selectedAluguelIndex = null;
 let imoveisData = [];
+
+function formatCurrencyPlain(value) {
+    const numericValue = typeof value === 'number' ? value : parseFloat(value) || 0;
+    return new Intl.NumberFormat('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(numericValue);
+}
+
+function getSelectedAluguel() {
+    if (selectedAluguelIndex === null) return null;
+    return alugueisGridRows[selectedAluguelIndex] || null;
+}
 
 // Carregar informações do usuário
 // Carregar imóveis para os selects
@@ -238,21 +293,20 @@ async function loadImoveis() {
 // Carregar estatísticas
 async function loadStats() {
     try {
-        const response = await fetchWithAuth('/api/alugueis/stats/summary');
-        if (response && response.ok) {
-            const stats = await response.json();
-            const statElements = {
-                'stat-total': stats.total_alugueis,
-                'stat-pagos': stats.pagos,
-                'stat-pendentes': stats.pendentes,
-                'stat-recebido': formatCurrency(stats.valor_total_recebido),
-                'stat-pendente': formatCurrency(stats.valor_total_pendente)
-            };
-            
-            for (const [id, value] of Object.entries(statElements)) {
-                const element = document.getElementById(id);
-                if (element) element.textContent = value;
-            }
+        const stats = await fetchWithAuth('/api/alugueis/stats/summary');
+        if (!stats) return;
+
+        const statElements = {
+            'stat-total': stats.total_alugueis,
+            'stat-pagos': stats.pagos,
+            'stat-pendentes': stats.pendentes,
+            'stat-recebido': formatCurrency(stats.valor_total_recebido),
+            'stat-pendente': formatCurrency(stats.valor_total_pendente)
+        };
+
+        for (const [id, value] of Object.entries(statElements)) {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value;
         }
     } catch (error) {
         console.error('Erro ao carregar estatísticas:', error);
@@ -262,101 +316,174 @@ async function loadStats() {
 // Carregar aluguéis
 async function loadAlugueis() {
     console.log('loadAlugueis: iniciando');
-    const tbody = document.getElementById('alugueis-tbody');
-    const loading = document.getElementById('loading');
-    const emptyState = document.getElementById('empty-state');
-    
-    console.log('Elementos encontrados:', {tbody: !!tbody, loading: !!loading, emptyState: !!emptyState});
-    
-    if (!tbody) {
-        console.warn('Elemento alugueis-tbody não encontrado');
+    const container = document.getElementById('alugueis-handsontable');
+    const loadingOverlay = document.getElementById('alugueis-loading');
+    const emptyState = document.getElementById('alugueis-empty');
+
+    if (!container) {
+        console.warn('Container Handsontable não encontrado');
         return;
     }
-    
-    tbody.innerHTML = '';
-    if (loading) loading.classList.remove('hidden');
+
+    if (loadingOverlay) {
+        loadingOverlay.style.display = 'flex';
+    }
     if (emptyState) emptyState.classList.add('hidden');
-    
+
+    selectedAluguelIndex = null;
+    alugueisGridRows = [];
+    proprietariosGrid = [];
+
+    if (alugueisHot) {
+        alugueisHot.destroy();
+        alugueisHot = null;
+    }
+    container.innerHTML = '';
+
     try {
-        // Construir URL com filtros
         const params = new URLSearchParams();
-        
+
         const mes = document.getElementById('filter-mes')?.value;
         const imovelId = document.getElementById('filter-imovel')?.value;
         const status = document.getElementById('filter-status')?.value;
-        
+
         if (mes) params.append('mes_referencia', mes);
         if (imovelId) params.append('imovel_id', imovelId);
         if (status !== '') params.append('pago', status);
-        
-        params.append('limit', '1000');
-        
-        const url = `/api/alugueis/?${params}`;
-        console.log('Carregando aluguéis de:', url);
-        
-        // fetchWithAuth retorna o JSON diretamente ou lança erro
-        alugueisData = await fetchWithAuth(url);
-        console.log('Aluguéis carregados:', alugueisData.length);
-        
-        if (alugueisData.length === 0) {
-            if (emptyState) emptyState.classList.remove('hidden');
-        } else {
-            alugueisData.forEach(aluguel => {
-                const row = createAluguelRow(aluguel);
-                tbody.appendChild(row);
-            });
+
+        const queryString = params.toString();
+        const url = queryString ? `/api/alugueis/grid-data?${queryString}` : '/api/alugueis/grid-data';
+        console.log('Carregando dados do grid a partir de:', url);
+
+        const gridData = await fetchWithAuth(url);
+
+        if (!gridData) {
+            throw new Error('Resposta vazia ao carregar dados de aluguéis');
         }
+
+        alugueisGridRows = gridData.rows || [];
+        proprietariosGrid = gridData.proprietarios || [];
+
+        const colHeaders = (gridData.col_headers && gridData.col_headers.length)
+            ? gridData.col_headers
+            : [gridData.mes_label || 'Imóvel', 'Valor Total', ...proprietariosGrid.map((p) => p.nome)];
+
+        if (!alugueisGridRows.length) {
+            container.innerHTML = '';
+            if (emptyState) emptyState.classList.remove('hidden');
+            return;
+        }
+
+        const tableData = alugueisGridRows.map((row) => {
+            const formatted = [
+                row.imovel_nome,
+                formatCurrencyPlain(row.valor_total)
+            ];
+
+            proprietariosGrid.forEach((prop) => {
+                const valor = row.distribuicao && typeof row.distribuicao[prop.id] !== 'undefined'
+                    ? row.distribuicao[prop.id]
+                    : 0;
+                formatted.push(formatCurrencyPlain(valor));
+            });
+
+            return formatted;
+        });
+
+        const columns = [
+            { data: 0, readOnly: true },
+            { data: 1, readOnly: true }
+        ];
+
+        for (let i = 0; i < proprietariosGrid.length; i += 1) {
+            columns.push({ data: i + 2, readOnly: true });
+        }
+
+        const calculatedHeight = Math.min(600, 140 + (tableData.length * 38));
+
+        alugueisHot = new Handsontable(container, {
+            data: tableData,
+            colHeaders,
+            columns,
+            rowHeaders: false,
+            stretchH: 'none',
+            height: calculatedHeight,
+            licenseKey: 'non-commercial-and-evaluation',
+            readOnly: true,
+            autoColumnSize: {
+                samplingRatio: 23,
+                useHeaders: true
+            },
+            manualColumnResize: true,
+            manualRowResize: false,
+            fillHandle: false,
+            contextMenu: false,
+            multiColumnSorting: false,
+            selectionMode: 'single',
+            className: 'htMiddle',
+            afterSelectionEnd: (row) => {
+                if (typeof row === 'number' && row >= 0) {
+                    selectedAluguelIndex = row;
+                }
+            },
+            afterDeselect: () => {
+                selectedAluguelIndex = null;
+            },
+            afterOnCellMouseDown: (event, coords) => {
+                if (coords.row >= 0) {
+                    selectedAluguelIndex = coords.row;
+                    if (event && event.detail === 2) {
+                        const selecionado = getSelectedAluguel();
+                        if (selecionado) {
+                            editarAluguel(selecionado.aluguel_id);
+                        }
+                    }
+                }
+            },
+            beforeKeyDown: (event) => {
+                if (!event) return;
+                const selecionado = getSelectedAluguel();
+
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    if (selecionado) {
+                        editarAluguel(selecionado.aluguel_id);
+                    }
+                }
+
+                if ((event.key === 'Delete' || event.key === 'Backspace') && selecionado) {
+                    event.preventDefault();
+                    deletarAluguel(selecionado.aluguel_id);
+                }
+            },
+            cells: function (row, col) {
+                const cellProperties = { readOnly: true };
+
+                if (col === 0) {
+                    cellProperties.className = 'htLeft htMiddle font-semibold text-white';
+                } else {
+                    cellProperties.className = 'htRight htMiddle';
+                    const value = this.instance.getDataAtCell(row, col);
+                    if (typeof value === 'string' && value.trim().startsWith('-')) {
+                        cellProperties.className += ' negative-value';
+                    }
+                }
+
+                return cellProperties;
+            }
+        });
     } catch (error) {
         console.error('Erro ao carregar aluguéis:', error);
         showToast('Erro ao carregar aluguéis', 'error');
+        if (emptyState) emptyState.classList.remove('hidden');
     } finally {
-        if (loading) loading.classList.add('hidden');
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+        }
     }
 }
 
 // Criar linha da tabela
-function createAluguelRow(aluguel) {
-    const tr = document.createElement('tr');
-    tr.className = 'hover:bg-bg-dark transition-colors';
-    
-    const encargos = aluguel.valor_condominio + aluguel.valor_iptu + aluguel.valor_luz + 
-                     aluguel.valor_agua + aluguel.valor_gas + aluguel.valor_internet + aluguel.outros_valores;
-    
-    const mesFormatado = formatarMes(aluguel.mes_referencia);
-    const statusBadge = aluguel.pago 
-        ? '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-500/20 text-green-400">Pago</span>'
-        : '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-500/20 text-yellow-400">Pendente</span>';
-    
-    tr.innerHTML = `
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-white font-medium">${mesFormatado}</td>
-        <td class="px-6 py-4 text-sm text-gray-300">
-            <div class="font-medium">${aluguel.imovel_nome || 'N/A'}</div>
-            <div class="text-xs text-gray-500">${aluguel.imovel_endereco || ''}</div>
-        </td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-white">${formatCurrency(aluguel.valor_aluguel)}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-300">${formatCurrency(encargos)}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-white">${formatCurrency(aluguel.valor_total)}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-center">${statusBadge}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-            <button onclick="editarAluguel(${aluguel.id})" class="text-primary hover:text-blue-400 mr-3" title="Editar">
-                <span class="material-symbols-outlined text-lg">edit</span>
-            </button>
-            <button onclick="deletarAluguel(${aluguel.id})" class="text-red-500 hover:text-red-400" title="Excluir">
-                <span class="material-symbols-outlined text-lg">delete</span>
-            </button>
-        </td>
-    `;
-    
-    return tr;
-}
-
-// Formatar mês (2025-11 -> Nov/2025)
-function formatarMes(mesRef) {
-    const [ano, mes] = mesRef.split('-');
-    const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-    return `${meses[parseInt(mes) - 1]}/${ano}`;
-}
-
 // Abrir modal para novo aluguel
 function abrirModalNovo() {
     document.getElementById('modal-title').textContent = 'Novo Aluguel';
