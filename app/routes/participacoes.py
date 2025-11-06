@@ -91,7 +91,7 @@ async def listar_participacoes(
     # Enriquecer com dados relacionados
     result = []
     for p in participacoes:
-        data = ParticipacaoResponse.from_orm(p)
+        data = ParticipacaoResponse.model_validate(p)
         data.imovel_nome = p.imovel.nome if p.imovel else None
         data.proprietario_nome = p.proprietario.nome if p.proprietario else None
         result.append(data)
@@ -137,7 +137,7 @@ async def criar_participacao(
     db.refresh(db_participacao)
     
     # Retornar com dados relacionados
-    response = ParticipacaoResponse.from_orm(db_participacao)
+    response = ParticipacaoResponse.model_validate(db_participacao)
     response.imovel_nome = imovel.nome
     response.proprietario_nome = proprietario.nome
     
@@ -159,7 +159,7 @@ async def obter_participacao(
         raise HTTPException(status_code=404, detail="Participação não encontrada")
     
     # Enriquecer com dados relacionados
-    response = ParticipacaoResponse.from_orm(participacao)
+    response = ParticipacaoResponse.model_validate(participacao)
     response.imovel_nome = participacao.imovel.nome if participacao.imovel else None
     response.proprietario_nome = participacao.proprietario.nome if participacao.proprietario else None
     
@@ -220,7 +220,7 @@ async def atualizar_participacao(
     db.refresh(db_participacao)
     
     # Retornar com dados relacionados
-    response = ParticipacaoResponse.from_orm(db_participacao)
+    response = ParticipacaoResponse.model_validate(db_participacao)
     response.imovel_nome = db_participacao.imovel.nome if db_participacao.imovel else None
     response.proprietario_nome = db_participacao.proprietario.nome if db_participacao.proprietario else None
     
@@ -294,7 +294,7 @@ async def listar_participacoes_por_imovel(
     # Enriquecer com dados relacionados
     result = []
     for p in participacoes:
-        data = ParticipacaoResponse.from_orm(p)
+        data = ParticipacaoResponse.model_validate(p)
         data.imovel_nome = imovel.nome
         data.proprietario_nome = p.proprietario.nome if p.proprietario else None
         result.append(data)
