@@ -56,13 +56,9 @@
     <!-- Main Content -->
     <div class="container mx-auto px-4 pb-8">
         
-        <!-- Header com Botão Novo -->
+        <!-- Header -->
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-white">Aluguéis Mensais</h2>
-            <button id="btn-novo-aluguel" class="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2">
-                <span class="material-symbols-outlined">add</span>
-                Novo Aluguel
-            </button>
         </div>
 
         <!-- Filtros -->
@@ -483,24 +479,6 @@ async function loadAlugueis() {
     }
 }
 
-// Criar linha da tabela
-// Abrir modal para novo aluguel
-function abrirModalNovo() {
-    document.getElementById('modal-title').textContent = 'Novo Aluguel';
-    document.getElementById('form-aluguel').reset();
-    document.getElementById('aluguel-id').value = '';
-    document.getElementById('aluguel-total-preview').textContent = 'R$ 0,00';
-    
-    // Definir mês atual
-    const hoje = new Date();
-    const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
-    document.getElementById('aluguel-mes').value = mesAtual;
-    
-    const modal = document.getElementById('modal-aluguel');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
-
 // Editar aluguel
 async function editarAluguel(id) {
     try {
@@ -634,13 +612,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Botões
-    const btnNovoAluguel = document.getElementById('btn-novo-aluguel');
     const btnFiltrar = document.getElementById('btn-filtrar');
     const btnLimparFiltros = document.getElementById('btn-limpar-filtros');
-    
-    if (btnNovoAluguel) {
-        btnNovoAluguel.addEventListener('click', abrirModalNovo);
-    }
     
     if (btnFiltrar) {
         btnFiltrar.addEventListener('click', () => {
