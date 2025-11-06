@@ -45,6 +45,22 @@
     .validation-warning {
         background-color: rgba(245, 158, 11, 0.2) !important;
     }
+    /* Ensure complete table borders */
+    .handsontable table {
+        border-collapse: collapse;
+    }
+    .handsontable table td,
+    .handsontable table th {
+        border: 1px solid #374151 !important;
+    }
+    .handsontable table {
+        border-bottom: 2px solid #374151 !important;
+    }
+    .handsontable .wtHolder {
+        border: 1px solid #374151;
+        border-radius: 8px;
+        overflow: hidden;
+    }
 </style>
 {% endblock %}
 
@@ -261,12 +277,15 @@ function initializeTable() {
         width: '100%',
         height: 600,
         licenseKey: 'non-commercial-and-evaluation',
-        stretchH: 'all',
+        stretchH: 'none', // Don't stretch columns, let autoColumnSize handle it
         manualColumnResize: true,
         manualRowResize: false,
         contextMenu: false,
         fillHandle: false, // Disable fill handle to avoid overlay errors
-        autoColumnSize: false,
+        autoColumnSize: {
+            samplingRatio: 23,
+            useHeaders: true
+        }, // Enable auto column sizing with custom options
         autoRowSize: false,
         disableVisualSelection: false,
         outsideClickDeselects: true,
