@@ -45,46 +45,6 @@
         .badge-inativo {
             background-color: #64748b;
         }
-        
-        /* Layout optimizado sin scroll */
-        .proprietarios-container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            padding: 1rem;
-            gap: 1rem;
-            overflow: hidden;
-        }
-        
-        .stats-row {
-            flex-shrink: 0;
-        }
-        
-        .filters-row {
-            flex-shrink: 0;
-        }
-        
-        .table-container {
-            flex: 1;
-            min-height: 0;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .table-wrapper {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: auto;
-        }
-        
-        /* Reducir padding para optimizar espacio */
-        .compact-card {
-            padding: 0.75rem;
-        }
-        
-        .stat-card {
-            padding: 0.75rem 1rem;
-        }
     </style>
 </head>
 <body class="min-h-screen bg-bg-dark">
@@ -93,100 +53,100 @@
 
     <!-- Main Content -->
     <div class="page-wrapper">
-        <div class="proprietarios-container">
+        <div class="container mx-auto px-4 pb-8">
         <!-- Estatísticas -->
-        <div class="stats-row grid grid-cols-1 md:grid-cols-5 gap-3">
-            <div class="card stat-card">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+            <div class="card p-4">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-400 text-xs">Total</p>
-                        <p id="stat-total" class="text-xl font-bold text-blue-400">0</p>
+                        <p class="text-gray-400 text-sm">Total</p>
+                        <p id="stat-total" class="text-2xl font-bold text-blue-400">0</p>
                     </div>
-                    <span class="material-symbols-outlined text-blue-400 text-3xl">group</span>
+                    <span class="material-symbols-outlined text-blue-400 text-4xl">group</span>
                 </div>
             </div>
-            <div class="card stat-card">
+            <div class="card p-4">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-400 text-xs">Ativos</p>
-                        <p id="stat-ativos" class="text-xl font-bold text-green-400">0</p>
+                        <p class="text-gray-400 text-sm">Ativos</p>
+                        <p id="stat-ativos" class="text-2xl font-bold text-green-400">0</p>
                     </div>
-                    <span class="material-symbols-outlined text-green-400 text-3xl">check_circle</span>
+                    <span class="material-symbols-outlined text-green-400 text-4xl">check_circle</span>
                 </div>
             </div>
-            <div class="card stat-card">
+            <div class="card p-4">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-400 text-xs">Inativos</p>
-                        <p id="stat-inativos" class="text-xl font-bold text-gray-400">0</p>
+                        <p class="text-gray-400 text-sm">Inativos</p>
+                        <p id="stat-inativos" class="text-2xl font-bold text-gray-400">0</p>
                     </div>
-                    <span class="material-symbols-outlined text-gray-400 text-3xl">cancel</span>
+                    <span class="material-symbols-outlined text-gray-400 text-4xl">cancel</span>
                 </div>
             </div>
-            <div class="card stat-card">
+            <div class="card p-4">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-400 text-xs">P. Físicas</p>
-                        <p id="stat-fisicas" class="text-xl font-bold text-purple-400">0</p>
+                        <p class="text-gray-400 text-sm">P. Físicas</p>
+                        <p id="stat-fisicas" class="text-2xl font-bold text-purple-400">0</p>
                     </div>
-                    <span class="material-symbols-outlined text-purple-400 text-3xl">person</span>
+                    <span class="material-symbols-outlined text-purple-400 text-4xl">person</span>
                 </div>
             </div>
-            <div class="card stat-card">
+            <div class="card p-4">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-400 text-xs">P. Jurídicas</p>
-                        <p id="stat-juridicas" class="text-xl font-bold text-indigo-400">0</p>
+                        <p class="text-gray-400 text-sm">P. Jurídicas</p>
+                        <p id="stat-juridicas" class="text-2xl font-bold text-indigo-400">0</p>
                     </div>
-                    <span class="material-symbols-outlined text-indigo-400 text-3xl">business</span>
+                    <span class="material-symbols-outlined text-indigo-400 text-4xl">business</span>
                 </div>
             </div>
         </div>
 
         <!-- Filtros e Ações -->
-        <div class="filters-row card compact-card">
-            <div class="flex flex-wrap gap-3 items-end">
+        <div class="card p-4 mb-6">
+            <div class="flex flex-wrap gap-4 items-end">
                 <div class="flex-1 min-w-[200px]">
-                    <label class="block text-xs text-gray-400 mb-1">Buscar</label>
+                    <label class="block text-sm text-gray-400 mb-2">Buscar</label>
                     <input type="text" id="search" placeholder="Nome, CPF, CNPJ, Email..." 
-                        class="w-full px-3 py-1.5 text-sm bg-gray-700 border border-gray-600 rounded-lg text-white">
+                        class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
                 </div>
-                <div class="min-w-[130px]">
-                    <label class="block text-xs text-gray-400 mb-1">Tipo</label>
-                    <select id="tipo-filter" class="w-full px-3 py-1.5 text-sm bg-gray-700 border border-gray-600 rounded-lg text-white">
+                <div class="min-w-[150px]">
+                    <label class="block text-sm text-gray-400 mb-2">Tipo</label>
+                    <select id="tipo-filter" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
                         <option value="">Todos</option>
                         <option value="fisica">Pessoa Física</option>
                         <option value="juridica">Pessoa Jurídica</option>
                     </select>
                 </div>
-                <div class="min-w-[130px]">
-                    <label class="block text-xs text-gray-400 mb-1">Status</label>
-                    <select id="status-filter" class="w-full px-3 py-1.5 text-sm bg-gray-700 border border-gray-600 rounded-lg text-white">
+                <div class="min-w-[150px]">
+                    <label class="block text-sm text-gray-400 mb-2">Status</label>
+                    <select id="status-filter" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
                         <option value="">Todos</option>
                         <option value="true">Ativos</option>
                         <option value="false">Inativos</option>
                     </select>
                 </div>
-                <button onclick="openModal()" class="btn-primary text-white px-4 py-1.5 text-sm rounded-lg flex items-center gap-2 hover:opacity-90">
-                    <span class="material-symbols-outlined text-lg">add</span>
+                <button onclick="openModal()" class="btn-primary text-white px-6 py-2 rounded-lg flex items-center gap-2 hover:opacity-90">
+                    <span class="material-symbols-outlined">add</span>
                     Novo Proprietário
                 </button>
             </div>
         </div>
 
         <!-- Tabela -->
-        <div class="table-container card">
-            <div class="table-wrapper">
+        <div class="card overflow-hidden">
+            <div class="overflow-x-auto">
                 <table class="w-full">
-                    <thead class="bg-gray-800 sticky top-0 z-10">
+                    <thead class="bg-gray-800">
                         <tr>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase">Nome/Razão Social</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase">CPF/CNPJ</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase">Tipo</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase">Contato</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase">Imóveis</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase">Status</th>
-                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-400 uppercase">Ações</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Nome/Razão Social</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">CPF/CNPJ</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Tipo</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Contato</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Imóveis</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Status</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="proprietarios-tbody" class="divide-y divide-gray-700">
@@ -498,34 +458,34 @@
             const contato = prop.email || prop.celular || prop.telefone || '-';
 
             tr.innerHTML = `
-                <td class="px-4 py-2">
-                    <div class="font-medium text-sm">${nome}</div>
-                    ${prop.tipo_pessoa === 'juridica' && prop.nome_fantasia ? `<div class="text-xs text-gray-400">${prop.nome_fantasia}</div>` : ''}
+                <td class="px-6 py-4">
+                    <div class="font-medium">${nome}</div>
+                    ${prop.tipo_pessoa === 'juridica' && prop.nome_fantasia ? `<div class="text-sm text-gray-400">${prop.nome_fantasia}</div>` : ''}
                 </td>
-                <td class="px-4 py-2 text-sm">${documento || '-'}</td>
-                <td class="px-4 py-2">
+                <td class="px-6 py-4 text-sm">${documento || '-'}</td>
+                <td class="px-6 py-4">
                     <span class="px-2 py-1 text-xs rounded-full badge-${prop.tipo_pessoa}">
                         ${prop.tipo_pessoa === 'fisica' ? 'P. Física' : 'P. Jurídica'}
                     </span>
                 </td>
-                <td class="px-4 py-2 text-sm">${contato}</td>
-                <td class="px-4 py-2 text-center">
+                <td class="px-6 py-4 text-sm">${contato}</td>
+                <td class="px-6 py-4 text-center">
                     <span class="px-2 py-1 bg-blue-600 text-xs rounded-full">${prop.total_imoveis}</span>
                 </td>
-                <td class="px-4 py-2">
+                <td class="px-6 py-4">
                     <span class="px-2 py-1 text-xs rounded-full badge-${prop.is_active ? 'ativo' : 'inativo'}">
                         ${prop.is_active ? 'Ativo' : 'Inativo'}
                     </span>
                 </td>
-                <td class="px-4 py-2">
-                    <div class="flex justify-center gap-1">
+                <td class="px-6 py-4">
+                    <div class="flex justify-center gap-2">
                         <button onclick="editarProprietario(${prop.id})" 
-                            class="text-blue-400 hover:text-blue-300 p-1" title="Editar">
-                            <span class="material-symbols-outlined text-lg">edit</span>
+                            class="text-blue-400 hover:text-blue-300" title="Editar">
+                            <span class="material-symbols-outlined">edit</span>
                         </button>
                         <button onclick="deletarProprietario(${prop.id}, '${nome}')" 
-                            class="text-red-400 hover:text-red-300 p-1" title="Excluir">
-                            <span class="material-symbols-outlined text-lg">delete</span>
+                            class="text-red-400 hover:text-red-300" title="Excluir">
+                            <span class="material-symbols-outlined">delete</span>
                         </button>
                     </div>
                 </td>
