@@ -29,15 +29,9 @@ class AluguelMensal(Base):
     
     # Status de pagamento
     pago = Column(Boolean, default=False)
-    data_pagamento = Column(Date, nullable=True)
-    
-    # Observações
-    observacoes = Column(String(1000), nullable=True)
     
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    atualizado_em = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)  # Alias para compatibilidade
 
     # Relacionamentos
     imovel = relationship("Imovel", back_populates="alugueis")
