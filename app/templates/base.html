@@ -70,10 +70,11 @@
         
         /* Wrapper para todo conteúdo - ajusta ao sidebar */
         .page-wrapper {
-            margin-left: 3.5rem; /* 56px - largura do sidebar colapsado */
+            margin-left: 3.5rem !important; /* 56px - largura do sidebar colapsado */
             height: 100vh;
             overflow: hidden;
             transition: margin-left 0.3s ease;
+            width: calc(100vw - 3.5rem);
         }
         
         /* Container principal sem scroll */
@@ -91,9 +92,18 @@
             overflow-x: hidden;
         }
         
+        /* Garantir que o sidebar seja sempre fixo */
+        #sidebar {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            z-index: 50 !important;
+        }
+        
         @media (max-width: 768px) {
             .page-wrapper {
-                margin-left: 0;
+                margin-left: 0 !important;
+                width: 100vw !important;
                 padding-top: 4rem;
             }
         }
