@@ -60,8 +60,16 @@
     {% endblock %}
     
     <style>
-        /* Ajuste para o conteúdo com sidebar auto-hide */
+        /* Ajuste global para o conteúdo com sidebar auto-hide */
         body {
+            height: 100vh;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Wrapper para todo conteúdo - ajusta ao sidebar */
+        .page-wrapper {
             margin-left: 3.5rem; /* 56px - largura do sidebar colapsado */
             height: 100vh;
             overflow: hidden;
@@ -84,7 +92,7 @@
         }
         
         @media (max-width: 768px) {
-            body {
+            .page-wrapper {
                 margin-left: 0;
                 padding-top: 4rem;
             }
