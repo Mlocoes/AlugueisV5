@@ -6,207 +6,229 @@
     {% include "navbar.html" %}
 
     <style>
-    /* Escala todo o bloco de stats em 65% (mais compacto) */
-    .dashboard-scale {
-        transform: scale(0.65);
-        transform-origin: top left;
-        display: inline-block;
-    }
-    
-    /* Container principal do dashboard sem scroll */
-    .dashboard-container {
-        height: 100vh;
+    /* Container principal do dashboard - altura fixa sem scroll */
+    .dashboard-main {
+        flex: 1;
         overflow: hidden;
         display: flex;
         flex-direction: column;
+        padding: 0.75rem;
+        gap: 0.75rem;
     }
     
-    /* Área scrollável do conteúdo */
-    .dashboard-content {
+    /* Filtros compactos */
+    .filter-bar {
+        background-color: #1e293b;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-shrink: 0;
+    }
+    
+    /* Cards de stats - altura reduzida */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.75rem;
+        flex-shrink: 0;
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, var(--from), var(--to));
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: transform 0.2s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    /* Gráficos - otimizado para espaço disponível */
+    .charts-container {
         flex: 1;
-        overflow-y: auto;
-        overflow-x: hidden;
-        padding: 1rem;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: 1fr 1fr;
+        gap: 0.75rem;
+        min-height: 0;
     }
     
-    /* Customizar scrollbar */
-    .dashboard-content::-webkit-scrollbar {
-        width: 8px;
+    .chart-card {
+        background-color: #1e293b;
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
     }
-    .dashboard-content::-webkit-scrollbar-track {
-        background: transparent;
+    
+    .chart-card.full-width {
+        grid-column: span 2;
     }
-    .dashboard-content::-webkit-scrollbar-thumb {
-        background-color: rgba(100, 116, 139, 0.5);
-        border-radius: 4px;
+    
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        flex-shrink: 0;
     }
-    .dashboard-content::-webkit-scrollbar-thumb:hover {
-        background-color: rgba(100, 116, 139, 0.7);
+    
+    .chart-content {
+        flex: 1;
+        min-height: 0;
+        position: relative;
+    }
+    
+    .chart-content canvas {
+        width: 100% !important;
+        height: 100% !important;
     }
     </style>
 
     <!-- Main Content -->
-    <main class="dashboard-content">
-        <!-- Filtros de Período -->
-        <div class="rounded-lg shadow-lg p-3 mb-4" style="background-color: #1e293b;">
-            <div class="flex flex-wrap items-center gap-3">
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-gray-400 text-xl">calendar_today</span>
-                    <span class="text-gray-300 font-medium text-sm">Período:</span>
-                </div>
-                <select id="ano-filter" class="bg-gray-700 text-white px-3 py-1.5 text-sm rounded-lg border border-gray-600 focus:border-primary focus:outline-none" onchange="applyFilter()">
-                    <!-- Populated by JS -->
-                </select>
-                <select id="mes-filter" class="bg-gray-700 text-white px-3 py-1.5 text-sm rounded-lg border border-gray-600 focus:border-primary focus:outline-none" onchange="applyFilter()">
-                    <option value="1">Janeiro</option>
-                    <option value="2">Fevereiro</option>
-                    <option value="3">Março</option>
-                    <option value="4">Abril</option>
-                    <option value="5">Maio</option>
-                    <option value="6">Junho</option>
-                    <option value="7">Julho</option>
-                    <option value="8">Agosto</option>
-                    <option value="9">Setembro</option>
-                    <option value="10">Outubro</option>
-                    <option value="11">Novembro</option>
-                    <option value="12">Dezembro</option>
-                </select>
-                <button onclick="refreshData()" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg transition-colors">
-                    <span class="material-symbols-outlined text-sm">refresh</span>
-                </button>
-            </div>
+    <div class="dashboard-main">
+        <!-- Filtros Compactos -->
+        <div class="filter-bar">
+            <span class="material-symbols-outlined text-gray-400 text-lg">calendar_today</span>
+            <span class="text-gray-300 font-medium text-sm">Período:</span>
+            <select id="mes-filter" class="bg-gray-700 text-white px-2 py-1 text-sm rounded border border-gray-600 focus:border-primary focus:outline-none" onchange="applyFilter()">
+                <option value="1">Janeiro</option>
+                <option value="2">Fevereiro</option>
+                <option value="3">Março</option>
+                <option value="4">Abril</option>
+                <option value="5">Maio</option>
+                <option value="6">Junho</option>
+                <option value="7">Julho</option>
+                <option value="8">Agosto</option>
+                <option value="9">Setembro</option>
+                <option value="10">Outubro</option>
+                <option value="11">Novembro</option>
+                <option value="12">Dezembro</option>
+            </select>
+            <select id="ano-filter" class="bg-gray-700 text-white px-2 py-1 text-sm rounded border border-gray-600 focus:border-primary focus:outline-none" onchange="applyFilter()">
+                <!-- Populated by JS -->
+            </select>
+            <button onclick="refreshData()" class="bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded transition-colors ml-auto">
+                <span class="material-symbols-outlined text-sm">refresh</span>
+            </button>
         </div>
 
-        <!-- Stats Cards with Animations (scaled) -->
-        <div class="dashboard-scale origin-top-left">
-            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-            <!-- Card 1: Imóveis Disponíveis -->
-            <div class="bg-gradient-to-br from-blue-900 to-blue-700 rounded-lg shadow-lg p-6 card-hover transform transition-all hover:scale-105">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-blue-200 text-sm font-medium">Imóveis Disponíveis</p>
-                        <p id="imoveis-disponiveis" class="text-3xl font-bold text-white mt-2">
-                            <span class="loading-shimmer">-</span>
-                        </p>
-                        <p class="text-blue-200 text-xs mt-1">
-                            de <span id="total-imoveis" class="font-semibold">-</span> cadastrados
-                        </p>
-                    </div>
-                    <div class="bg-blue-600 bg-opacity-50 rounded-full p-4">
-                        <span class="material-symbols-outlined text-white text-3xl">home</span>
-                    </div>
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <!-- Card 1: Proprietários -->
+            <div class="stat-card" style="--from: #16a34a; --to: #15803d;">
+                <div>
+                    <p class="text-white text-opacity-80 text-xs font-medium">Proprietários</p>
+                    <p id="total-proprietarios" class="text-2xl font-bold text-white mt-1">-</p>
+                    <p class="text-white text-opacity-70 text-xs">cadastrados</p>
+                </div>
+                <div class="bg-white bg-opacity-20 rounded-full p-2">
+                    <span class="material-symbols-outlined text-white text-2xl">person</span>
                 </div>
             </div>
 
-            <!-- Card 2: Proprietários -->
-            <div class="bg-gradient-to-br from-green-900 to-green-700 rounded-lg shadow-lg p-6 card-hover transform transition-all hover:scale-105">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-green-200 text-sm font-medium">Proprietários</p>
-                        <p id="total-proprietarios" class="text-3xl font-bold text-white mt-2">
-                            <span class="loading-shimmer">-</span>
-                        </p>
-                        <p class="text-green-200 text-xs mt-1">cadastrados</p>
-                    </div>
-                    <div class="bg-green-600 bg-opacity-50 rounded-full p-4">
-                        <span class="material-symbols-outlined text-white text-3xl">person</span>
-                    </div>
+            <!-- Card 2: Valor Esperado -->
+            <div class="stat-card" style="--from: #9333ea; --to: #7e22ce;">
+                <div>
+                    <p class="text-white text-opacity-80 text-xs font-medium">Valor Esperado (Mês)</p>
+                    <p id="valor-esperado" class="text-2xl font-bold text-white mt-1">R$ -</p>
+                    <p class="text-white text-opacity-70 text-xs"><span id="periodo-esperado">em Novembro</span> | <span id="total-alugueis">0</span> aluguéis</p>
+                </div>
+                <div class="bg-white bg-opacity-20 rounded-full p-2">
+                    <span class="material-symbols-outlined text-white text-2xl">payments</span>
                 </div>
             </div>
 
-            <!-- Card 3: Valor do Mês -->
-            <div class="bg-gradient-to-br from-purple-900 to-purple-700 rounded-lg shadow-lg p-6 card-hover transform transition-all hover:scale-105">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-purple-200 text-sm font-medium">Valor Esperado (Mês)</p>
-                        <p id="valor-esperado" class="text-3xl font-bold text-white mt-2">
-                            <span class="loading-shimmer">R$ -</span>
-                        </p>
-                        <p class="text-purple-200 text-xs mt-1">
-                            <span id="periodo-esperado">no período</span> | <span id="total-alugueis">-</span> aluguéis
-                        </p>
+            <!-- Card 3: Valor Recebido -->
+            <div class="stat-card" style="--from: #ea580c; --to: #c2410c;">
+                <div>
+                    <p class="text-white text-opacity-80 text-xs font-medium">Valor Recebido (Ano)</p>
+                    <p id="valor-recebido" class="text-2xl font-bold text-white mt-1">R$ -</p>
+                    <div class="flex items-center gap-1 mt-1">
+                        <span id="taxa-icon" class="material-symbols-outlined text-xs"></span>
+                        <span id="taxa-recebimento" class="text-white text-opacity-90 text-xs font-semibold">-%</span>
+                        <span class="text-white text-opacity-70 text-xs">do ano</span>
                     </div>
-                    <div class="bg-purple-600 bg-opacity-50 rounded-full p-4">
-                        <span class="material-symbols-outlined text-white text-3xl">payments</span>
-                    </div>
+                </div>
+                <div class="bg-white bg-opacity-20 rounded-full p-2">
+                    <span class="material-symbols-outlined text-white text-2xl">check_circle</span>
                 </div>
             </div>
 
-            <!-- Card 4: Valor Recebido no Ano -->
-            <div class="bg-gradient-to-br from-orange-900 to-orange-700 rounded-lg shadow-lg p-6 card-hover transform transition-all hover:scale-105">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-orange-200 text-sm font-medium">Valor Recebido (Ano)</p>
-                        <p id="valor-recebido" class="text-3xl font-bold text-white mt-2">
-                            <span class="loading-shimmer">R$ -</span>
-                        </p>
-                        <div class="flex items-center gap-2 mt-1">
-                            <span id="taxa-icon" class="material-symbols-outlined text-sm"></span>
-                            <span id="taxa-recebimento" class="text-orange-200 text-sm font-semibold">-%</span>
-                            <span class="text-orange-200 text-xs">do ano</span>
-                        </div>
-                    </div>
-                    <div class="bg-orange-600 bg-opacity-50 rounded-full p-4">
-                        <span class="material-symbols-outlined text-white text-3xl">check_circle</span>
-                    </div>
+            <!-- Card 4: Imóveis -->
+            <div class="stat-card" style="--from: #2563eb; --to: #1e40af;">
+                <div>
+                    <p class="text-white text-opacity-80 text-xs font-medium">Imóveis Disponíveis</p>
+                    <p id="imoveis-disponiveis" class="text-2xl font-bold text-white mt-1">-</p>
+                    <p class="text-white text-opacity-70 text-xs">de <span id="total-imoveis">-</span> cadastrados</p>
+                </div>
+                <div class="bg-white bg-opacity-20 rounded-full p-2">
+                    <span class="material-symbols-outlined text-white text-2xl">home</span>
                 </div>
             </div>
         </div>
 
         <!-- Gráficos -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <!-- Gráfico de Evolução -->
-            <div class="rounded-lg shadow-lg p-6" style="background-color: #1e293b;">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                        <span class="material-symbols-outlined text-primary">show_chart</span>
+        <div class="charts-container">
+            <!-- Evolução Mensal -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-1">
+                        <span class="material-symbols-outlined text-primary text-lg">show_chart</span>
                         Evolução Mensal
                     </h3>
-                    <span class="text-gray-400 text-sm" id="ano-evolution">-</span>
+                    <span class="text-gray-400 text-xs" id="ano-evolution">2025</span>
                 </div>
-                <div class="relative" style="height: 300px;">
+                <div class="chart-content">
                     <canvas id="evolution-chart"></canvas>
                 </div>
             </div>
 
-            <!-- Gráfico de Distribuição -->
-            <div class="rounded-lg shadow-lg p-6" style="background-color: #1e293b;">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                        <span class="material-symbols-outlined text-primary">pie_chart</span>
+            <!-- Distribuição por Imóvel -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-1">
+                        <span class="material-symbols-outlined text-primary text-lg">pie_chart</span>
                         Distribuição por Imóvel
                     </h3>
-                    <span class="text-gray-400 text-sm">Top 10</span>
+                    <span class="text-gray-400 text-xs">Top 10</span>
                 </div>
-                <div class="relative" style="height: 300px;">
+                <div class="chart-content">
                     <canvas id="distribution-chart"></canvas>
                 </div>
             </div>
-        </div>
 
-        <!-- Gráfico de Barras Comparativo -->
-        <div class="rounded-lg shadow-lg p-6 mb-8" style="background-color: #1e293b;">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary">bar_chart</span>
-                    Comparativo: Esperado vs Recebido
-                </h3>
-                <div class="flex items-center gap-4">
-                    <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 bg-blue-500 rounded"></div>
-                        <span class="text-gray-300 text-sm">Esperado</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 bg-green-500 rounded"></div>
-                        <span class="text-gray-300 text-sm">Recebido</span>
+            <!-- Comparativo: Esperado vs Recebido -->
+            <div class="chart-card full-width">
+                <div class="chart-header">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-1">
+                        <span class="material-symbols-outlined text-primary text-lg">bar_chart</span>
+                        Comparativo: Esperado vs Recebido
+                    </h3>
+                    <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-1">
+                            <div class="w-3 h-3 bg-blue-500 rounded"></div>
+                            <span class="text-gray-300 text-xs">Esperado</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <div class="w-3 h-3 bg-green-500 rounded"></div>
+                            <span class="text-gray-300 text-xs">Recebido</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="relative" style="height: 350px;">
-                <canvas id="comparison-chart"></canvas>
+                <div class="chart-content">
+                    <canvas id="comparison-chart"></canvas>
+                </div>
             </div>
         </div>
-    </main>
+    </div>
 </div>
 {% endblock %}
 
