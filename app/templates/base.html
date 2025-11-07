@@ -60,11 +60,12 @@
     {% endblock %}
     
     <style>
-        /* Ajuste para o conteúdo com sidebar - 10% menor */
+        /* Ajuste para o conteúdo com sidebar auto-hide */
         body {
-            margin-left: 14rem; /* 224px = 56 * 4 (w-56) */
+            margin-left: 3.5rem; /* 56px - largura do sidebar colapsado */
             height: 100vh;
-            overflow: hidden; /* Sem scroll no body */
+            overflow: hidden;
+            transition: margin-left 0.3s ease;
         }
         
         /* Container principal sem scroll */
