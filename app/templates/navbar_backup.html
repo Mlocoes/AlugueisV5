@@ -1,5 +1,5 @@
 <!-- Auto-Hide Sidebar Navigation Component -->
-<nav id="sidebar" class="fixed top-0 left-0 bg-[var(--card-dark)] shadow-2xl flex flex-col transition-all duration-300">
+<nav id="sidebar" class="sidebar-autohide fixed top-0 left-0 bg-[var(--card-dark)] shadow-2xl flex flex-col transition-all duration-300">
     <!-- Header -->
     <div class="sidebar-header p-5 border-b border-[var(--border-dark)]">
         <div class="flex items-center gap-2 mb-1">
@@ -48,6 +48,16 @@
             <span class="sidebar-text">Extras</span>
         </a>
         
+        <a href="/darf" class="sidebar-link {{ 'active' if active_page == 'darf' else '' }}">
+            <span class="material-symbols-outlined">receipt_long</span>
+            <span class="sidebar-text">DARF</span>
+        </a>
+        
+        <a href="/permissoes" class="sidebar-link {{ 'active' if active_page == 'permissoes' else '' }}">
+            <span class="material-symbols-outlined">lock</span>
+            <span class="sidebar-text">Permissões</span>
+        </a>
+        
         <a href="/importacao" class="sidebar-link {{ 'active' if active_page == 'importacao' else '' }}">
             <span class="material-symbols-outlined">upload_file</span>
             <span class="sidebar-text">Importar</span>
@@ -63,109 +73,178 @@
     </div>
 </nav>
 
+<!-- Sidebar Toggle Indicator (sempre visível) -->
+<div id="sidebar-trigger" class="fixed top-0 left-0 w-2 h-screen z-40"></div>
+
 <style>
-/* Variables CSS */
+/* Variables CSS para el sidebar */
 :root {
-    --sidebar-collapsed-width: 3.5rem;
-    --sidebar-expanded-width: 14rem;
+    --sidebar-collapsed-width: 3.5rem;    /* 56px */
+    --sidebar-expanded-width: 14rem;      /* 224px */
+    --sidebar-transition: 0.3s ease;
 }
 
-/* Sidebar principal - sempre colapsado por padrão */
+/* Auto-hide Sidebar - collapsed by default */
 #sidebar {
     width: var(--sidebar-collapsed-width) !important;
     height: 100vh !important;
     z-index: 50 !important;
-    transition: width 0.3s ease !important;
+    transition: width var(--sidebar-transition) !important;
     overflow: hidden !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
 }
 
-/* Expandir ao hover */
-#sidebar:hover {
+#sidebar:hover,
+#sidebar.expanded {
     width: var(--sidebar-expanded-width) !important;
 }
 
-/* Textos escondidos por padrão */
+/* Esconder textos cuando colapsado */
 #sidebar .sidebar-text {
     opacity: 0 !important;
     visibility: hidden !important;
-    transition: opacity 0.2s ease !important;
-    white-space: nowrap !important;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
-/* Mostrar textos ao hover */
-#sidebar:hover .sidebar-text {
+#sidebar:hover .sidebar-text,
+#sidebar.expanded .sidebar-text {
     opacity: 1 !important;
     visibility: visible !important;
-    transition-delay: 0.1s !important;
+    transition-delay: 0.15s;
 }
 
-/* Header ajustado */
+/* Ajustar header cuando colapsado */
 #sidebar .sidebar-header {
     padding: 0.75rem 0.5rem !important;
-    text-align: center !important;
+    text-align: center;
 }
 
-#sidebar:hover .sidebar-header {
+#sidebar:hover .sidebar-header,
+#sidebar.expanded .sidebar-header {
     padding: 1.25rem !important;
-    text-align: left !important;
+    text-align: left;
 }
 
-/* Links centralizados por padrão */
+/* Links do sidebar */
 .sidebar-link {
     display: flex !important;
     align-items: center !important;
     gap: 0.75rem !important;
-    padding: 0.625rem !important;
+    padding: 0.625rem 0.75rem !important;
     color: #e5e7eb !important;
     transition: all 0.2s ease !important;
+    font-weight: 500 !important;
+    font-size: 0.875rem !important;
     text-decoration: none !important;
     justify-content: center !important;
-    margin: 0.125rem 0.25rem !important;
-    border-radius: 0.5rem !important;
 }
 
-/* Links expandidos ao hover */
-#sidebar:hover .sidebar-link {
+#sidebar:hover .sidebar-link,
+#sidebar.expanded .sidebar-link {
+    padding: 0.625rem 1.25rem !important;
     justify-content: flex-start !important;
-    padding-left: 1.25rem !important;
-    padding-right: 1.25rem !important;
 }
 
-/* Estados dos links */
 .sidebar-link:hover {
-    background-color: rgba(19, 91, 236, 0.1) !important;
-    color: white !important;
+    background-color: rgba(19, 91, 236, 0.1);
+    color: white;
 }
 
 .sidebar-link.active {
-    background-color: rgba(19, 91, 236, 0.15) !important;
-    color: var(--primary) !important;
+    background-color: rgba(19, 91, 236, 0.15);
+    color: var(--primary);
+    border-left: 3px solid var(--primary);
 }
 
-/* Ícones */
+.sidebar-autohide .sidebar-link.active {
+    border-left: none;
+    border-top: 3px solid var(--primary);
+}
+
+.sidebar-autohide:hover .sidebar-link.active,
+.sidebar-autohide.expanded .sidebar-link.active {
+    border-top: none;
+    border-left: 3px solid var(--primary);
+    padding-left: calc(1.25rem - 3px);
+}
+
 .sidebar-link .material-symbols-outlined {
-    font-size: 1.25rem !important;
-    flex-shrink: 0 !important;
+    font-size: 1.25rem;
+    flex-shrink: 0;
 }
 
-/* Mobile responsivo */
+/* Trigger area - área invisível para ativar o menu */
+#sidebar-trigger {
+    cursor: pointer;
+}
+
+#sidebar-trigger:hover ~ #sidebar {
+    width: 14rem;
+}
+
+/* Scrollbar personalizado para a sidebar */
+.scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(100, 116, 139, 0.5) transparent;
+}
+.scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgba(100, 116, 139, 0.5);
+    border-radius: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(100, 116, 139, 0.7);
+}
+
+/* Mobile Sidebar */
 @media (max-width: 768px) {
-    #sidebar {
-        transform: translateX(-100%) !important;
-        width: var(--sidebar-expanded-width) !important;
+    .sidebar-autohide {
+        transform: translateX(-100%);
+        width: 14rem;
     }
     
-    #sidebar .sidebar-text {
-        opacity: 1 !important;
-        visibility: visible !important;
+    .sidebar-autohide.mobile-open {
+        transform: translateX(0);
+    }
+    
+    .sidebar-autohide .sidebar-text {
+        opacity: 1;
+        visibility: visible;
     }
 }
 </style>
 
 <script>
-function logout() {
-    if (confirm('Deseja realmente sair do sistema?')) {
-        window.location.href = '/auth/logout';
+// Auto-hide sidebar functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebar = document.getElementById('sidebar');
+    const sidebarTrigger = document.getElementById('sidebar-trigger');
+    
+    // Expandir ao passar o mouse na área de trigger
+    if (sidebarTrigger) {
+        sidebarTrigger.addEventListener('mouseenter', function() {
+            sidebar.classList.add('expanded');
+        });
     }
-}
+    
+    // Colapsar quando sair do sidebar
+    sidebar.addEventListener('mouseleave', function() {
+        sidebar.classList.remove('expanded');
+    });
+    
+    // Manter expandido ao passar o mouse no sidebar
+    sidebar.addEventListener('mouseenter', function() {
+        sidebar.classList.add('expanded');
+    });
+});
 </script>
+
