@@ -58,6 +58,20 @@
     
     {% block head %}
     {% endblock %}
+    
+    <style>
+        /* Ajuste para o conteúdo com sidebar */
+        body {
+            margin-left: 16rem; /* 256px = 64 * 4 (w-64) */
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                margin-left: 0;
+                padding-top: 4rem;
+            }
+        }
+    </style>
 </head>
 <body class="text-gray-100" style="background-color: #101622;">
     {% block content %}
