@@ -60,9 +60,26 @@
     {% endblock %}
     
     <style>
-        /* Ajuste para o conteúdo com sidebar */
+        /* Ajuste para o conteúdo com sidebar - 10% menor */
         body {
-            margin-left: 16rem; /* 256px = 64 * 4 (w-64) */
+            margin-left: 14rem; /* 224px = 56 * 4 (w-56) */
+            height: 100vh;
+            overflow: hidden; /* Sem scroll no body */
+        }
+        
+        /* Container principal sem scroll */
+        .main-container {
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Área de conteúdo com scroll interno quando necessário */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
         }
         
         @media (max-width: 768px) {

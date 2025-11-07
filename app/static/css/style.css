@@ -10,12 +10,34 @@
     --subtext-dark: #94a3b8;
 }
 
-/* Global Styles */
+/* Global Styles - Fixed Height Layout */
+html, body {
+    height: 100vh;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
 body {
     font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: var(--background-dark);
     color: var(--text-dark);
-    min-height: 100vh;
+}
+
+/* Container global para páginas sem scroll */
+.page-container {
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Área de conteúdo scrollável internamente */
+.page-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 1rem;
 }
 
 /* Scrollbar customizado */

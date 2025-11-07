@@ -1,36 +1,63 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="min-h-screen" style="background-color: #101622;">
+<div class="h-screen flex flex-col overflow-hidden" style="background-color: #101622;">
     <!-- Navbar -->
     {% include "navbar.html" %}
 
     <style>
-    /* Escala todo o bloco de stats em 70% (reduz 30%) */
+    /* Escala todo o bloco de stats em 65% (mais compacto) */
     .dashboard-scale {
-        transform: scale(0.7);
+        transform: scale(0.65);
         transform-origin: top left;
-        display: inline-block; /* para que o scale afete o bloco inteiro */
+        display: inline-block;
     }
-    /* Ajuste para evitar overflow horizontal indesejado */
-    @media (min-width: 1024px) {
-        .dashboard-scale { margin-left: 0; }
+    
+    /* Container principal do dashboard sem scroll */
+    .dashboard-container {
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* Área scrollável do conteúdo */
+    .dashboard-content {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 1rem;
+    }
+    
+    /* Customizar scrollbar */
+    .dashboard-content::-webkit-scrollbar {
+        width: 8px;
+    }
+    .dashboard-content::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .dashboard-content::-webkit-scrollbar-thumb {
+        background-color: rgba(100, 116, 139, 0.5);
+        border-radius: 4px;
+    }
+    .dashboard-content::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(100, 116, 139, 0.7);
     }
     </style>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <main class="dashboard-content">
         <!-- Filtros de Período -->
-        <div class="rounded-lg shadow-lg p-4 mb-6" style="background-color: #1e293b;">
-            <div class="flex flex-wrap items-center gap-4">
+        <div class="rounded-lg shadow-lg p-3 mb-4" style="background-color: #1e293b;">
+            <div class="flex flex-wrap items-center gap-3">
                 <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-gray-400">calendar_today</span>
-                    <span class="text-gray-300 font-medium">Período:</span>
+                    <span class="material-symbols-outlined text-gray-400 text-xl">calendar_today</span>
+                    <span class="text-gray-300 font-medium text-sm">Período:</span>
                 </div>
-                <select id="ano-filter" class="bg-gray-700 text-white px-4 py-2 rounded-lg border border-gray-600 focus:border-primary focus:outline-none" onchange="applyFilter()">
+                <select id="ano-filter" class="bg-gray-700 text-white px-3 py-1.5 text-sm rounded-lg border border-gray-600 focus:border-primary focus:outline-none" onchange="applyFilter()">
                     <!-- Populated by JS -->
                 </select>
-                <select id="mes-filter" class="bg-gray-700 text-white px-4 py-2 rounded-lg border border-gray-600 focus:border-primary focus:outline-none" onchange="applyFilter()">
+                <select id="mes-filter" class="bg-gray-700 text-white px-3 py-1.5 text-sm rounded-lg border border-gray-600 focus:border-primary focus:outline-none" onchange="applyFilter()">
                     <option value="1">Janeiro</option>
                     <option value="2">Fevereiro</option>
                     <option value="3">Março</option>
@@ -44,7 +71,7 @@
                     <option value="11">Novembro</option>
                     <option value="12">Dezembro</option>
                 </select>
-                <button onclick="refreshData()" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
+                <button onclick="refreshData()" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg transition-colors">
                     <span class="material-symbols-outlined text-sm">refresh</span>
                 </button>
             </div>
