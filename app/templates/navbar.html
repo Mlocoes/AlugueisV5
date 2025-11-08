@@ -207,18 +207,24 @@
 
 /* Mobile Sidebar */
 @media (max-width: 768px) {
-    .sidebar-autohide {
-        transform: translateX(-100%);
-        width: 14rem;
+    #sidebar {
+        transform: translateX(-100%) !important;
+        width: var(--sidebar-expanded-width) !important;
+        box-shadow: 4px 0 12px rgba(0,0,0,0.5);
     }
     
-    .sidebar-autohide.mobile-open {
-        transform: translateX(0);
+    #sidebar.mobile-open {
+        transform: translateX(0) !important;
     }
     
-    .sidebar-autohide .sidebar-text {
-        opacity: 1;
-        visibility: visible;
+    #sidebar .sidebar-text {
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+    
+    /* Esconder trigger area em mobile */
+    #sidebar-trigger {
+        display: none;
     }
 }
 </style>
@@ -229,22 +235,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const sidebar = document.getElementById('sidebar');
     const sidebarTrigger = document.getElementById('sidebar-trigger');
     
-    // Expandir ao passar o mouse na área de trigger
-    if (sidebarTrigger) {
-        sidebarTrigger.addEventListener('mouseenter', function() {
+    // Apenas ativar hover em desktop
+    if (window.innerWidth > 768) {
+        // Expandir ao passar o mouse na área de trigger
+        if (sidebarTrigger) {
+            sidebarTrigger.addEventListener('mouseenter', function() {
+                sidebar.classList.add('expanded');
+            });
+        }
+        
+        // Colapsar quando sair do sidebar
+        sidebar.addEventListener('mouseleave', function() {
+            sidebar.classList.remove('expanded');
+        });
+        
+        // Manter expandido ao passar o mouse no sidebar
+        sidebar.addEventListener('mouseenter', function() {
             sidebar.classList.add('expanded');
         });
     }
-    
-    // Colapsar quando sair do sidebar
-    sidebar.addEventListener('mouseleave', function() {
-        sidebar.classList.remove('expanded');
-    });
-    
-    // Manter expandido ao passar o mouse no sidebar
-    sidebar.addEventListener('mouseenter', function() {
-        sidebar.classList.add('expanded');
-    });
 });
 </script>
 

@@ -113,21 +113,148 @@
             height: 100% !important;
         }
         
+        /* ========== RESPONSIVE DESIGN - MOBILE ========== */
         @media (max-width: 768px) {
             .page-wrapper {
                 margin-left: 0 !important;
                 width: 100vw !important;
-                padding-top: 4rem;
+                padding: 0 !important;
+            }
+            
+            /* Sidebar móvel - escondido por padrão */
+            #sidebar {
+                transform: translateX(-100%) !important;
+                width: 14rem !important;
+                transition: transform 0.3s ease !important;
+            }
+            
+            #sidebar.mobile-open {
+                transform: translateX(0) !important;
+            }
+            
+            /* Botão hamburger para mobile */
+            .mobile-menu-btn {
+                display: block !important;
+                position: fixed;
+                top: 1rem;
+                left: 1rem;
+                z-index: 60;
+                background-color: var(--primary);
+                color: white;
+                padding: 0.5rem;
+                border-radius: 0.5rem;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            }
+            
+            /* Container ajustado para mobile */
+            .container {
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+            }
+            
+            /* Cards em coluna única */
+            .grid {
+                grid-template-columns: 1fr !important;
+            }
+            
+            /* Tabelas scrollable horizontalmente */
+            .overflow-x-auto {
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* Formulários full-width em mobile */
+            .modal .max-w-4xl,
+            .modal .max-w-7xl {
+                max-width: 95vw !important;
+                margin: 0.5rem !important;
+            }
+            
+            /* Reduzir padding de cards */
+            .card {
+                padding: 0.75rem !important;
+            }
+            
+            /* Stats cards menores */
+            .card p {
+                font-size: 0.875rem !important;
+            }
+            
+            /* Botões menores em mobile */
+            button, .btn-primary {
+                padding: 0.5rem 1rem !important;
+                font-size: 0.875rem !important;
+            }
+        }
+        
+        /* Tablet - landscape */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .page-wrapper {
+                margin-left: 3.5rem !important;
+                width: calc(100vw - 3.5rem) !important;
+            }
+            
+            /* Grid 2 colunas em tablets */
+            .grid-cols-4, .grid-cols-5 {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
+        
+        /* Desktop - mostrar menu button apenas em mobile */
+        @media (min-width: 769px) {
+            .mobile-menu-btn {
+                display: none !important;
             }
         }
     </style>
 </head>
 <body class="text-gray-100" style="background-color: #101622;">
+    <!-- Mobile Menu Button -->
+    <button id="mobile-menu-btn" class="mobile-menu-btn" onclick="toggleMobileMenu()" style="display: none;">
+        <span class="material-symbols-outlined">menu</span>
+    </button>
+    
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden" onclick="closeMobileMenu()"></div>
+    
     {% block content %}
     {% endblock %}
     
     <!-- JS utils -->
     <script src="/static/js/utils.js?v=2.0"></script>
+    
+    <!-- Mobile Menu Script -->
+    <script>
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            
+            if (sidebar && overlay) {
+                sidebar.classList.toggle('mobile-open');
+                overlay.classList.toggle('hidden');
+            }
+        }
+        
+        function closeMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            
+            if (sidebar && overlay) {
+                sidebar.classList.remove('mobile-open');
+                overlay.classList.add('hidden');
+            }
+        }
+        
+        // Fechar menu ao clicar em um link
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                const links = sidebar.querySelectorAll('a');
+                links.forEach(link => {
+                    link.addEventListener('click', closeMobileMenu);
+                });
+            }
+        });
+    </script>
     
     {% block scripts %}
     {% endblock %}
